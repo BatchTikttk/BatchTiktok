@@ -4,6 +4,7 @@ import { Search, CheckCircle2, Play, XCircle } from 'lucide-react';
 
 // Import semua komponen dari foldernya
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import LoginModal from "../components/LoginModal";
 import PostModal from "../components/PostModal";
 import RulesModal from "../components/RulesModal";
@@ -23,7 +24,6 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => 
   return (
     <div onClick={() => onOpenPreview(data)} className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative">
       
-      {/* DESAIN BADGE BARU: Tanpa Background, Posisi Tengah, Teks Miring "Uploaded by" */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
         <span className="text-[11px] font-medium text-slate-500 italic">
           Uploaded by <span className="font-semibold text-emerald-600 not-italic">{data.uploaded_by}</span>
@@ -41,7 +41,6 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => 
         {data.username}
       </h3>
       
-      {/* Label Negara Solid Emerald */}
       <span className="text-[11px] font-bold tracking-wider text-white bg-emerald-500 px-3 py-1 rounded-full mb-4 shadow-sm border-none">
         {data.country}
       </span>
@@ -57,7 +56,6 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => 
         </div>
       </div>
       
-      {/* Tombol Solid Emerald Fill */}
       <div className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold transition-all duration-300 bg-emerald-500 text-white hover:bg-emerald-600 shadow-md hover:shadow-lg border-none">
         <Play size={18} className="fill-current" />
         Preview Folder
@@ -85,7 +83,6 @@ export default function Home() {
     fetchAdmins();
     checkUser();
 
-    // SETUP SUPABASE REALTIME SUBSCRIPTION
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -210,72 +207,80 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-emerald-100 selection:text-emerald-900 pb-20">
+    <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col justify-between">
       
-      <Navbar 
-        activeCategory={activeCategory}
-        setActiveCategory={setActiveCategory}
-        resetSearch={() => setSearchQuery('')}
-        CATEGORIES={CATEGORIES}
-        currentUser={currentUser}
-        handleLogout={handleLogout}
-        setShowAddModal={setShowAddModal}
-        setShowLoginModal={setShowLoginModal}
-        setShowRulesModal={setShowRulesModal} 
-        EmeraldFolderIcon={EmeraldFolderIcon}
-      />
+      <div>
+        <Navbar 
+          activeCategory={activeCategory}
+          setActiveCategory={setActiveCategory}
+          resetSearch={() => setSearchQuery('')}
+          CATEGORIES={CATEGORIES}
+          currentUser={currentUser}
+          handleLogout={handleLogout}
+          setShowAddModal={setShowAddModal}
+          setShowLoginModal={setShowLoginModal}
+          setShowRulesModal={setShowRulesModal} 
+          EmeraldFolderIcon={EmeraldFolderIcon}
+        />
 
-      <main className="max-w-7xl mx-auto px-6 lg:px-8 mt-10">
-        <div className="animate-in fade-in duration-500">
-          
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-black text-slate-800 mb-4 tracking-tight leading-tight">
-                Curated Creator <br className="hidden md:block"/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600">Video Collections</span>
-              </h1>
-              <p className="text-slate-500 text-lg max-w-xl font-medium">
-                Direct bulk ZIP archives hosted, and share your tiktok archive here exclusively on <strong className="text-slate-700">Google Drive</strong> &amp; <strong className="text-slate-700">TeraBox</strong>.
-              </p>
-            </div>
-
-            <div className="relative w-full md:w-80 group">
-              <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+        <main className="max-w-7xl mx-auto px-6 lg:px-8 mt-10">
+          <div className="animate-in fade-in duration-500">
+            
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+              <div>
+                <h1 className="text-4xl md:text-5xl font-black text-slate-800 mb-4 tracking-tight leading-tight">
+                  Curated Creator <br className="hidden md:block"/>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600">Video Collections</span>
+                </h1>
+                <p className="text-slate-500 text-lg max-w-xl font-medium">
+                  Direct bulk ZIP archives hosted, and share your tiktok archive here exclusively on <strong className="text-slate-700">Google Drive</strong> &amp; <strong className="text-slate-700">TeraBox</strong>.
+                </p>
               </div>
-              <input
-                type="text"
-                placeholder="Search creators, region, uploader..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-14 pr-6 py-4 bg-white text-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.03)] focus:shadow-[0_8px_30px_rgb(0,0,0,0.08)] focus:outline-none transition-shadow font-medium placeholder:text-slate-400 border-none"
-              />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredBatches.length > 0 ? (
-              filteredBatches.map(batch => (
-                <CreatorCard 
-                  key={batch.id} 
-                  data={batch} 
-                  onOpenPreview={setPreviewItem} 
-                  uploaderCount={uploaderCounts[batch.uploaded_by] || 0} 
-                  adminList={adminList}
-                />
-              ))
-            ) : (
-              <div className="col-span-full py-20 flex flex-col items-center justify-center text-center">
-                <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6">
-                  <Search size={40} className="text-slate-300" />
+              <div className="relative w-full md:w-80 group">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-700 mb-2">No collections found</h3>
-                <p className="text-slate-500 max-w-md">Try adjusting your search query or switching categories to find what you're looking for.</p>
+                <input
+                  type="text"
+                  placeholder="Search creators, region, uploader..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-14 pr-6 py-4 bg-white text-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.03)] focus:shadow-[0_8px_30px_rgb(0,0,0,0.08)] focus:outline-none transition-shadow font-medium placeholder:text-slate-400 border-none"
+                />
               </div>
-            )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+              {filteredBatches.length > 0 ? (
+                filteredBatches.map(batch => (
+                  <CreatorCard 
+                    key={batch.id} 
+                    data={batch} 
+                    onOpenPreview={setPreviewItem} 
+                    uploaderCount={uploaderCounts[batch.uploaded_by] || 0} 
+                    adminList={adminList}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full py-20 flex flex-col items-center justify-center text-center">
+                  <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6">
+                    <Search size={40} className="text-slate-300" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-700 mb-2">No collections found</h3>
+                  <p className="text-slate-500 max-w-md">Try adjusting your search query or switching categories to find what you're looking for.</p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
+
+      {/* Footer ditambahkan di sini, diluar main container agar memenuhi lebar bawah layar */}
+      <Footer onSelectCountry={(category) => {
+        setActiveCategory(category);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }} />
 
       <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
       

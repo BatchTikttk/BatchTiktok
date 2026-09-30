@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import Home from './pages/Home';
 import Profile from './pages/Profile'; 
-
 export default function App() {
   // Menggunakan hash dari URL untuk sistem routing sederhana (tanpa library tambahan)
   const [currentRoute, setCurrentRoute] = useState(window.location.hash);
