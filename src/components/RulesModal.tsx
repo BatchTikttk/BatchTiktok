@@ -1,4 +1,3 @@
-import React from 'react';
 import { X, ShieldAlert, CheckCircle2, AlertCircle, FileVideo, Link2, Scale, DollarSign } from 'lucide-react';
 
 const RulesModal = ({ onClose }: { onClose: () => void }) => {
