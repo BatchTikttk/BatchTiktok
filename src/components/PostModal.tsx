@@ -182,7 +182,7 @@ const PostModal = ({ onClose, onSuccess, currentUser, showToast, CATEGORIES, onO
                 name="video_url" 
                 value={formData.video_url} 
                 onChange={handleChange} 
-                placeholder="https://files.catbox.moe/... or https://vt.tiktok.com/..." 
+                placeholder="https://files.catbox.moe/... or https://qu.ax/..." 
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" 
               />
             </div>
