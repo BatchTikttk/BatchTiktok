@@ -1,116 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabase';
-import { Search, Download, CheckCircle2, X, Play, Cloud, Box, XCircle, User, Crown, Award } from 'lucide-react';
+import { Search, CheckCircle2, Play, XCircle, User } from 'lucide-react';
 
-// Import Komponen dari folder components
+// Import semua komponen dari foldernya
 import Navbar from "../components/Navbar";
 import LoginModal from "../components/LoginModal";
 import PostModal from "../components/PostModal";
 import RulesModal from "../components/RulesModal";
+import PreviewModal from "../components/PreviewModal";
+import { EmeraldFolderIcon, UserBadge } from "../components/SharedIcons"; 
 
-const MOCK_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
 export const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Vietnam', 'Philippines'];
-
-// Komponen Badge User (Admin dinamis dari database, Crown untuk 30+, Award untuk 10-29)
-const UserBadge = ({ username, count, adminList = [] }: { username: string, count: number, adminList: string[] }) => {
-  if (!username) return null;
-  
-  const isAdmin = adminList.includes(username.toLowerCase());
-
-  if (isAdmin) {
-    return (
-      <div title="Official Admin" className="bg-emerald-100 p-0.5 rounded-full ml-0.5 flex-shrink-0">
-        <CheckCircle2 size={12} className="text-emerald-600" />
-      </div>
-    );
-  }
-  
-  if (count >= 30) {
-    return (
-      <div title={`King Contributor (${count} uploads)`} className="bg-yellow-100 p-0.5 rounded-full ml-0.5 flex-shrink-0">
-        <Crown size={12} className="text-yellow-600" />
-      </div>
-    );
-  }
-  
-  if (count >= 10) {
-    return (
-      <div title={`Active Contributor (${count} uploads)`} className="bg-blue-100 p-0.5 rounded-full ml-0.5 flex-shrink-0">
-        <Award size={12} className="text-blue-600" />
-      </div>
-    );
-  }
-
-  return null;
-};
-
-export const EmeraldFolderIcon = ({ className = "w-24 h-24", country }: { className?: string, country?: string }) => {
-  const clipId = country ? `flag-clip-${country.toLowerCase()}` : '';
-
-  const renderFlag = () => {
-    if (!country || country === 'Home') return null;
-
-    let flagContent = null;
-    switch (country) {
-      case 'Indonesia':
-        flagContent = (
-          <>
-            <rect x="13" y="13" width="10" height="5" fill="#EF4444" />
-            <rect x="13" y="18" width="10" height="5" fill="#FFFFFF" />
-          </>
-        );
-        break;
-      case 'Thailand':
-        flagContent = (
-          <>
-            <rect x="13" y="13" width="10" height="10" fill="#EF4444" />
-            <rect x="13" y="14.8" width="10" height="6.4" fill="#FFFFFF" />
-            <rect x="13" y="16.2" width="10" height="3.6" fill="#1E3A8A" />
-          </>
-        );
-        break;
-      case 'Vietnam':
-        flagContent = (
-          <>
-            <rect x="13" y="13" width="10" height="10" fill="#EF4444" />
-            <polygon points="18,14.2 19.2,16.2 21.5,16.2 19.6,17.6 20.3,19.8 18,18.4 15.7,19.8 16.4,17.6 14.5,16.2 16.8,16.2" fill="#FACC15" />
-          </>
-        );
-        break;
-      case 'Philippines':
-        flagContent = (
-          <>
-            <rect x="13" y="13" width="10" height="5" fill="#1D4ED8" />
-            <rect x="13" y="18" width="10" height="5" fill="#EF4444" />
-            <polygon points="13,13 13,23 18.5,18" fill="#FFFFFF" />
-            <circle cx="14.8" cy="18" r="1.5" fill="#FACC15" />
-          </>
-        );
-        break;
-      default:
-        return null;
-    }
-
-    return (
-      <g>
-        <circle cx="18" cy="18" r="5.5" fill="#FFFFFF" />
-        <clipPath id={clipId}>
-          <circle cx="18" cy="18" r="5" />
-        </clipPath>
-        <g clipPath={`url(#${clipId})`}>
-          {flagContent}
-        </g>
-      </g>
-    );
-  };
-
-  return (
-    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <path d="M10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4Z" fill="#10b981" />
-      {renderFlag()}
-    </svg>
-  );
-};
 
 const Toast = ({ message, isVisible, type = 'success' }: any) => (
   <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-2 transition-all duration-300 z-[9999] ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'} ${type === 'success' ? 'bg-slate-900 text-white' : 'bg-red-500 text-white'}`}>
@@ -160,115 +60,6 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => 
   );
 };
 
-const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: any) => {
-  if (!item) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
-      <div className="relative w-full max-w-4xl bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] animate-in zoom-in-95 duration-200">
-        
-        <button onClick={onClose} className="absolute top-4 right-4 z-20 p-2 bg-white/80 backdrop-blur-md rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all shadow-sm">
-          <X size={20} />
-        </button>
-
-        <div className="w-full md:w-5/12 bg-black relative flex-shrink-0 flex items-center justify-center min-h-[320px] md:min-h-[500px]">
-          <video src={item.video_url || MOCK_VIDEO_URL} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-90" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
-          
-          <div className="absolute bottom-6 left-6 right-6 text-white pointer-events-none">
-            <h4 className="font-bold text-lg">{item.username}</h4>
-            <p className="text-xs text-white/80 line-clamp-2 mt-1">
-              Sample preview from {item.country} TikTok batch archive. Watermark-free HD quality. ⚡
-            </p>
-          </div>
-        </div>
-
-        <div className="flex-1 p-6 sm:p-8 flex flex-col bg-slate-50/50 overflow-y-auto">
-          <div className="mb-6 flex items-start gap-4">
-            <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center flex-shrink-0">
-               <EmeraldFolderIcon className="w-10 h-10 drop-shadow-sm" country={item.country} />
-            </div>
-            <div>
-              <h2 className="text-2xl font-black text-slate-800 tracking-tight">{item.username}</h2>
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-100/60 px-2.5 py-1 rounded-full">
-                  {item.country} Batch
-                </span>
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
-                  <User size={12} /> 
-                  Uploaded by {item.uploaded_by}
-                  <UserBadge username={item.uploaded_by} count={uploaderCount} adminList={adminList} />
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.02)] border-none">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Total Videos</span>
-              <span className="text-xl font-bold text-slate-700">{item.video_count} files</span>
-            </div>
-            <div className="bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.02)] border-none">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Archive Size</span>
-              <span className="text-xl font-bold text-emerald-600">{item.size_file || `${item.size_gb} GB`}</span>
-            </div>
-          </div>
-
-          <div className="mb-8">
-            <a 
-              href={item.tiktok_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full flex items-center justify-center gap-2.5 px-4 py-3 bg-white hover:bg-slate-100 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] border-none text-slate-700 hover:text-black font-bold text-sm transition-all group"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 448 512" fill="currentColor" className="text-slate-800 group-hover:text-black transition-colors">
-                <path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/>
-              </svg>
-              <span>{item.username}</span>
-            </a>
-          </div>
-
-          <div className="mt-auto">
-            <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-3">Official Download Mirrors</h3>
-            <div className="space-y-3">
-              <button onClick={() => onDownload('Google Drive', item.gdrive_url)} className="w-full p-4 bg-white hover:bg-blue-50/50 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] hover:shadow-md transition-all flex items-center justify-between group border-none">
-                <div className="flex items-center gap-3.5">
-                  <div className="p-2.5 bg-blue-50 text-blue-500 rounded-xl group-hover:bg-blue-500 group-hover:text-white transition-colors">
-                    <Cloud size={22} />
-                  </div>
-                  <div className="text-left">
-                    <div className="font-bold text-slate-800 group-hover:text-blue-600 transition-colors">Google Drive</div>
-                    <div className="text-xs text-slate-400">High Speed • Single ZIP Archive</div>
-                  </div>
-                </div>
-                <div className="p-2 rounded-xl bg-slate-50 text-slate-400 group-hover:bg-blue-500 group-hover:text-white transition-all">
-                  <Download size={18} />
-                </div>
-              </button>
-
-              <button onClick={() => onDownload('TeraBox', item.terabox_url)} className="w-full p-4 bg-white hover:bg-cyan-50/50 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] hover:shadow-md transition-all flex items-center justify-between group border-none">
-                <div className="flex items-center gap-3.5">
-                  <div className="p-2.5 bg-cyan-50 text-cyan-600 rounded-xl group-hover:bg-cyan-500 group-hover:text-white transition-colors">
-                    <Box size={22} />
-                  </div>
-                  <div className="text-left">
-                    <div className="font-bold text-slate-800 group-hover:text-cyan-600 transition-colors">TeraBox Cloud</div>
-                    <div className="text-xs text-slate-400">Unlimited Cloud Mirror • Free Download</div>
-                  </div>
-                </div>
-                <div className="p-2 rounded-xl bg-slate-50 text-slate-400 group-hover:bg-cyan-500 group-hover:text-white transition-all">
-                  <Download size={18} />
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export default function Home() {
   const [batches, setBatches] = useState<any[]>([]);
   const [adminList, setAdminList] = useState<string[]>([]);
@@ -289,7 +80,6 @@ export default function Home() {
     checkUser();
   }, []);
 
-  // Mengambil daftar username yang memiliki is_admin = true dari Supabase
   const fetchAdmins = async () => {
     const { data } = await supabase
       .from('profiles')
