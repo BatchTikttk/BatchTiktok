@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { X, Cloud, Box, Download, User, Volume2, VolumeX } from 'lucide-react';
 import { EmeraldFolderIcon, UserBadge } from './SharedIcons'; 
 import { supabase } from '../supabase';
-import TikTokEmbed from './TikTokEmbed';
 
 const MOCK_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
 
@@ -79,8 +78,23 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
 
   if (!item) return null;
 
-  const videoUrl = item.video_url || item.tiktok_url || MOCK_VIDEO_URL;
+  const videoUrl = item.video_url || MOCK_VIDEO_URL;
   const isTikTokLink = videoUrl.includes("tiktok.com");
+
+  // Mengekstrak Video ID jika itu link TikTok
+  const getTikTokEmbedUrl = (url: string) => {
+    try {
+      const match = url.match(/\/video\/(\d+)/);
+      if (match && match[1]) {
+        return `https://www.tiktok.com/embed/v2/${match[1]}`;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const tikTokEmbedUrl = isTikTokLink ? getTikTokEmbedUrl(videoUrl) : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
@@ -94,8 +108,13 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
 
         <div className="w-full md:w-[300px] bg-black relative flex-shrink-0 flex items-center justify-center min-h-[320px] md:min-h-[540px]">
           
-          {isTikTokLink ? (
-            <TikTokEmbed urlOrId={videoUrl} username={item.username} />
+          {isTikTokLink && tikTokEmbedUrl ? (
+            <iframe 
+              src={tikTokEmbedUrl} 
+              className="absolute inset-0 w-full h-full border-none"
+              allowFullScreen
+              allow="encrypted-media"
+            ></iframe>
           ) : (
             <>
               <video 
@@ -122,7 +141,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
           
-          <div className="absolute bottom-6 left-6 right-6 text-white pointer-events-none z-10">
+          <div className="absolute bottom-6 left-6 right-6 text-white pointer-events-none">
             <h4 className="font-bold text-lg drop-shadow-md">{item.username}</h4>
             <p className="text-xs text-white/90 line-clamp-2 mt-1 drop-shadow-md">
               Sample preview from {item.country} TikTok batch archive. Watermark-free HD quality. ⚡
