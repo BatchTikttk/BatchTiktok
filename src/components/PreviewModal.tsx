@@ -7,42 +7,65 @@ const MOCK_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
 
 const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: any) => {
   const [isMuted, setIsMuted] = useState(true);
-  const [uploaderAvatar, setUploaderAvatar] = useState<string | null>(null);
+  
+  // Ambil foto avatar bawaan langsung dari props item jika ada
+  const [uploaderAvatar, setUploaderAvatar] = useState<string | null>(
+    item?.uploader_avatar || item?.avatar_url || null
+  );
 
   useEffect(() => {
     let channel: any;
 
+    // Update avatar dari item props jika berubah
+    if (item?.uploader_avatar || item?.avatar_url) {
+      setUploaderAvatar(item.uploader_avatar || item.avatar_url);
+    }
+
     const fetchUploaderAvatar = async () => {
-      if (!item?.uploaded_by) return;
+      if (!item) return;
 
-      const targetName = item.uploaded_by.trim();
+      let profileData: any = null;
 
-      // Query fleksibel case-insensitive untuk mencari profile berdasarkan username/full_name
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, avatar_url')
-        .or(`username.ilike.${targetName},full_name.ilike.${targetName}`)
-        .limit(1);
+      // Priority 1: Query berdasarkan user_id (Relasi Utama DB)
+      if (item.user_id) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, avatar_url')
+          .eq('id', item.user_id)
+          .maybeSingle();
 
-      if (data && data.length > 0) {
-        const profile = data[0];
-        
-        // Set inisial avatar
-        setUploaderAvatar(profile.avatar_url || null);
+        if (data) profileData = data;
+      }
 
-        // Realtime Subscription untuk update foto profile uploader secara live
+      // Priority 2: Fallback query berdasarkan username / full_name
+      if (!profileData && item.uploaded_by) {
+        const targetName = item.uploaded_by.trim();
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, avatar_url')
+          .or(`username.ilike."${targetName}",full_name.ilike."${targetName}"`)
+          .limit(1);
+
+        if (data && data.length > 0) profileData = data[0];
+      }
+
+      if (profileData) {
+        if (profileData.avatar_url) {
+          setUploaderAvatar(profileData.avatar_url);
+        }
+
+        // Realtime Subscription
         channel = supabase
-          .channel(`public:profiles:uploader_${profile.id}`)
+          .channel(`public:profiles:uploader_${profileData.id}`)
           .on(
             'postgres_changes',
             {
               event: 'UPDATE',
               schema: 'public',
               table: 'profiles',
-              filter: `id=eq.${profile.id}`,
+              filter: `id=eq.${profileData.id}`,
             },
             (payload) => {
-              // Pastikan state langsung sinkron dengan data baru di database
               if (payload.new) {
                 setUploaderAvatar(payload.new.avatar_url || null);
               }
@@ -59,14 +82,13 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
         supabase.removeChannel(channel);
       }
     };
-  }, [item?.uploaded_by]);
+  }, [item?.id, item?.user_id, item?.uploaded_by, item?.uploader_avatar, item?.avatar_url]);
 
   if (!item) return null;
 
   const videoUrl = item.video_url || MOCK_VIDEO_URL;
   const isTikTokLink = videoUrl.includes("tiktok.com");
 
-  // Mengekstrak Video ID jika itu link TikTok
   const getTikTokEmbedUrl = (url: string) => {
     try {
       const match = url.match(/\/video\/(\d+)/);
@@ -111,7 +133,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
                 className="absolute inset-0 w-full h-full object-cover opacity-90" 
               />
               
-              {/* Tombol Speaker untuk MP4 */}
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
@@ -136,14 +157,12 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
 
         <div className="flex-1 p-6 sm:p-8 flex flex-col bg-white overflow-y-auto">
           <div className="mb-6 flex items-start gap-4">
-            {/* Icon langsung tanpa background container */}
             <div className="flex-shrink-0 pt-1">
                <EmeraldFolderIcon className="w-12 h-12 drop-shadow-sm" country={item.country} />
             </div>
             <div>
               <h2 className="text-2xl font-black text-slate-800 tracking-tight">{item.username}</h2>
               
-              {/* Label & Uploaded by dengan Avatar Uploader */}
               <div className="flex flex-wrap items-center gap-2.5 mt-1.5">
                 <span className="text-sm font-semibold text-emerald-600">
                   {item.country} Batch
@@ -157,7 +176,12 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
                   {/* Container Avatar Uploader */}
                   <div className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 shadow-sm">
                     {uploaderAvatar ? (
-                      <img src={uploaderAvatar} alt={item.uploaded_by} className="w-full h-full object-cover" />
+                      <img 
+                        src={uploaderAvatar} 
+                        alt={item.uploaded_by} 
+                        className="w-full h-full object-cover" 
+                        onError={() => setUploaderAvatar(null)}
+                      />
                     ) : (
                       <User size={12} className="text-slate-400" />
                     )}
