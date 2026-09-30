@@ -16,6 +16,9 @@ import { EmeraldFolderIcon, UserBadge } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
+// Definisikan categories agar Navbar tidak crash saat melakukan .map()
+const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Vietnam', 'Philippines'];
+
 interface ProfileProps {
   currentUser: string | null;
   onBack: () => void;
@@ -85,7 +88,6 @@ export default function Profile({
     setLoading(false);
   };
 
-  // Kalkulasi statistik pengguna
   const stats = useMemo(() => {
     const totalUploads = userBatches.length;
     const totalApproved = userBatches.filter(b => b.status === 'approved').length;
@@ -161,13 +163,15 @@ export default function Profile({
     <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col justify-between">
       
       <div>
-        {/* Navbar Aplikasi */}
+        {/* Navbar Aplikasi - Menambahkan CATEGORIES dan EmeraldFolderIcon agar tidak crash */}
         <Navbar 
+          CATEGORIES={CATEGORIES}
+          EmeraldFolderIcon={EmeraldFolderIcon}
           currentUser={currentUser} 
           onLogout={onLogout}
           onSelectCategory={(category: string) => {
             if (onSelectCategory) onSelectCategory(category);
-            onBack(); // Kembali ke halaman utama saat memilih kategori
+            onBack(); 
           }}
           onGoHome={onBack}
         />
@@ -175,7 +179,6 @@ export default function Profile({
         {/* Kontainer Utama */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
           
-          {/* Banner Kartu Profil Utama */}
           <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100/80 mb-8 flex flex-col md:flex-row items-center md:items-start justify-between gap-6">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
               <div className="w-20 h-20 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 flex-shrink-0">
@@ -216,7 +219,6 @@ export default function Profile({
             </div>
           </div>
 
-          {/* Ringkasan Statistik */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
             
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
@@ -269,7 +271,6 @@ export default function Profile({
 
           </div>
 
-          {/* Daftar Batch/Folder Pengguna */}
           <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -338,7 +339,6 @@ export default function Profile({
         </main>
       </div>
 
-      {/* Footer Komponen */}
       <Footer onSelectCountry={(category: string) => {
         if (onSelectCategory) onSelectCategory(category);
         onBack();
