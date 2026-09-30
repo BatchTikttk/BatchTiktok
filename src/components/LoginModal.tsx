@@ -52,14 +52,14 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
           ]);
           
         if (profileError) {
-          showToast('Gagal membuat profil: ' + profileError.message, 'error');
+          showToast('Failed to create profile: ' + profileError.message, 'error');
           setIsLoading(false);
           return;
         }
         
         setIsLoading(false);
         setIsSuccess(true);
-        showToast('Registrasi berhasil! Email verifikasi telah dikirim.', 'success');
+        showToast('Registration successful! A verification email has been sent..', 'success');
         
         setTimeout(() => {
           setIsSuccess(false);
@@ -82,7 +82,7 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
       
       await onSuccess();
       onClose();
-      showToast('Berhasil masuk!', 'success');
+      showToast('Successfully logged in', 'success');
     }
     
     setIsLoading(false);
@@ -102,10 +102,10 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
       if (data.session) {
         await onSuccess();
         onClose();
-        showToast('Berhasil masuk dengan Google!', 'success');
+        showToast('Successfully signed in with Google!', 'success');
       }
     } catch (err: any) {
-      showToast('Gagal memproses Google Login: ' + err.message, 'error');
+      showToast('Failed to process Google Login:' + err.message, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -257,7 +257,7 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
               <div className="absolute top-0 left-0 w-full h-full opacity-[0.01] z-10 cursor-pointer flex items-center justify-center transform scale-[3]">
                 <GoogleLogin 
                   onSuccess={handleGoogleSuccess} 
-                  onError={() => showToast('Login Google dibatalkan', 'error')} 
+                  onError={() => showToast('Login Google cenceld', 'error')} 
                   useOneTap={false} 
                 />
               </div>
