@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabase';
 import { Search, Download, CheckCircle2, X, Play, Cloud, Box, XCircle, User, Crown, Award } from 'lucide-react';
 
@@ -297,7 +297,7 @@ export default function Home() {
       .eq('is_admin', true);
 
     if (data) {
-      setAdminList(data.map(p => (p.username || '').toLowerCase()));
+      setAdminList(data.map((p: any) => (p.username || '').toLowerCase()));
     }
   };
 
