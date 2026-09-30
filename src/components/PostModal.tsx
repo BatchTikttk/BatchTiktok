@@ -174,7 +174,7 @@ const PostModal = ({ onClose, onSuccess, currentUser, showToast, CATEGORIES, onO
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                 <label className="text-sm font-semibold text-slate-700">Video Preview</label>
                 <span className="text-[11px] font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
-                  Upload to catbox.moe or use a TikTok video link
+                  Upload to catbox.moe or use a qu.ax
                 </span>
               </div>
               <input 
