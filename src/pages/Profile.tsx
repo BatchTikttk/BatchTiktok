@@ -53,7 +53,6 @@ export default function Profile({ currentUser, onBack, showToast }: ProfileProps
       return;
     }
 
-    // Ambil data profil pengguna
     const { data: profile } = await supabase
       .from('profiles')
       .select('*')
@@ -64,7 +63,6 @@ export default function Profile({ currentUser, onBack, showToast }: ProfileProps
       setUserProfile(profile);
     }
 
-    // Ambil daftar batch yang diunggah oleh pengguna ini
     const { data: batches } = await supabase
       .from('batches')
       .select('*')
@@ -78,7 +76,7 @@ export default function Profile({ currentUser, onBack, showToast }: ProfileProps
     setLoading(false);
   };
 
-  // Kalkulasi statistik pengguna
+  // Kalkulasi statistik pengguna dengan konversi satuan yang benar
   const stats = useMemo(() => {
     const totalUploads = userBatches.length;
     const totalApproved = userBatches.filter(b => b.status === 'approved').length;
@@ -86,22 +84,41 @@ export default function Profile({ currentUser, onBack, showToast }: ProfileProps
     
     const totalVideos = userBatches.reduce((acc, b) => acc + (Number(b.video_count) || 0), 0);
     
-    // Hitung estimasi akumulasi ukuran file (GB)
+    // 1. Hitung total dalam Gigabyte (GB)
     const totalGB = userBatches.reduce((acc, b) => {
       if (b.size_gb) return acc + Number(b.size_gb);
       if (b.size_file) {
-        const parsed = parseFloat(b.size_file);
-        return acc + (isNaN(parsed) ? 0 : parsed);
+        const sizeStr = b.size_file.toString().toUpperCase();
+        const val = parseFloat(sizeStr);
+        if (isNaN(val)) return acc;
+        
+        // Konversi berdasarkan string satuan
+        if (sizeStr.includes('MB')) return acc + (val / 1024);
+        if (sizeStr.includes('KB')) return acc + (val / (1024 * 1024));
+        if (sizeStr.includes('TB')) return acc + (val * 1024);
+        
+        return acc + val; // default fallback ke GB jika tidak ada satuan
       }
       return acc;
     }, 0);
+
+    // 2. Format Tampilan Secara Pintar
+    let totalSizeDisplay = '0 GB';
+    if (totalGB > 0) {
+      if (totalGB < 1) {
+        // Jika di bawah 1 GB, konversi dan tampilkan sebagai MB
+        totalSizeDisplay = (totalGB * 1024).toFixed(1) + ' MB';
+      } else {
+        totalSizeDisplay = totalGB.toFixed(1) + ' GB';
+      }
+    }
 
     return {
       totalUploads,
       totalApproved,
       totalPending,
       totalVideos,
-      totalGB: totalGB.toFixed(1)
+      totalSizeDisplay
     };
   }, [userBatches]);
 
@@ -129,7 +146,7 @@ export default function Profile({ currentUser, onBack, showToast }: ProfileProps
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-sm font-bold text-slate-500">Memuat Statistik Profile...</span>
+          <span className="text-sm font-bold text-slate-500">Memuat Statistik Profil...</span>
         </div>
       </div>
     );
@@ -139,7 +156,6 @@ export default function Profile({ currentUser, onBack, showToast }: ProfileProps
     <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-emerald-100 selection:text-emerald-900 pb-20">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-8">
         
-        {/* Tombol Navigasi Kembali */}
         <div className="flex items-center justify-between mb-8">
           <button 
             onClick={onBack}
@@ -150,7 +166,6 @@ export default function Profile({ currentUser, onBack, showToast }: ProfileProps
           </button>
         </div>
 
-        {/* Kartu Informasi Pengguna Utama */}
         <div className="bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.03)] mb-8 flex flex-col md:flex-row items-center md:items-start justify-between gap-6 border-none">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
             <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 flex-shrink-0">
@@ -185,13 +200,12 @@ export default function Profile({ currentUser, onBack, showToast }: ProfileProps
           <div className="flex items-center gap-3 bg-emerald-50/60 px-5 py-3 rounded-2xl border-none">
             <TrendingUp size={24} className="text-emerald-600" />
             <div>
-              <div className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Status Kontribusi</div>
+              <div className="text-xs font-semibold text-emerald-800">Status Kontribusi</div>
               <div className="text-sm font-bold text-emerald-600">Level {Math.floor(stats.totalUploads / 3) + 1} Creator</div>
             </div>
           </div>
         </div>
 
-        {/* Grid Kartu Statistik Utama */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           
           <div className="bg-white p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] flex items-center gap-4 border-none">
@@ -199,7 +213,7 @@ export default function Profile({ currentUser, onBack, showToast }: ProfileProps
               <Folder size={28} />
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Total Folder</span>
+              <span className="text-xs font-semibold text-slate-500 block mb-0.5">Total Folder</span>
               <span className="text-2xl font-black text-slate-800">{stats.totalUploads}</span>
             </div>
           </div>
@@ -209,7 +223,7 @@ export default function Profile({ currentUser, onBack, showToast }: ProfileProps
               <Video size={28} />
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Total Video</span>
+              <span className="text-xs font-semibold text-slate-500 block mb-0.5">Total Video</span>
               <span className="text-2xl font-black text-slate-800">{stats.totalVideos}</span>
             </div>
           </div>
@@ -219,8 +233,9 @@ export default function Profile({ currentUser, onBack, showToast }: ProfileProps
               <HardDrive size={28} />
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Total Ukuran</span>
-              <span className="text-2xl font-black text-slate-800">{stats.totalGB} GB</span>
+              <span className="text-xs font-semibold text-slate-500 block mb-0.5">Total Ukuran</span>
+              {/* Teks GB dihapus karena sudah di-handle oleh totalSizeDisplay */}
+              <span className="text-2xl font-black text-slate-800">{stats.totalSizeDisplay}</span>
             </div>
           </div>
 
@@ -229,14 +244,21 @@ export default function Profile({ currentUser, onBack, showToast }: ProfileProps
               <BarChart3 size={28} />
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Disetujui</span>
-              <span className="text-2xl font-black text-slate-800">{stats.totalApproved} / {stats.totalUploads}</span>
+              <span className="text-xs font-semibold text-slate-500 block mb-0.5">Disetujui</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-black text-slate-800">{stats.totalApproved}</span>
+                <span className="text-xs text-slate-400 font-medium">/ {stats.totalUploads}</span>
+                {stats.totalPending > 0 && (
+                  <span className="text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md ml-1">
+                    ({stats.totalPending} pending)
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
         </div>
 
-        {/* Daftar Batch/Folder Yang Diunggah Oleh Pengguna */}
         <div className="bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border-none">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -267,7 +289,6 @@ export default function Profile({ currentUser, onBack, showToast }: ProfileProps
                   </div>
 
                   <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-200/60">
-                    {/* Status Approval */}
                     {batch.status === 'approved' ? (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
                         <CheckCircle2 size={14} /> Disetujui
@@ -278,7 +299,6 @@ export default function Profile({ currentUser, onBack, showToast }: ProfileProps
                       </span>
                     )}
 
-                    {/* Tombol Hapus */}
                     <button
                       onClick={() => handleDeleteBatch(batch.id)}
                       disabled={deletingId === batch.id}
