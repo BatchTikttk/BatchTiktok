@@ -42,7 +42,7 @@ export default function Profile({
   const [adminList, setAdminList] = useState<string[]>([]);
   const [deletingId, setDeletingId] = useState<string | number | null>(null);
 
-  // State untuk Modal agar seirama dengan Home.tsx
+  // State for Modals to stay synced with Home.tsx
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -139,7 +139,7 @@ export default function Profile({
   }, [userBatches]);
 
   const handleDeleteBatch = async (batchId: string | number) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus folder koleksi ini?")) return;
+    if (!confirm("Are you sure you want to delete this collection folder?")) return;
 
     setDeletingId(batchId);
     const { error } = await supabase
@@ -150,10 +150,10 @@ export default function Profile({
     setDeletingId(null);
 
     if (error) {
-      if (showToast) showToast("Gagal menghapus folder", "error");
+      if (showToast) showToast("Failed to delete folder", "error");
     } else {
       setUserBatches(prev => prev.filter(b => b.id !== batchId));
-      if (showToast) showToast("Folder berhasil dihapus", "success");
+      if (showToast) showToast("Folder deleted successfully", "success");
     }
   };
 
@@ -168,7 +168,7 @@ export default function Profile({
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-sm font-bold text-slate-500">Memuat Profil...</span>
+          <span className="text-sm font-bold text-slate-500">Loading Profile...</span>
         </div>
       </div>
     );
@@ -178,7 +178,7 @@ export default function Profile({
     <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col justify-between">
       
       <div>
-        {/* Navbar Aplikasi - Tersinkronisasi penuh dengan Home.tsx */}
+        {/* Application Navbar */}
         <Navbar 
           activeCategory=""
           setActiveCategory={(category: string) => {
@@ -195,7 +195,7 @@ export default function Profile({
           setShowRulesModal={() => setShowRulesModal(true)}
         />
 
-        {/* Kontainer Utama */}
+        {/* Main Container */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
           
           <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100/80 mb-8 flex flex-col md:flex-row items-center md:items-start justify-between gap-6">
@@ -207,7 +207,7 @@ export default function Profile({
               <div>
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
                   <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
-                    {activeUsername || 'Pengguna'}
+                    {activeUsername || 'User'}
                   </h1>
                   <UserBadge 
                     username={activeUsername || ''} 
@@ -218,7 +218,7 @@ export default function Profile({
                 
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-1.5 text-sm">
                   <span className="text-slate-400 font-medium">
-                    Kontributor Aktif
+                    Active Contributor
                   </span>
                   {userProfile?.is_admin && (
                     <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 px-3 py-0.5 rounded-full">
@@ -232,7 +232,7 @@ export default function Profile({
             <div className="flex items-center gap-3 bg-emerald-50/70 px-5 py-3 rounded-2xl border border-emerald-100/50">
               <TrendingUp size={22} className="text-emerald-600" />
               <div>
-                <div className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Status Creator</div>
+                <div className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Creator Status</div>
                 <div className="text-sm font-extrabold text-emerald-600">Level {Math.floor(stats.totalUploads / 3) + 1}</div>
               </div>
             </div>
@@ -245,7 +245,7 @@ export default function Profile({
                 <Folder size={24} />
               </div>
               <div>
-                <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Total Folder</span>
+                <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Total Folders</span>
                 <span className="text-2xl font-black text-slate-800">{stats.totalUploads}</span>
               </div>
             </div>
@@ -255,7 +255,7 @@ export default function Profile({
                 <Video size={24} />
               </div>
               <div>
-                <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Total Video</span>
+                <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Total Videos</span>
                 <span className="text-2xl font-black text-slate-800">{stats.totalVideos}</span>
               </div>
             </div>
@@ -265,7 +265,7 @@ export default function Profile({
                 <HardDrive size={24} />
               </div>
               <div>
-                <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Total Ukuran</span>
+                <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Total Size</span>
                 <span className="text-2xl font-black text-slate-800">{stats.totalSizeDisplay}</span>
               </div>
             </div>
@@ -275,7 +275,7 @@ export default function Profile({
                 <BarChart3 size={24} />
               </div>
               <div>
-                <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Disetujui</span>
+                <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Approved</span>
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-2xl font-black text-slate-800">{stats.totalApproved}</span>
                   <span className="text-xs text-slate-400 font-semibold">/ {stats.totalUploads}</span>
@@ -293,8 +293,8 @@ export default function Profile({
           <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-bold text-slate-800 tracking-tight">Koleksi Batch Anda</h2>
-                <p className="text-xs text-slate-400 font-medium">Daftar folder video yang telah Anda unggah ke sistem</p>
+                <h2 className="text-lg font-bold text-slate-800 tracking-tight">Your Batch Collections</h2>
+                <p className="text-xs text-slate-400 font-medium">List of video folders you have uploaded to the system</p>
               </div>
             </div>
 
@@ -312,7 +312,7 @@ export default function Profile({
                         <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 font-medium">
                           <span className="text-emerald-600 font-bold">{batch.country}</span>
                           <span>•</span>
-                          <span>{batch.video_count} Video</span>
+                          <span>{batch.video_count} Videos</span>
                           <span>•</span>
                           <span>{batch.size_file || `${batch.size_gb} GB`}</span>
                         </div>
@@ -322,11 +322,11 @@ export default function Profile({
                     <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-200/50">
                       {batch.status === 'approved' ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100/80 text-emerald-700">
-                          <CheckCircle2 size={14} /> Disetujui
+                          <CheckCircle2 size={14} /> Approved
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100/80 text-amber-700">
-                          <Clock size={14} /> Menunggu Review
+                          <Clock size={14} /> Pending Review
                         </span>
                       )}
 
@@ -334,7 +334,7 @@ export default function Profile({
                         onClick={() => handleDeleteBatch(batch.id)}
                         disabled={deletingId === batch.id}
                         className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border-none bg-transparent cursor-pointer"
-                        title="Hapus Folder"
+                        title="Delete Folder"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -347,9 +347,9 @@ export default function Profile({
                 <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mb-3 text-slate-400">
                   <Folder size={28} />
                 </div>
-                <h3 className="text-sm font-bold text-slate-700 mb-1">Belum Ada Koleksi</h3>
+                <h3 className="text-sm font-bold text-slate-700 mb-1">No Collections Yet</h3>
                 <p className="text-xs text-slate-400 max-w-xs font-medium">
-                  Anda belum memiliki koleksi video yang diunggah.
+                  You haven't uploaded any video collections yet.
                 </p>
               </div>
             )}
@@ -363,7 +363,7 @@ export default function Profile({
         onBack();
       }} />
 
-      {/* Modal pendukung Navbar */}
+      {/* Supporting Modals */}
       {showRulesModal && (
         <RulesModal onClose={() => setShowRulesModal(false)} />
       )}
