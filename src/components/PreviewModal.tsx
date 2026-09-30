@@ -13,33 +13,51 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
     let channel: any;
 
     const fetchUploaderAvatar = async () => {
-      if (!item?.uploaded_by) return;
+      if (!item) return;
 
-      const targetName = item.uploaded_by.trim();
+      let profileData = null;
 
-      // Query fleksibel case-insensitive untuk mencari profile berdasarkan username/full_name
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, avatar_url')
-        .or(`username.ilike.${targetName},full_name.ilike.${targetName}`)
-        .limit(1);
+      // 1. Utamakan pencarian berdasarkan user_id jika tersedia di item
+      if (item.user_id) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, avatar_url')
+          .eq('id', item.user_id)
+          .maybeSingle();
 
-      if (data && data.length > 0) {
-        const profile = data[0];
-        if (profile.avatar_url) {
-          setUploaderAvatar(profile.avatar_url);
+        if (data) profileData = data;
+      }
+
+      // 2. Jika tidak ditemukan via user_id, fallback ke pencarian nama/username
+      if (!profileData && item.uploaded_by) {
+        const targetName = item.uploaded_by.trim();
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, avatar_url')
+          .or(`username.ilike.${targetName},full_name.ilike.${targetName}`)
+          .limit(1);
+
+        if (data && data.length > 0) {
+          profileData = data[0];
+        }
+      }
+
+      // 3. Pasang foto avatar dan realtime subscription
+      if (profileData) {
+        if (profileData.avatar_url) {
+          setUploaderAvatar(profileData.avatar_url);
         }
 
         // Realtime Subscription untuk update foto profile uploader secara live
         channel = supabase
-          .channel(`public:profiles:uploader:${profile.id}`)
+          .channel(`public:profiles:uploader:${profileData.id}`)
           .on(
             'postgres_changes',
             {
               event: 'UPDATE',
               schema: 'public',
               table: 'profiles',
-              filter: `id=eq.${profile.id}`,
+              filter: `id=eq.${profileData.id}`,
             },
             (payload) => {
               if (payload.new && payload.new.avatar_url) {
@@ -56,7 +74,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
-  }, [item?.uploaded_by]);
+  }, [item?.uploaded_by, item?.user_id]);
 
   if (!item) return null;
 
@@ -151,12 +169,12 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
                 <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500">
                   <span className="italic">Uploaded by</span> 
                   
-                  {/* Container Avatar Uploader (Ukuran presisi & serasi) */}
-                  <div className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 shadow-sm">
+                  {/* Container Avatar Uploader (Ukuran proporsional & presisi) */}
+                  <div className="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 shadow-sm">
                     {uploaderAvatar ? (
                       <img src={uploaderAvatar} alt={item.uploaded_by} className="w-full h-full object-cover" />
                     ) : (
-                      <User size={12} className="text-slate-400" />
+                      <User size={14} className="text-slate-400" />
                     )}
                   </div>
 
