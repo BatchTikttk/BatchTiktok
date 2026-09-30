@@ -15,6 +15,9 @@ import {
 import { EmeraldFolderIcon, UserBadge } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import RulesModal from '../components/RulesModal';
+import PostModal from '../components/PostModal';
+import LoginModal from '../components/LoginModal';
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Vietnam', 'Philippines'];
 
@@ -38,6 +41,11 @@ export default function Profile({
   const [userBatches, setUserBatches] = useState<any[]>([]);
   const [adminList, setAdminList] = useState<string[]>([]);
   const [deletingId, setDeletingId] = useState<string | number | null>(null);
+
+  // State untuk Modal agar seirama dengan Home.tsx
+  const [showRulesModal, setShowRulesModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     fetchUserData();
@@ -86,6 +94,8 @@ export default function Profile({
 
     setLoading(false);
   };
+
+  const activeUsername = userProfile?.username || currentUser;
 
   const stats = useMemo(() => {
     const totalUploads = userBatches.length;
@@ -147,6 +157,12 @@ export default function Profile({
     }
   };
 
+  const handleLogoutAction = async () => {
+    await supabase.auth.signOut();
+    if (onLogout) onLogout();
+    onBack();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
@@ -162,7 +178,7 @@ export default function Profile({
     <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col justify-between">
       
       <div>
-        {/* Navbar Aplikasi - Menggunakan struktur props yang persis seperti di Home.tsx */}
+        {/* Navbar Aplikasi - Tersinkronisasi penuh dengan Home.tsx */}
         <Navbar 
           activeCategory=""
           setActiveCategory={(category: string) => {
@@ -172,18 +188,11 @@ export default function Profile({
           resetSearch={() => {}}
           CATEGORIES={CATEGORIES}
           EmeraldFolderIcon={EmeraldFolderIcon}
-          currentUser={currentUser} 
-          handleLogout={() => {
-            if (onLogout) onLogout();
-            onBack();
-          }}
-          setShowAddModal={() => {
-            if (showToast) showToast("Silakan kembali ke halaman utama (Home) untuk menambah koleksi", "info");
-          }}
-          setShowLoginModal={() => {}}
-          setShowRulesModal={() => {
-            if (showToast) showToast("Silakan kembali ke halaman utama (Home) untuk melihat Rules", "info");
-          }}
+          currentUser={activeUsername} 
+          handleLogout={handleLogoutAction}
+          setShowAddModal={() => setShowAddModal(true)}
+          setShowLoginModal={() => setShowLoginModal(true)}
+          setShowRulesModal={() => setShowRulesModal(true)}
         />
 
         {/* Kontainer Utama */}
@@ -198,10 +207,10 @@ export default function Profile({
               <div>
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
                   <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
-                    {userProfile?.username || currentUser || 'Pengguna'}
+                    {activeUsername || 'Pengguna'}
                   </h1>
                   <UserBadge 
-                    username={userProfile?.username || currentUser || ''} 
+                    username={activeUsername || ''} 
                     count={stats.totalUploads} 
                     adminList={adminList} 
                   />
@@ -353,6 +362,29 @@ export default function Profile({
         if (onSelectCategory) onSelectCategory(category);
         onBack();
       }} />
+
+      {/* Modal pendukung Navbar */}
+      {showRulesModal && (
+        <RulesModal onClose={() => setShowRulesModal(false)} />
+      )}
+
+      {showAddModal && (
+        <PostModal 
+          onClose={() => setShowAddModal(false)}
+          onSuccess={fetchUserData}
+          currentUser={activeUsername}
+          showToast={showToast}
+          CATEGORIES={CATEGORIES}
+        />
+      )}
+
+      {showLoginModal && (
+        <LoginModal 
+          onClose={() => setShowLoginModal(false)}
+          onSuccess={fetchUserData}
+          showToast={showToast}
+        />
+      )}
 
     </div>
   );
