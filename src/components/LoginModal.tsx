@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Mail, Lock, X, Loader2, Folder } from 'lucide-react';
+import { User, Mail, Lock, X, Loader2, Folder, Eye, EyeOff, Check } from 'lucide-react';
 import { supabase } from '../supabase';
 
 export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
@@ -8,10 +8,13 @@ export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolde
   const [authPassword, setAuthPassword] = useState('');
   const [authUsername, setAuthUsername] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setIsSuccess(false);
     
     if (isRegistering) {
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -33,14 +36,23 @@ export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolde
           ]);
           
         if (profileError) {
-          showToast('Failed to create profile', 'error');
+          showToast('Gagal membuat profil pengguna.', 'error');
           setIsLoading(false);
           return;
         }
         
-        showToast('Registration successful! Please sign in.', 'success');
-        setIsRegistering(false);
-        setAuthPassword(''); 
+        // Menampilkan state sukses (ceklis pada tombol)
+        setIsLoading(false);
+        setIsSuccess(true);
+        showToast('Registrasi berhasil! Silakan cek email Anda untuk verifikasi.', 'success');
+        
+        // Jeda sebentar untuk memperlihatkan animasi ceklis, lalu beralih ke form login
+        setTimeout(() => {
+          setIsSuccess(false);
+          setIsRegistering(false);
+          setAuthPassword(''); 
+        }, 3000);
+        return;
       }
     } else {
       const { error } = await supabase.auth.signInWithPassword({
@@ -56,7 +68,7 @@ export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolde
       
       await onSuccess();
       onClose();
-      showToast('Successfully signed in!', 'success');
+      showToast('Berhasil masuk!', 'success');
     }
     
     setIsLoading(false);
@@ -67,7 +79,7 @@ export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolde
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
-        onClick={!isLoading ? onClose : undefined}
+        onClick={!isLoading && !isSuccess ? onClose : undefined}
       ></div>
       
       {/* Modal Content */}
@@ -76,7 +88,7 @@ export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolde
         {/* Close Button */}
         <button 
           onClick={onClose} 
-          disabled={isLoading}
+          disabled={isLoading || isSuccess}
           className="absolute top-5 right-5 z-20 p-2 bg-slate-50 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-all border-none"
         >
           <X size={20} />
@@ -86,7 +98,7 @@ export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolde
           {/* Header */}
           <div className="mb-8 text-center">
             
-            {/* Logo & Judul persis seperti Navbar */}
+            {/* Logo & Judul */}
             <div className="flex items-center justify-center gap-3 mb-6">
               <div className="w-10 h-10 flex items-center justify-center">
                 {EmeraldFolderIcon ? (
@@ -125,7 +137,7 @@ export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolde
                   value={authUsername}
                   onChange={e => setAuthUsername(e.target.value)}
                   maxLength={15}
-                  disabled={isLoading}
+                  disabled={isLoading || isSuccess}
                   className="w-full pl-12 pr-5 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl font-medium text-slate-700 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all"
                 />
               </div>
@@ -141,7 +153,7 @@ export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolde
                 placeholder="Email Address" 
                 value={authEmail}
                 onChange={e => setAuthEmail(e.target.value)}
-                disabled={isLoading}
+                disabled={isLoading || isSuccess}
                 className="w-full pl-12 pr-5 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl font-medium text-slate-700 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all"
               />
             </div>
@@ -151,26 +163,39 @@ export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolde
                 <Lock className="h-5 w-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
               </div>
               <input 
-                type="password" 
+                type="password"
                 required
                 minLength={6}
                 placeholder="Password (Min. 6 characters)" 
                 value={authPassword}
                 onChange={e => setAuthPassword(e.target.value)}
-                disabled={isLoading}
-                className="w-full pl-12 pr-5 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl font-medium text-slate-700 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all"
+                disabled={isLoading || isSuccess}
+                className="w-full pl-12 pr-12 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl font-medium text-slate-700 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={isLoading || isSuccess}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center justify-center bg-transparent border-none outline-none text-slate-400 hover:text-emerald-500 transition-colors disabled:opacity-50"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
 
             <button 
               type="submit" 
-              disabled={isLoading}
-              className="w-full py-3.5 mt-2 rounded-2xl bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold shadow-[0_8px_20px_rgba(16,185,129,0.25)] hover:shadow-[0_10px_25px_rgba(16,185,129,0.35)] transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 border-none disabled:opacity-70 disabled:pointer-events-none"
+              disabled={isLoading || isSuccess}
+              className={`w-full py-3.5 mt-2 rounded-2xl ${isSuccess ? 'bg-emerald-600' : 'bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700'} text-white font-bold shadow-[0_8px_20px_rgba(16,185,129,0.25)] hover:shadow-[0_10px_25px_rgba(16,185,129,0.35)] transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 border-none disabled:opacity-70 disabled:pointer-events-none`}
             >
               {isLoading ? (
                 <>
                   <Loader2 size={20} className="animate-spin" /> 
-                  <span>Processing...</span>
+                  <span>Memproses...</span>
+                </>
+              ) : isSuccess ? (
+                <>
+                  <Check size={20} className="animate-in zoom-in duration-300" />
+                  <span>Verifikasi Terkirim!</span>
                 </>
               ) : (
                 <span>{isRegistering ? 'Sign Up' : 'Sign In'}</span>
@@ -184,8 +209,11 @@ export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolde
               {isRegistering ? 'Already have an account?' : "Don't have an account?"}
               <button 
                 type="button"
-                onClick={() => setIsRegistering(!isRegistering)}
-                disabled={isLoading}
+                onClick={() => {
+                  setIsRegistering(!isRegistering);
+                  setIsSuccess(false);
+                }}
+                disabled={isLoading || isSuccess}
                 className="ml-1.5 font-bold text-emerald-600 hover:text-emerald-700 hover:underline underline-offset-4 bg-transparent border-none p-0 transition-colors"
               >
                 {isRegistering ? 'Sign In' : 'Sign Up'}
