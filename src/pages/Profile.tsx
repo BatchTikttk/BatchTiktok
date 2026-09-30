@@ -16,7 +16,6 @@ import {
   FolderHeart,
   Settings,
   LogOut,
-  ArrowLeft,
   Sparkles
 } from 'lucide-react';
 import { EmeraldFolderIcon, UserBadge } from '../components/SharedIcons';
@@ -50,10 +49,10 @@ export default function Profile({
   const [adminList, setAdminList] = useState<string[]>([]);
   const [deletingId, setDeletingId] = useState<string | number | null>(null);
 
-  // State Tabs Layout
+  // Sidebar Tabs State
   const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'settings'>('overview');
 
-  // State Modals
+  // Modals State
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -107,7 +106,7 @@ export default function Profile({
     setLoading(false);
   };
 
-  // Fungsi Update Avatar ke Supabase
+  // Update Avatar URL in Supabase database
   const handleUpdateAvatar = async (avatarUrl: string) => {
     const { data: { session } } = await supabase.auth.getSession();
     
@@ -119,10 +118,10 @@ export default function Profile({
       .eq('id', session.user.id);
 
     if (error) {
-      if (showToast) showToast("Gagal memperbarui avatar profil", "error");
+      if (showToast) showToast("Failed to update profile avatar", "error");
     } else {
       setUserProfile((prev: any) => ({ ...prev, avatar_url: avatarUrl }));
-      if (showToast) showToast("Avatar berhasil diperbarui!", "success");
+      if (showToast) showToast("Avatar updated successfully!", "success");
     }
   };
 
@@ -227,20 +226,20 @@ export default function Profile({
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
           
-          {/* Main Layout Grid (Sidebar Tabs & Content) */}
+          {/* Main Layout Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            {/* SIDEBAR KIRI: Info Pengguna & Navigasi Menu */}
+            {/* LEFT SIDEBAR: User Info & Nav Menu */}
             <div className="lg:col-span-4 space-y-6">
               
-              {/* Card Profil Pengguna */}
+              {/* User Profile Card */}
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center">
                 
-                {/* Avatar dengan Tombol Edit Ganti Foto */}
+                {/* Avatar with Edit Badge */}
                 <div 
                   className="relative group cursor-pointer"
                   onClick={() => setShowAvatarModal(true)}
-                  title="Klik untuk ganti avatar"
+                  title="Click to change avatar"
                 >
                   <div className="w-24 h-24 rounded-3xl bg-emerald-500 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 border-4 border-white transition-all group-hover:scale-105">
                     {userProfile?.avatar_url ? (
@@ -281,7 +280,7 @@ export default function Profile({
                   </div>
                 </div>
 
-                {/* Status Level */}
+                {/* Level Status */}
                 <div className="w-full mt-6 bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <div className="p-2 bg-emerald-100 text-emerald-700 rounded-xl">
@@ -299,7 +298,7 @@ export default function Profile({
 
               </div>
 
-              {/* Sidebar Tabs Menu */}
+              {/* Sidebar Nav Tabs */}
               <div className="bg-white rounded-3xl p-3 shadow-sm border border-slate-100 space-y-1">
                 <button
                   onClick={() => setActiveTab('overview')}
@@ -320,7 +319,7 @@ export default function Profile({
                       : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
-                  <FolderHeart size={18} /> Koleksi Batch Saya
+                  <FolderHeart size={18} /> My Batch Collections
                 </button>
 
                 <button
@@ -331,29 +330,22 @@ export default function Profile({
                       : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
-                  <Settings size={18} /> Pengaturan Akun
+                  <Settings size={18} /> Account Settings
                 </button>
 
                 <hr className="my-2 border-slate-100" />
 
                 <button
-                  onClick={onBack}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-slate-500 hover:bg-slate-50 transition-all border-none cursor-pointer"
-                >
-                  <ArrowLeft size={18} /> Kembali ke Home
-                </button>
-
-                <button
                   onClick={handleLogoutAction}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-50 transition-all border-none cursor-pointer"
                 >
-                  <LogOut size={18} /> Keluar Akun
+                  <LogOut size={18} /> Sign Out
                 </button>
               </div>
 
             </div>
 
-            {/* KONTEN KANAN: Isi Berdasarkan Tab */}
+            {/* RIGHT CONTENT AREA */}
             <div className="lg:col-span-8 space-y-6">
               
               {/* TAB 1: OVERVIEW STATS */}
@@ -396,7 +388,7 @@ export default function Profile({
                         <BarChart3 size={26} />
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Status Approved</span>
+                        <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Approved Status</span>
                         <div className="flex items-baseline gap-2">
                           <span className="text-3xl font-black text-slate-800">{stats.totalApproved}</span>
                           <span className="text-xs text-slate-400 font-semibold">/ {stats.totalUploads}</span>
@@ -411,18 +403,18 @@ export default function Profile({
 
                   </div>
 
-                  {/* Ringkasan Koleksi Terbaru */}
+                  {/* Recent Collections Overview */}
                   <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100">
                     <div className="flex items-center justify-between mb-6">
                       <div>
-                        <h2 className="text-lg font-bold text-slate-800 tracking-tight">Koleksi Terbaru</h2>
-                        <p className="text-xs text-slate-400 font-medium">Beberapa folder video terakhir yang Anda posting</p>
+                        <h2 className="text-lg font-bold text-slate-800 tracking-tight">Recent Collections</h2>
+                        <p className="text-xs text-slate-400 font-medium">Overview of your latest uploaded video folders</p>
                       </div>
                       <button 
                         onClick={() => setActiveTab('collections')}
                         className="text-xs font-bold text-emerald-600 hover:text-emerald-700 border-none bg-transparent cursor-pointer"
                       >
-                        Lihat Semua →
+                        View All →
                       </button>
                     </div>
 
@@ -457,19 +449,19 @@ export default function Profile({
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-slate-400 text-center py-6">Belum ada koleksi yang diunggah.</p>
+                      <p className="text-xs text-slate-400 text-center py-6">No collections uploaded yet.</p>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* TAB 2: DAFTAR KOLEKSI BATCH */}
+              {/* TAB 2: BATCH COLLECTIONS */}
               {activeTab === 'collections' && (
                 <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100 animate-in fade-in duration-200">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-lg font-bold text-slate-800 tracking-tight">Koleksi Batch Saya</h2>
-                      <p className="text-xs text-slate-400 font-medium">Daftar lengkap folder video yang Anda miliki</p>
+                      <h2 className="text-lg font-bold text-slate-800 tracking-tight">My Batch Collections</h2>
+                      <p className="text-xs text-slate-400 font-medium">Full list of video folders you have uploaded</p>
                     </div>
                   </div>
 
@@ -522,26 +514,26 @@ export default function Profile({
                       <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mb-3 text-slate-400">
                         <Folder size={28} />
                       </div>
-                      <h3 className="text-sm font-bold text-slate-700 mb-1">Belum Ada Koleksi</h3>
+                      <h3 className="text-sm font-bold text-slate-700 mb-1">No Collections Yet</h3>
                       <p className="text-xs text-slate-400 max-w-xs font-medium">
-                        Anda belum pernah mengunggah folder koleksi video.
+                        You haven't uploaded any video collections yet.
                       </p>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* TAB 3: PENGATURAN PROFIL & AVATAR */}
+              {/* TAB 3: ACCOUNT SETTINGS */}
               {activeTab === 'settings' && (
                 <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100 space-y-6 animate-in fade-in duration-200">
                   <div>
-                    <h2 className="text-lg font-bold text-slate-800 tracking-tight">Pengaturan Profil</h2>
-                    <p className="text-xs text-slate-400 font-medium">Kelola avatar dan data profil Anda</p>
+                    <h2 className="text-lg font-bold text-slate-800 tracking-tight">Account Settings</h2>
+                    <p className="text-xs text-slate-400 font-medium">Manage your profile avatar and account details</p>
                   </div>
 
                   <hr className="border-slate-100" />
 
-                  {/* Pengaturan Avatar */}
+                  {/* Avatar Settings Section */}
                   <div className="flex flex-col sm:flex-row items-center gap-6 p-5 bg-slate-50/70 rounded-2xl border border-slate-100">
                     <div className="w-20 h-20 rounded-2xl bg-emerald-500 overflow-hidden flex items-center justify-center text-white shadow-md flex-shrink-0">
                       {userProfile?.avatar_url ? (
@@ -551,18 +543,18 @@ export default function Profile({
                       )}
                     </div>
                     <div className="space-y-2 text-center sm:text-left">
-                      <h3 className="text-sm font-bold text-slate-800">Avatar Profil Karakter</h3>
-                      <p className="text-xs text-slate-400">Pilih dari koleksi avatar karakter resmi untuk mempercantik profil Anda.</p>
+                      <h3 className="text-sm font-bold text-slate-800">Character Avatar</h3>
+                      <p className="text-xs text-slate-400">Select from our official character avatar collection to personalize your profile.</p>
                       <button
                         onClick={() => setShowAvatarModal(true)}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-sm transition-all border-none cursor-pointer"
                       >
-                        <Sparkles size={14} /> Ganti Avatar Karakter
+                        <Sparkles size={14} /> Change Avatar
                       </button>
                     </div>
                   </div>
 
-                  {/* Informasi Akun */}
+                  {/* Account Information */}
                   <div className="space-y-4 pt-2">
                     <div>
                       <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Username</label>
@@ -589,7 +581,7 @@ export default function Profile({
         onBack();
       }} />
 
-      {/* Modal Avatar */}
+      {/* Supporting Modals */}
       {showAvatarModal && (
         <AvatarModal 
           currentAvatar={userProfile?.avatar_url}
@@ -598,7 +590,6 @@ export default function Profile({
         />
       )}
 
-      {/* Modal Lainnya */}
       {showRulesModal && (
         <RulesModal onClose={() => setShowRulesModal(false)} />
       )}
