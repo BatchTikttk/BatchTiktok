@@ -21,27 +21,32 @@ const Toast = ({ message, isVisible, type = 'success' }: any) => (
 
 const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => {
   return (
-    <div onClick={() => onOpenPreview(data)} className="bg-white p-6 pt-10 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative">
-      <div className="absolute top-4 right-4 bg-slate-50/80 px-3 py-1.5 rounded-full flex items-center gap-1 shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-slate-100/50">
-        <User size={10} className="text-slate-400 mr-0.5" />
-        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider truncate max-w-[80px]">
-          {data.uploaded_by}
+    <div onClick={() => onOpenPreview(data)} className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative">
+      
+      {/* DESAIN BADGE BARU: Tanpa Background, Posisi Tengah, Teks Miring "Uploaded by" */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
+        <span className="text-[11px] font-medium text-slate-500 italic">
+          Uploaded by <span className="font-semibold text-emerald-600 not-italic">{data.uploaded_by}</span>
         </span>
-        <UserBadge username={data.uploaded_by} count={uploaderCount} adminList={adminList} />
+        <div className="flex items-center justify-center">
+          <UserBadge username={data.uploaded_by} count={uploaderCount} adminList={adminList} />
+        </div>
       </div>
 
-      <div className="mb-5 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
+      <div className="mb-5 mt-2 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
         <EmeraldFolderIcon country={data.country} />
       </div>
       
       <h3 className="text-lg font-bold text-slate-800 mb-1 tracking-tight">
         {data.username}
       </h3>
-      <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full mb-4">
+      
+      {/* Label Negara Solid Emerald */}
+      <span className="text-[11px] font-bold tracking-wider text-white bg-emerald-500 px-3 py-1 rounded-full mb-4 shadow-sm border-none">
         {data.country}
       </span>
       
-      <div className="flex w-full justify-between px-5 py-3.5 bg-slate-50/80 rounded-2xl mb-5">
+      <div className="flex w-full justify-between px-5 py-3.5 bg-slate-50/80 rounded-2xl mb-5 border-none">
         <div className="flex flex-col items-start">
           <span className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Videos</span>
           <span className="text-sm font-bold text-slate-700">{data.video_count}</span>
@@ -52,7 +57,8 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => 
         </div>
       </div>
       
-      <div className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold transition-all duration-300 bg-slate-50 text-slate-600 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:shadow-[0_4px_14px_0_rgba(16,185,129,0.15)]">
+      {/* Tombol Solid Emerald Fill */}
+      <div className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold transition-all duration-300 bg-emerald-500 text-white hover:bg-emerald-600 shadow-md hover:shadow-lg border-none">
         <Play size={18} className="fill-current" />
         Preview Folder
       </div>
@@ -78,6 +84,31 @@ export default function Home() {
     fetchBatches();
     fetchAdmins();
     checkUser();
+
+    // SETUP SUPABASE REALTIME SUBSCRIPTION
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        () => {
+          checkUser();
+          fetchAdmins();
+          fetchBatches(); 
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'batches' },
+        () => {
+          fetchBatches();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchAdmins = async () => {
@@ -92,7 +123,9 @@ export default function Home() {
   };
 
   const fetchBatches = async () => {
-    const { data, error } = await supabase
+    const { data: profiles } = await supabase.from('profiles').select('id, username');
+    
+    const { data: batchesData, error } = await supabase
       .from('batches')
       .select('*')
       .eq('status', 'approved') 
@@ -101,7 +134,24 @@ export default function Home() {
     if (error) {
       showToast('Gagal memuat data dari database', 'error');
     } else {
-      setBatches(data || []);
+      const realtimeBatches = (batchesData || []).map(batch => {
+        const uploaderProfile = profiles?.find(p => p.id === batch.user_id);
+        
+        return {
+          ...batch,
+          uploaded_by: uploaderProfile?.username || batch.uploaded_by
+        };
+      });
+
+      setBatches(realtimeBatches);
+      
+      setPreviewItem((prev: any) => {
+        if (prev) {
+          const updatedItem = realtimeBatches.find((b: any) => b.id === prev.id);
+          return updatedItem || prev;
+        }
+        return prev;
+      });
     }
   };
 

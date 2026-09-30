@@ -1,10 +1,31 @@
-import { X, Cloud, Box, Download, User } from 'lucide-react';
+import { useState } from 'react';
+import { X, Cloud, Box, Download, User, Volume2, VolumeX } from 'lucide-react';
 import { EmeraldFolderIcon, UserBadge } from './SharedIcons'; 
 
 const MOCK_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
 
 const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: any) => {
+  const [isMuted, setIsMuted] = useState(true);
+
   if (!item) return null;
+
+  const videoUrl = item.video_url || MOCK_VIDEO_URL;
+  const isTikTokLink = videoUrl.includes("tiktok.com");
+
+  // Mengekstrak Video ID jika itu link TikTok
+  const getTikTokEmbedUrl = (url: string) => {
+    try {
+      const match = url.match(/\/video\/(\d+)/);
+      if (match && match[1]) {
+        return `https://www.tiktok.com/embed/v2/${match[1]}`;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const tikTokEmbedUrl = isTikTokLink ? getTikTokEmbedUrl(videoUrl) : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
@@ -17,33 +38,69 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
         </button>
 
         <div className="w-full md:w-[300px] bg-black relative flex-shrink-0 flex items-center justify-center min-h-[320px] md:min-h-[540px]">
-          <video src={item.video_url || MOCK_VIDEO_URL} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-90" />
+          
+          {isTikTokLink && tikTokEmbedUrl ? (
+            <iframe 
+              src={tikTokEmbedUrl} 
+              className="absolute inset-0 w-full h-full border-none"
+              allowFullScreen
+              allow="encrypted-media"
+            ></iframe>
+          ) : (
+            <>
+              <video 
+                src={videoUrl} 
+                autoPlay 
+                loop 
+                muted={isMuted} 
+                playsInline 
+                className="absolute inset-0 w-full h-full object-cover opacity-90" 
+              />
+              
+              {/* Tombol Speaker untuk MP4 */}
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsMuted(!isMuted);
+                }} 
+                className="absolute top-4 left-4 z-20 p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-all shadow-sm"
+              >
+                {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+              </button>
+            </>
+          )}
+
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
           
           <div className="absolute bottom-6 left-6 right-6 text-white pointer-events-none">
-            <h4 className="font-bold text-lg">{item.username}</h4>
-            <p className="text-xs text-white/80 line-clamp-2 mt-1">
+            <h4 className="font-bold text-lg drop-shadow-md">{item.username}</h4>
+            <p className="text-xs text-white/90 line-clamp-2 mt-1 drop-shadow-md">
               Sample preview from {item.country} TikTok batch archive. Watermark-free HD quality. ⚡
             </p>
           </div>
         </div>
 
-        {/* Background diubah menjadi putih solid (bg-white) agar lebih bersih dan jelas */}
         <div className="flex-1 p-6 sm:p-8 flex flex-col bg-white overflow-y-auto">
           <div className="mb-6 flex items-start gap-4">
-            <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center flex-shrink-0 border border-emerald-100/50">
-               <EmeraldFolderIcon className="w-10 h-10 drop-shadow-sm" country={item.country} />
+            {/* Icon langsung tanpa background container */}
+            <div className="flex-shrink-0 pt-1">
+               <EmeraldFolderIcon className="w-12 h-12 drop-shadow-sm" country={item.country} />
             </div>
             <div>
               <h2 className="text-2xl font-black text-slate-800 tracking-tight">{item.username}</h2>
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                {/* Menghapus uppercase pada label */}
-                <span className="inline-block text-[11px] font-semibold text-emerald-700 bg-emerald-100/60 px-3 py-1 rounded-full">
+              
+              {/* Label & Uploaded by tanpa background pill, hanya teks bersih */}
+              <div className="flex flex-wrap items-center gap-2.5 mt-1.5">
+                <span className="text-sm font-semibold text-emerald-600">
                   {item.country} Batch
                 </span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700 bg-blue-50 px-3 py-1 rounded-full">
-                  <User size={12} /> 
-                  Uploaded by {item.uploaded_by}
+                
+                <span className="text-slate-300 text-sm">•</span>
+                
+                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500">
+                  <User size={14} className="text-slate-400" /> 
+                  <span className="italic">Uploaded by</span> 
+                  <span className="font-bold text-slate-700 not-italic">{item.uploaded_by}</span>
                   <UserBadge username={item.uploaded_by} count={uploaderCount} adminList={adminList} />
                 </span>
               </div>
@@ -52,7 +109,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
 
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-              {/* Huruf kapital dihapus, diganti menggunakan font-semibold biasa */}
               <span className="text-xs font-semibold text-slate-500 block mb-1">Total Videos</span>
               <span className="text-lg font-bold text-slate-700">{item.video_count} files</span>
             </div>
@@ -77,7 +133,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
           </div>
 
           <div className="mt-auto">
-            {/* Huruf kapital dihapus */}
             <h3 className="text-sm font-bold text-slate-700 mb-3">Official Download Mirrors</h3>
             <div className="space-y-3">
               <button onClick={() => onDownload('Google Drive', item.gdrive_url)} className="w-full p-4 bg-white hover:bg-blue-50/50 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] hover:shadow-md transition-all flex items-center justify-between group border border-slate-100">

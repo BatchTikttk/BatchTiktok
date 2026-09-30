@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, X, Plus, LogIn, LogOut, User, ChevronDown, Scale } from 'lucide-react';
+import { Menu, X, Plus, LogIn, LogOut, User, ChevronDown, Scale, BarChart2 } from 'lucide-react';
 
 export default function Navbar({ 
   activeCategory, 
@@ -36,10 +36,14 @@ export default function Navbar({
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
-          {/* Bagian Logo - Mengarah ke Home */}
+          {/* Bagian Logo - Mengarah ke Home (menghapus hash jika sedang di profil) */}
           <div 
             className="flex items-center gap-3 cursor-pointer group"
-            onClick={() => { setActiveCategory('Home'); resetSearch(); }}
+            onClick={() => { 
+              setActiveCategory('Home'); 
+              resetSearch();
+              window.location.hash = ''; // Pastikan kembali ke beranda
+            }}
           >
             <div className="w-10 h-10 flex items-center justify-center transform group-hover:scale-105 transition-transform">
               <EmeraldFolderIcon className="w-8 h-8 drop-shadow-md" />
@@ -54,9 +58,12 @@ export default function Navbar({
             {CATEGORIES.map((category: string) => (
               <button
                 key={category}
-                onClick={() => setActiveCategory(category)}
+                onClick={() => {
+                  setActiveCategory(category);
+                  window.location.hash = ''; // Pindah ke home jika diklik dari profil
+                }}
                 className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 ${
-                  activeCategory === category 
+                  activeCategory === category && window.location.hash !== '#profile'
                     ? 'bg-emerald-50 text-emerald-600 shadow-sm' 
                     : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
                 }`}
@@ -102,6 +109,16 @@ export default function Navbar({
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
                     <div className="absolute right-0 mt-3 w-52 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                      
+                      {/* Tautan ke Halaman Profile User */}
+                      <a
+                        href="#profile"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="w-full px-4 py-3.5 flex items-center gap-3 text-sm font-bold text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors border-b border-slate-50 text-left"
+                      >
+                        <BarChart2 size={18} /> User Profile
+                      </a>
+
                       <button
                         onClick={() => {
                           setShowAddModal(true);
@@ -111,6 +128,7 @@ export default function Navbar({
                       >
                         <Plus size={18} /> Add Collection
                       </button>
+                      
                       <button
                         onClick={() => {
                           handleLogout();
@@ -151,9 +169,15 @@ export default function Navbar({
           {CATEGORIES.map((category: string) => (
             <button
               key={category}
-              onClick={() => { setActiveCategory(category); setIsMobileMenuOpen(false); }}
+              onClick={() => { 
+                setActiveCategory(category); 
+                setIsMobileMenuOpen(false);
+                window.location.hash = ''; // Pindah ke home jika diklik dari profil
+              }}
               className={`px-4 py-3 rounded-2xl text-left text-sm font-bold transition-all border-none ${
-                activeCategory === category ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600 hover:bg-slate-50'
+                activeCategory === category && window.location.hash !== '#profile' 
+                  ? 'bg-emerald-50 text-emerald-600' 
+                  : 'text-slate-600 hover:bg-slate-50'
               }`}
             >
               {category === 'All' ? 'Home' : category}
@@ -175,6 +199,16 @@ export default function Navbar({
                   <span className="block text-xs font-semibold text-slate-400">Signed in as</span>
                   <span className="block text-sm font-bold text-slate-800">@{displayUser}</span>
                 </div>
+                
+                {/* Tautan Profil Mobile */}
+                <a 
+                  href="#profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-colors rounded-2xl"
+                >
+                  <BarChart2 size={18} /> User Profile
+                </a>
+
                 <button onClick={() => {setShowAddModal(true); setIsMobileMenuOpen(false);}} className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors rounded-2xl">
                   <Plus size={18} /> Add New Collection
                 </button>
