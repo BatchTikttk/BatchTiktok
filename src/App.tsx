@@ -1,26 +1,45 @@
 import { useState, useEffect } from 'react';
 import Home from './pages/Home';
 import Profile from './pages/Profile'; 
+
 export default function App() {
-  // Menggunakan hash dari URL untuk sistem routing sederhana (tanpa library tambahan)
-  const [currentRoute, setCurrentRoute] = useState(window.location.hash);
+  // Menggunakan pathname (/profile) dari URL, bukan hash (#)
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
   useEffect(() => {
-    // Mendengarkan setiap perubahan pada URL Hash (contoh: domain.com/#profile)
-    const handleRouteChange = () => {
-      setCurrentRoute(window.location.hash);
+    // Pengecekan ekstra: Jika pengguna terlanjur membuka link dengan hash lama, 
+    // kita bersihkan otomatis dan ubah ke URL bersih (path)
+    if (window.location.hash === '#profile') {
+      window.history.replaceState({}, '', '/profile');
+      setCurrentPath('/profile');
+    } else if (window.location.hash === '#') {
+      window.history.replaceState({}, '', '/');
+      setCurrentPath('/');
+    }
+
+    // Mendengarkan tombol back/forward pada browser
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname);
     };
 
-    window.addEventListener('hashchange', handleRouteChange);
-    return () => window.removeEventListener('hashchange', handleRouteChange);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Jika URL mengandung #profile, render halaman Profile
-  if (currentRoute === '#profile') {
+  // Fungsi navigasi kustom untuk mengganti URL tanpa reload halaman
+  const navigateTo = (path: string) => {
+    window.history.pushState({}, '', path);
+    setCurrentPath(path);
+    // Memicu event agar komponen lain tahu URL berubah (jika diperlukan)
+    window.dispatchEvent(new Event('popstate'));
+  };
+
+  // Jika URL saat ini adalah /profile, render halaman Profile
+  if (currentPath === '/profile') {
     return (
       <Profile 
-        currentUser={null} // Profile.tsx sudah mandiri mengambil data session dari Supabase
-        onBack={() => { window.location.hash = ''; }} // Kembali ke halaman utama (menghapus hash)
+        currentUser={null} 
+        onBack={() => navigateTo('/')} // Kembali ke halaman utama dengan URL bersih (/)
       />
     );
   }
