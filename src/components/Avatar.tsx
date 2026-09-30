@@ -29,9 +29,9 @@ export default function AvatarModal({
         {/* Header Modal */}
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-bold text-slate-800">Pilih Avatar Karakter</h3>
+            <h3 className="text-lg font-bold text-slate-800">Select Character Avatar</h3>
             <p className="text-xs text-slate-400 font-medium mt-0.5">
-              Pilih foto profil yang ingin Anda gunakan
+              Select the profile photo you want to use.
             </p>
           </div>
           <button
