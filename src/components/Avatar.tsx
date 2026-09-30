@@ -85,7 +85,7 @@ export default function AvatarModal({
             onClick={onClose}
             className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-xl transition-all border-none cursor-pointer"
           >
-            Batal
+            Cencel
           </button>
         </div>
 
