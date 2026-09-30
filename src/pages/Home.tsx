@@ -22,8 +22,10 @@ const Toast = ({ message, isVisible, type = 'success' }: any) => (
 
 const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => {
   return (
-    <div onClick={() => onOpenPreview(data)} className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative">
-      
+    <div 
+      onClick={() => onOpenPreview(data)} 
+      className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative"
+    >
       <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
         <span className="text-[11px] font-medium text-slate-500 italic">
           Uploaded by <span className="font-semibold text-emerald-600 not-italic">{data.uploaded_by}</span>
@@ -83,6 +85,7 @@ export default function Home() {
     fetchAdmins();
     checkUser();
 
+    // Supabase Realtime Listener
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -217,9 +220,9 @@ export default function Home() {
           CATEGORIES={CATEGORIES}
           currentUser={currentUser}
           handleLogout={handleLogout}
-          setShowAddModal={setShowAddModal}
-          setShowLoginModal={setShowLoginModal}
-          setShowRulesModal={setShowRulesModal} 
+          setShowAddModal={() => setShowAddModal(true)}
+          setShowLoginModal={() => setShowLoginModal(true)}
+          setShowRulesModal={() => setShowRulesModal(true)} 
           EmeraldFolderIcon={EmeraldFolderIcon}
         />
 
@@ -276,7 +279,6 @@ export default function Home() {
         </main>
       </div>
 
-      {/* Footer ditambahkan di sini, diluar main container agar memenuhi lebar bawah layar */}
       <Footer onSelectCountry={(category) => {
         setActiveCategory(category);
         window.scrollTo({ top: 0, behavior: 'smooth' });
