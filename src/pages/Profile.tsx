@@ -91,9 +91,9 @@ export default function Profile({
     const totalApproved = userBatches.filter(b => b.status === 'approved').length;
     const totalPending = userBatches.filter(b => b.status === 'pending').length;
     
-    const totalVideos = userBatches.reduce((acc, b) => acc + (Number(b.video_count) || 0), 0);
+    const totalVideos = userBatches.reduce((acc: number, b: any) => acc + (Number(b.video_count) || 0), 0);
     
-    const totalGB = userBatches.reduce((acc, b) => {
+    const totalGB = userBatches.reduce((acc: number, b: any) => {
       if (b.size_gb) return acc + Number(b.size_gb);
       if (b.size_file) {
         const sizeStr = b.size_file.toString().toUpperCase();
@@ -165,14 +165,14 @@ export default function Profile({
         <Navbar 
           currentUser={currentUser} 
           onLogout={onLogout}
-          onSelectCategory={(category) => {
+          onSelectCategory={(category: string) => {
             if (onSelectCategory) onSelectCategory(category);
             onBack(); // Kembali ke halaman utama saat memilih kategori
           }}
           onGoHome={onBack}
         />
 
-        {/* Kontainer Utama Serasi Dengan Halaman Depan */}
+        {/* Kontainer Utama */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
           
           {/* Banner Kartu Profil Utama */}
@@ -339,7 +339,7 @@ export default function Profile({
       </div>
 
       {/* Footer Komponen */}
-      <Footer onSelectCountry={(category) => {
+      <Footer onSelectCountry={(category: string) => {
         if (onSelectCategory) onSelectCategory(category);
         onBack();
       }} />
