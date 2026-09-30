@@ -36,17 +36,17 @@ export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolde
           ]);
           
         if (profileError) {
-          showToast('Gagal membuat profil pengguna.', 'error');
+          showToast('Gagal membuat profil: ' + profileError.message, 'error');
           setIsLoading(false);
           return;
         }
         
-        // Menampilkan state sukses (ceklis pada tombol)
+        // Tampilkan animasi ceklis di tombol
         setIsLoading(false);
         setIsSuccess(true);
-        showToast('Registrasi berhasil! Silakan cek email Anda untuk verifikasi.', 'success');
+        showToast('Registrasi berhasil! Email verifikasi telah dikirim.', 'success');
         
-        // Jeda sebentar untuk memperlihatkan animasi ceklis, lalu beralih ke form login
+        // Tahan animasi ceklis selama 3 detik lalu alihkan ke tab Sign In
         setTimeout(() => {
           setIsSuccess(false);
           setIsRegistering(false);
@@ -163,7 +163,7 @@ export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolde
                 <Lock className="h-5 w-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
               </div>
               <input 
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 minLength={6}
                 placeholder="Password (Min. 6 characters)" 
@@ -176,7 +176,7 @@ export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolde
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isLoading || isSuccess}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center justify-center bg-transparent border-none outline-none text-slate-400 hover:text-emerald-500 transition-colors disabled:opacity-50"
+                className="absolute inset-y-0 right-0 pr-4 flex items-center justify-center bg-transparent border-none outline-none text-slate-400 hover:text-emerald-500 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -185,7 +185,7 @@ export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolde
             <button 
               type="submit" 
               disabled={isLoading || isSuccess}
-              className={`w-full py-3.5 mt-2 rounded-2xl ${isSuccess ? 'bg-emerald-600' : 'bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700'} text-white font-bold shadow-[0_8px_20px_rgba(16,185,129,0.25)] hover:shadow-[0_10px_25px_rgba(16,185,129,0.35)] transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 border-none disabled:opacity-70 disabled:pointer-events-none`}
+              className={`w-full py-3.5 mt-2 rounded-2xl ${isSuccess ? 'bg-emerald-600' : 'bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700'} text-white font-bold shadow-[0_8px_20px_rgba(16,185,129,0.25)] hover:shadow-[0_10px_25px_rgba(16,185,129,0.35)] transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 border-none disabled:opacity-80 disabled:pointer-events-none`}
             >
               {isLoading ? (
                 <>
@@ -214,7 +214,7 @@ export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolde
                   setIsSuccess(false);
                 }}
                 disabled={isLoading || isSuccess}
-                className="ml-1.5 font-bold text-emerald-600 hover:text-emerald-700 hover:underline underline-offset-4 bg-transparent border-none p-0 transition-colors"
+                className="ml-1.5 font-bold text-emerald-600 hover:text-emerald-700 hover:underline underline-offset-4 bg-transparent border-none p-0 transition-colors cursor-pointer"
               >
                 {isRegistering ? 'Sign In' : 'Sign Up'}
               </button>
