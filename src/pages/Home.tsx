@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabase';
-import { Search, CheckCircle2, Play, XCircle, User } from 'lucide-react';
+import { Search, CheckCircle2, Play, XCircle } from 'lucide-react';
 
 // Import semua komponen dari foldernya
 import Navbar from "../components/Navbar";
