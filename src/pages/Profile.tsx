@@ -16,7 +16,6 @@ import { EmeraldFolderIcon, UserBadge } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-// Definisikan categories agar Navbar tidak crash saat melakukan .map()
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Vietnam', 'Philippines'];
 
 interface ProfileProps {
@@ -163,17 +162,28 @@ export default function Profile({
     <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col justify-between">
       
       <div>
-        {/* Navbar Aplikasi - Menambahkan CATEGORIES dan EmeraldFolderIcon agar tidak crash */}
+        {/* Navbar Aplikasi - Menggunakan struktur props yang persis seperti di Home.tsx */}
         <Navbar 
-          CATEGORIES={CATEGORIES}
-          EmeraldFolderIcon={EmeraldFolderIcon}
-          currentUser={currentUser} 
-          onLogout={onLogout}
-          onSelectCategory={(category: string) => {
+          activeCategory=""
+          setActiveCategory={(category: string) => {
             if (onSelectCategory) onSelectCategory(category);
             onBack(); 
           }}
-          onGoHome={onBack}
+          resetSearch={() => {}}
+          CATEGORIES={CATEGORIES}
+          EmeraldFolderIcon={EmeraldFolderIcon}
+          currentUser={currentUser} 
+          handleLogout={() => {
+            if (onLogout) onLogout();
+            onBack();
+          }}
+          setShowAddModal={() => {
+            if (showToast) showToast("Silakan kembali ke halaman utama (Home) untuk menambah koleksi", "info");
+          }}
+          setShowLoginModal={() => {}}
+          setShowRulesModal={() => {
+            if (showToast) showToast("Silakan kembali ke halaman utama (Home) untuk melihat Rules", "info");
+          }}
         />
 
         {/* Kontainer Utama */}
