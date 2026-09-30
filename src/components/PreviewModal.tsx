@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { X, Cloud, Box, Download, User, Volume2, VolumeX, AlertCircle } from 'lucide-react';
+import { X, Cloud, Box, Download, User, Volume2, VolumeX } from 'lucide-react';
 import { EmeraldFolderIcon, UserBadge } from './SharedIcons'; 
 import { supabase } from '../supabase';
 
 const MOCK_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
+const BANNED_LOGO_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/BannedLogo.webp";
 
 const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: any) => {
   const [isMuted, setIsMuted] = useState(true);
@@ -162,15 +163,16 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
             <div className="flex-shrink-0 pt-1">
                <EmeraldFolderIcon className="w-12 h-12 drop-shadow-sm" country={item.country} />
             </div>
-            <div>
-              {/* Tambahan logic badge Banned */}
-              <h2 className="text-2xl font-black text-slate-800 tracking-tight flex items-center flex-wrap gap-2">
-                {item.username}
+            <div className="flex-1">
+              <h2 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+                <span>{item.username}</span>
                 {item.is_banned && (
-                  <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold bg-red-50 text-red-600 px-2.5 py-1 rounded-md border border-red-100">
-                    <AlertCircle size={12} />
-                    Banned
-                  </span>
+                  <img 
+                    src={BANNED_LOGO_URL} 
+                    alt="Account Banned" 
+                    title="Account Banned" 
+                    className="h-6 w-auto object-contain flex-shrink-0" 
+                  />
                 )}
               </h2>
               
@@ -217,7 +219,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
           </div>
 
           <div className="mb-8">
-            {/* Logic jika user terbanned tombolnya berubah */}
             {item.is_banned ? (
               <div className="w-full flex items-center justify-center gap-2.5 px-4 py-3 bg-red-50/50 rounded-2xl border border-red-100 text-red-500 font-bold text-sm cursor-not-allowed">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 448 512" fill="currentColor">
