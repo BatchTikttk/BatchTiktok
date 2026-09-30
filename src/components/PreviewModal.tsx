@@ -1,11 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Cloud, Box, Download, User, Volume2, VolumeX } from 'lucide-react';
 import { EmeraldFolderIcon, UserBadge } from './SharedIcons'; 
+import { supabase } from '../supabase';
 
 const MOCK_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
 
 const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: any) => {
   const [isMuted, setIsMuted] = useState(true);
+  const [uploaderAvatar, setUploaderAvatar] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUploaderAvatar = async () => {
+      if (!item?.uploaded_by) return;
+
+      // Cari profile uploader berdasarkan username / full_name
+      const { data } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .or(`username.eq.${item.uploaded_by},full_name.eq.${item.uploaded_by}`)
+        .maybeSingle();
+
+      if (data?.avatar_url) {
+        setUploaderAvatar(data.avatar_url);
+      }
+    };
+
+    fetchUploaderAvatar();
+  }, [item?.uploaded_by]);
 
   if (!item) return null;
 
@@ -89,7 +110,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
             <div>
               <h2 className="text-2xl font-black text-slate-800 tracking-tight">{item.username}</h2>
               
-              {/* Label & Uploaded by tanpa background pill, hanya teks bersih */}
+              {/* Label & Uploaded by dengan Avatar Uploader */}
               <div className="flex flex-wrap items-center gap-2.5 mt-1.5">
                 <span className="text-sm font-semibold text-emerald-600">
                   {item.country} Batch
@@ -98,8 +119,17 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
                 <span className="text-slate-300 text-sm">•</span>
                 
                 <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500">
-                  <User size={14} className="text-slate-400" /> 
                   <span className="italic">Uploaded by</span> 
+                  
+                  {/* Container Avatar Uploader */}
+                  <div className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 shadow-sm">
+                    {uploaderAvatar ? (
+                      <img src={uploaderAvatar} alt={item.uploaded_by} className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={12} className="text-slate-400" />
+                    )}
+                  </div>
+
                   <span className="font-bold text-slate-700 not-italic">{item.uploaded_by}</span>
                   <UserBadge username={item.uploaded_by} count={uploaderCount} adminList={adminList} />
                 </span>
