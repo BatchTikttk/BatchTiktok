@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Menu, X, Plus, LogIn, LogOut, User, ChevronDown, Scale, BarChart2 } from 'lucide-react';
+import { supabase } from '../supabase';
 
 export default function Navbar({ 
   activeCategory, 
@@ -12,12 +13,13 @@ export default function Navbar({
   setShowLoginModal,
   setShowRulesModal,
   EmeraldFolderIcon,
-  onOpenProfile // Callback jika ingin membuka profil langsung dari parent
+  onOpenProfile
 }: any) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
-  // Mengekstrak nama user yang akan ditampilkan
+  // Extract display username
   let displayUser = '';
   if (currentUser) {
     if (typeof currentUser === 'string') {
@@ -29,7 +31,58 @@ export default function Navbar({
     }
   }
 
-  // Fungsi navigasi bersih ke halaman Profil
+  // Fetch Avatar & Listen Realtime Database Subscription
+  useEffect(() => {
+    let channel: any;
+
+    const fetchUserAvatar = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setAvatarUrl(null);
+        return;
+      }
+
+      const userId = session.user.id;
+
+      // Initial Fetch Avatar URL from DB
+      const { data } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', userId)
+        .single();
+
+      if (data?.avatar_url) {
+        setAvatarUrl(data.avatar_url);
+      }
+
+      // Realtime listener for Instant Avatar Updates
+      channel = supabase
+        .channel(`public:profiles:${userId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `id=eq.${userId}`,
+          },
+          (payload) => {
+            if (payload.new && payload.new.avatar_url) {
+              setAvatarUrl(payload.new.avatar_url);
+            }
+          }
+        )
+        .subscribe();
+    };
+
+    fetchUserAvatar();
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [currentUser]);
+
+  // Clean Navigation to Profile Page
   const handleGoToProfile = () => {
     setIsDropdownOpen(false);
     setIsMobileMenuOpen(false);
@@ -41,7 +94,7 @@ export default function Navbar({
     }
   };
 
-  // Fungsi navigasi bersih ke Home
+  // Clean Navigation to Home Page
   const handleGoToHome = (category?: string) => {
     if (category) setActiveCategory(category);
     setIsMobileMenuOpen(false);
@@ -55,7 +108,7 @@ export default function Navbar({
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
-          {/* Logo - Mengarah ke Home */}
+          {/* Logo */}
           <div 
             className="flex items-center gap-3 cursor-pointer group"
             onClick={() => handleGoToHome('Home')}
@@ -68,7 +121,7 @@ export default function Navbar({
             </span>
           </div>
 
-          {/* Navigasi Kategori Desktop */}
+          {/* Desktop Categories Navigation */}
           <div className="hidden md:flex items-center gap-2 bg-white p-1.5 rounded-full shadow-[0_4px_20px_rgb(0,0,0,0.03)] border-none">
             {CATEGORIES.map((category: string) => (
               <button
@@ -87,7 +140,7 @@ export default function Navbar({
 
           <div className="flex items-center gap-3">
             
-            {/* Tombol Rules */}
+            {/* Rules Button */}
             <button 
               onClick={() => setShowRulesModal(true)}
               className="p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold text-slate-600 flex items-center gap-2 transition-all border-none cursor-pointer"
@@ -99,14 +152,16 @@ export default function Navbar({
 
             {currentUser ? (
               <div className="hidden sm:relative sm:block">
-                {/* Tombol Profile Dropdown */}
+                {/* Profile Dropdown Button */}
                 <button 
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="px-4 py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold text-slate-600 flex items-center gap-2.5 transition-all border-none cursor-pointer"
                 >
-                  <div className="p-1 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center overflow-hidden">
-                    {typeof currentUser === 'object' && currentUser?.user_metadata?.avatar_url ? (
-                      <img src={currentUser.user_metadata.avatar_url} alt="Profile" className="w-4 h-4 object-cover" />
+                  <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                    ) : typeof currentUser === 'object' && currentUser?.user_metadata?.avatar_url ? (
+                      <img src={currentUser.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
                       <User size={16} />
                     )}
@@ -115,13 +170,12 @@ export default function Navbar({
                   <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                {/* Dropdown Menu Desktop */}
+                {/* Desktop Dropdown Menu */}
                 {isDropdownOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
                     <div className="absolute right-0 mt-3 w-52 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                       
-                      {/* Tombol Profil (Diubah dari <a> menjadi <button>) */}
                       <button
                         onClick={handleGoToProfile}
                         className="w-full px-4 py-3.5 flex items-center gap-3 text-sm font-bold text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors border-b border-slate-50 text-left border-none bg-transparent cursor-pointer"
@@ -162,7 +216,7 @@ export default function Navbar({
               </button>
             )}
 
-            {/* Hamburger Mobile */}
+            {/* Mobile Hamburger Button */}
             <button 
               className="md:hidden p-2.5 text-slate-500 hover:text-slate-800 bg-white rounded-xl shadow-sm border-none cursor-pointer z-50"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -173,7 +227,7 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* Menu Mobile */}
+      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-20 left-0 right-0 bg-white mx-4 mt-2 p-4 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex flex-col gap-2 border border-slate-100 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           {CATEGORIES.map((category: string) => (
@@ -199,12 +253,20 @@ export default function Navbar({
 
             {currentUser ? (
               <>
-                <div className="px-4 py-2 mb-1">
-                  <span className="block text-xs font-semibold text-slate-400">Signed in as</span>
-                  <span className="block text-sm font-bold text-slate-800">@{displayUser}</span>
+                <div className="px-4 py-2 mb-1 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={18} />
+                    )}
+                  </div>
+                  <div>
+                    <span className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Signed in as</span>
+                    <span className="block text-sm font-bold text-slate-800">@{displayUser}</span>
+                  </div>
                 </div>
                 
-                {/* Profile Mobile */}
                 <button 
                   onClick={handleGoToProfile}
                   className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-colors rounded-2xl border-none bg-transparent cursor-pointer"
