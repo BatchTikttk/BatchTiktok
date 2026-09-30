@@ -237,7 +237,7 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
           <div className="mt-6">
             <div className="flex items-center justify-center space-x-2">
               <span className="h-px w-full bg-slate-200"></span>
-              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">ATAU</span>
+              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">OR</span>
               <span className="h-px w-full bg-slate-200"></span>
             </div>
 
