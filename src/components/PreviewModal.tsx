@@ -10,22 +10,52 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
   const [uploaderAvatar, setUploaderAvatar] = useState<string | null>(null);
 
   useEffect(() => {
+    let channel: any;
+
     const fetchUploaderAvatar = async () => {
       if (!item?.uploaded_by) return;
 
-      // Cari profile uploader berdasarkan username / full_name
+      const targetName = item.uploaded_by.trim();
+
+      // Query fleksibel case-insensitive untuk mencari profile berdasarkan username/full_name
       const { data } = await supabase
         .from('profiles')
-        .select('avatar_url')
-        .or(`username.eq.${item.uploaded_by},full_name.eq.${item.uploaded_by}`)
-        .maybeSingle();
+        .select('id, avatar_url')
+        .or(`username.ilike.${targetName},full_name.ilike.${targetName}`)
+        .limit(1);
 
-      if (data?.avatar_url) {
-        setUploaderAvatar(data.avatar_url);
+      if (data && data.length > 0) {
+        const profile = data[0];
+        if (profile.avatar_url) {
+          setUploaderAvatar(profile.avatar_url);
+        }
+
+        // Realtime Subscription untuk update foto profile uploader secara live
+        channel = supabase
+          .channel(`public:profiles:uploader:${profile.id}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'profiles',
+              filter: `id=eq.${profile.id}`,
+            },
+            (payload) => {
+              if (payload.new && payload.new.avatar_url) {
+                setUploaderAvatar(payload.new.avatar_url);
+              }
+            }
+          )
+          .subscribe();
       }
     };
 
     fetchUploaderAvatar();
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
   }, [item?.uploaded_by]);
 
   if (!item) return null;
@@ -121,7 +151,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
                 <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500">
                   <span className="italic">Uploaded by</span> 
                   
-                  {/* Container Avatar Uploader */}
+                  {/* Container Avatar Uploader (Ukuran presisi & serasi) */}
                   <div className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 shadow-sm">
                     {uploaderAvatar ? (
                       <img src={uploaderAvatar} alt={item.uploaded_by} className="w-full h-full object-cover" />
