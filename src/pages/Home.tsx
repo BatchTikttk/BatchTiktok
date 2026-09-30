@@ -123,7 +123,10 @@ export default function Home() {
   };
 
   const fetchBatches = async () => {
-    const { data: profiles } = await supabase.from('profiles').select('id, username');
+    // 1. Mengambil kolom avatar_url dari tabel profiles
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url');
     
     const { data: batchesData, error } = await supabase
       .from('batches')
@@ -135,11 +138,17 @@ export default function Home() {
       showToast('Failed to load data from database', 'error');
     } else {
       const realtimeBatches = (batchesData || []).map(batch => {
-        const uploaderProfile = profiles?.find(p => p.id === batch.user_id);
+        // Cocokkan berdasarkan user_id atau username sebagai fallback
+        const uploaderProfile = profiles?.find(
+          p => (batch.user_id && p.id === batch.user_id) ||
+               (p.username && batch.uploaded_by && p.username.toLowerCase() === batch.uploaded_by.toLowerCase())
+        );
         
         return {
           ...batch,
-          uploaded_by: uploaderProfile?.username || batch.uploaded_by
+          uploaded_by: uploaderProfile?.username || batch.uploaded_by,
+          avatar_url: uploaderProfile?.avatar_url || null,        // dimasukkan ke objek batch
+          uploader_avatar: uploaderProfile?.avatar_url || null  // alias tambahan untuk kompatibilitas
         };
       });
 
