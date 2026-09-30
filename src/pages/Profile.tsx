@@ -16,7 +16,8 @@ import {
   FolderHeart,
   Settings,
   LogOut,
-  Sparkles
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import { EmeraldFolderIcon, UserBadge } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
@@ -49,6 +50,10 @@ export default function Profile({
   const [adminList, setAdminList] = useState<string[]>([]);
   const [deletingId, setDeletingId] = useState<string | number | null>(null);
 
+  // Edit Username State
+  const [usernameInput, setUsernameInput] = useState('');
+  const [updatingUsername, setUpdatingUsername] = useState(false);
+
   // Sidebar Tabs State
   const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'settings'>('overview');
 
@@ -79,6 +84,8 @@ export default function Profile({
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
+      setUserProfile(null);
+      setUserBatches([]);
       setLoading(false);
       return;
     }
@@ -91,6 +98,9 @@ export default function Profile({
 
     if (profile) {
       setUserProfile(profile);
+      setUsernameInput(profile.username || currentUser || '');
+    } else if (currentUser) {
+      setUsernameInput(currentUser);
     }
 
     const { data: batches } = await supabase
@@ -125,6 +135,37 @@ export default function Profile({
     }
   };
 
+  // Update Username in Supabase database
+  const handleUpdateUsername = async () => {
+    const trimmedUsername = usernameInput.trim();
+    if (!trimmedUsername) {
+      if (showToast) showToast("Username cannot be empty", "error");
+      return;
+    }
+
+    setUpdatingUsername(true);
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      setUpdatingUsername(false);
+      return;
+    }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ username: trimmedUsername })
+      .eq('id', session.user.id);
+
+    setUpdatingUsername(false);
+
+    if (error) {
+      if (showToast) showToast("Failed to update username", "error");
+    } else {
+      setUserProfile((prev: any) => ({ ...prev, username: trimmedUsername }));
+      if (showToast) showToast("Username updated successfully!", "success");
+    }
+  };
+
   const activeUsername = userProfile?.username || currentUser;
 
   const stats = useMemo(() => {
@@ -135,7 +176,9 @@ export default function Profile({
     const totalVideos = userBatches.reduce((acc: number, b: any) => acc + (Number(b.video_count) || 0), 0);
     
     const totalGB = userBatches.reduce((acc: number, b: any) => {
-      if (b.size_gb) return acc + Number(b.size_gb);
+      if (b.size_gb !== undefined && b.size_gb !== null && b.size_gb !== '') {
+        return acc + Number(b.size_gb);
+      }
       if (b.size_file) {
         const sizeStr = b.size_file.toString().toUpperCase();
         const val = parseFloat(sizeStr);
@@ -481,7 +524,7 @@ export default function Profile({
                                 <span>•</span>
                                 <span>{batch.video_count} Videos</span>
                                 <span>•</span>
-                                <span>{batch.size_file || `${batch.size_gb} GB`}</span>
+                                <span>{batch.size_file || `${batch.size_gb || 0} GB`}</span>
                               </div>
                             </div>
                           </div>
@@ -500,10 +543,14 @@ export default function Profile({
                             <button
                               onClick={() => handleDeleteBatch(batch.id)}
                               disabled={deletingId === batch.id}
-                              className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border-none bg-transparent cursor-pointer"
+                              className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border-none bg-transparent cursor-pointer disabled:opacity-50"
                               title="Delete Folder"
                             >
-                              <Trash2 size={16} />
+                              {deletingId === batch.id ? (
+                                <Loader2 size={16} className="animate-spin text-red-500" />
+                              ) : (
+                                <Trash2 size={16} />
+                              )}
                             </button>
                           </div>
                         </div>
@@ -558,12 +605,26 @@ export default function Profile({
                   <div className="space-y-4 pt-2">
                     <div>
                       <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Username</label>
-                      <input 
-                        type="text" 
-                        disabled 
-                        value={activeUsername || ''} 
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200/80 rounded-xl text-sm font-bold text-slate-600 cursor-not-allowed"
-                      />
+                      <div className="flex gap-2">
+                        <input 
+                          type="text" 
+                          value={usernameInput}
+                          onChange={(e) => setUsernameInput(e.target.value)}
+                          placeholder="Enter your username"
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200/80 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                        />
+                        <button
+                          onClick={handleUpdateUsername}
+                          disabled={updatingUsername || usernameInput.trim() === activeUsername}
+                          className="px-5 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-sm transition-all border-none cursor-pointer flex-shrink-0 flex items-center justify-center min-w-[90px]"
+                        >
+                          {updatingUsername ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            'Save'
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
