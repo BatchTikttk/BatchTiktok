@@ -235,22 +235,26 @@ export default function Home() {
           EmeraldFolderIcon={EmeraldFolderIcon}
         />
 
-        <main className="max-w-7xl mx-auto px-6 lg:px-8 mt-10">
-          <div className="animate-in fade-in duration-500">
+        {/* HERO SECTION DIPERBARUI DI SINI */}
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-6 mb-10">
+          <div className="bg-slate-900 rounded-[2.5rem] py-12 px-8 sm:py-16 sm:px-14 shadow-2xl relative overflow-hidden">
+            {/* Latar Belakang Gradient Solid Navy */}
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-950 pointer-events-none"></div>
             
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-              <div>
-                <h1 className="text-4xl md:text-5xl font-black text-slate-800 mb-4 tracking-tight leading-tight">
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-10">
+              
+              <div className="max-w-2xl text-center md:text-left">
+                <h1 className="text-4xl md:text-5xl lg:text-5xl font-black mb-5 tracking-tight leading-tight text-white">
                   Curated Creator <br className="hidden md:block"/>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600">Video Collections</span>
+                  <span className="text-emerald-400">Video Collections</span>
                 </h1>
-                <p className="text-slate-500 text-lg max-w-xl font-medium">
-                  Direct bulk ZIP archives hosted, and share your tiktok archive here exclusively on <strong className="text-slate-700">Google Drive</strong> &amp; <strong className="text-slate-700">TeraBox</strong>.
+                <p className="text-slate-300 text-base md:text-lg font-medium max-w-xl mx-auto md:mx-0">
+                  Direct bulk ZIP archives hosted, and share your tiktok archive here exclusively on <strong className="text-white">Google Drive</strong> &amp; <strong className="text-white">TeraBox</strong>.
                 </p>
               </div>
 
-              <div className="relative w-full md:w-80 group">
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+              <div className="w-full md:w-96 relative group mx-auto md:mx-0">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none z-10">
                   <Search className="h-5 w-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
                 </div>
                 <input
@@ -258,11 +262,17 @@ export default function Home() {
                   placeholder="Search creators, region, uploader..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-14 pr-6 py-4 bg-white text-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.03)] focus:shadow-[0_8px_30px_rgb(0,0,0,0.08)] focus:outline-none transition-shadow font-medium placeholder:text-slate-400 border-none"
+                  className="w-full pl-14 pr-6 py-4 bg-slate-800/80 text-white rounded-2xl shadow-lg focus:ring-2 focus:ring-emerald-500/50 focus:outline-none transition-all font-medium placeholder:text-slate-400 border border-slate-700 backdrop-blur-sm"
                 />
               </div>
-            </div>
 
+            </div>
+          </div>
+        </div>
+        {/* AKHIR HERO SECTION DIPERBARUI */}
+
+        <main className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="animate-in fade-in duration-500">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
               {filteredBatches.length > 0 ? (
                 filteredBatches.map(batch => (
