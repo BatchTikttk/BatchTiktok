@@ -26,13 +26,13 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
 
       if (data && data.length > 0) {
         const profile = data[0];
-        if (profile.avatar_url) {
-          setUploaderAvatar(profile.avatar_url);
-        }
+        
+        // Set inisial avatar
+        setUploaderAvatar(profile.avatar_url || null);
 
         // Realtime Subscription untuk update foto profile uploader secara live
         channel = supabase
-          .channel(`public:profiles:uploader:${profile.id}`)
+          .channel(`public:profiles:uploader_${profile.id}`)
           .on(
             'postgres_changes',
             {
@@ -42,8 +42,9 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
               filter: `id=eq.${profile.id}`,
             },
             (payload) => {
-              if (payload.new && payload.new.avatar_url) {
-                setUploaderAvatar(payload.new.avatar_url);
+              // Pastikan state langsung sinkron dengan data baru di database
+              if (payload.new) {
+                setUploaderAvatar(payload.new.avatar_url || null);
               }
             }
           )
@@ -54,7 +55,9 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
     fetchUploaderAvatar();
 
     return () => {
-      if (channel) supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [item?.uploaded_by]);
 
@@ -151,7 +154,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
                 <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500">
                   <span className="italic">Uploaded by</span> 
                   
-                  {/* Container Avatar Uploader (Ukuran presisi & serasi) */}
+                  {/* Container Avatar Uploader */}
                   <div className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 shadow-sm">
                     {uploaderAvatar ? (
                       <img src={uploaderAvatar} alt={item.uploaded_by} className="w-full h-full object-cover" />
