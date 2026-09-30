@@ -6,7 +6,7 @@ export default function Navbar({
   setActiveCategory, 
   resetSearch,
   CATEGORIES, 
-  currentUser, 
+  currentUser, // Sekarang bisa menerima string (manual) atau object (Google)
   handleLogout, 
   setShowAddModal, 
   setShowLoginModal,
@@ -15,6 +15,21 @@ export default function Navbar({
 }: any) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // --- LOGIKA UNTUK MENDUKUNG GOOGLE LOGIN ---
+  // Mengekstrak nama yang akan ditampilkan dengan aman
+  let displayUser = '';
+  if (currentUser) {
+    if (typeof currentUser === 'string') {
+      displayUser = currentUser; // Dari login manual biasa
+    } else if (typeof currentUser === 'object') {
+      // Dari login Google (mengambil dari nama atau potongan email)
+      displayUser = currentUser.user_metadata?.full_name?.replace(/\s+/g, '').toLowerCase() || 
+                    currentUser.email?.split('@')[0] || 
+                    'user';
+    }
+  }
+  // -------------------------------------------
 
   return (
     <nav className="sticky top-0 z-40 bg-[#F8FAFC]/80 backdrop-blur-xl border-b border-white/50">
@@ -70,17 +85,21 @@ export default function Navbar({
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="px-4 py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold text-slate-600 flex items-center gap-2.5 transition-all border-none"
                 >
-                  <div className="p-1 bg-emerald-50 text-emerald-600 rounded-lg">
-                    <User size={16} />
+                  <div className="p-1 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center overflow-hidden">
+                    {/* Tampilkan foto Google jika ada, jika tidak gunakan ikon User bawaan */}
+                    {typeof currentUser === 'object' && currentUser?.user_metadata?.avatar_url ? (
+                      <img src={currentUser.user_metadata.avatar_url} alt="Profile" className="w-4 h-4 object-cover" />
+                    ) : (
+                      <User size={16} />
+                    )}
                   </div>
-                  <span>@{currentUser}</span>
+                  <span>@{displayUser}</span>
                   <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {/* Menu Dropdown Desktop */}
                 {isDropdownOpen && (
                   <>
-                    {/* Backdrop tak terlihat untuk menutup dropdown jika klik di luar */}
                     <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
                     <div className="absolute right-0 mt-3 w-52 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                       <button
@@ -154,7 +173,7 @@ export default function Navbar({
               <>
                 <div className="px-4 py-2 mb-1">
                   <span className="block text-xs font-semibold text-slate-400">Signed in as</span>
-                  <span className="block text-sm font-bold text-slate-800">@{currentUser}</span>
+                  <span className="block text-sm font-bold text-slate-800">@{displayUser}</span>
                 </div>
                 <button onClick={() => {setShowAddModal(true); setIsMobileMenuOpen(false);}} className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors rounded-2xl">
                   <Plus size={18} /> Add New Collection
