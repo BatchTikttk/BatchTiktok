@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Cloud, Box, Download, User, Volume2, VolumeX } from 'lucide-react';
+import { X, Cloud, Box, Download, User, Volume2, VolumeX, AlertCircle } from 'lucide-react';
 import { EmeraldFolderIcon, UserBadge } from './SharedIcons'; 
 import { supabase } from '../supabase';
 
@@ -148,7 +148,9 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
           
           <div className="absolute bottom-6 left-6 right-6 text-white pointer-events-none">
-            <h4 className="font-bold text-lg drop-shadow-md">{item.username}</h4>
+            <h4 className="font-bold text-lg drop-shadow-md flex items-center gap-2">
+              {item.username}
+            </h4>
             <p className="text-xs text-white/90 line-clamp-2 mt-1 drop-shadow-md">
               Sample preview from {item.country} TikTok batch archive. Watermark-free HD quality. ⚡
             </p>
@@ -161,7 +163,16 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
                <EmeraldFolderIcon className="w-12 h-12 drop-shadow-sm" country={item.country} />
             </div>
             <div>
-              <h2 className="text-2xl font-black text-slate-800 tracking-tight">{item.username}</h2>
+              {/* Tambahan logic badge Banned */}
+              <h2 className="text-2xl font-black text-slate-800 tracking-tight flex items-center flex-wrap gap-2">
+                {item.username}
+                {item.is_banned && (
+                  <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold bg-red-50 text-red-600 px-2.5 py-1 rounded-md border border-red-100">
+                    <AlertCircle size={12} />
+                    Banned
+                  </span>
+                )}
+              </h2>
               
               <div className="flex flex-wrap items-center gap-2.5 mt-1.5">
                 <span className="text-sm font-semibold text-emerald-600">
@@ -206,17 +217,27 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
           </div>
 
           <div className="mb-8">
-            <a 
-              href={item.tiktok_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full flex items-center justify-center gap-2.5 px-4 py-3 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-100 text-slate-700 hover:text-black font-bold text-sm transition-all group"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 448 512" fill="currentColor" className="text-slate-800 group-hover:text-black transition-colors">
-                <path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/>
-              </svg>
-              <span>{item.username}</span>
-            </a>
+            {/* Logic jika user terbanned tombolnya berubah */}
+            {item.is_banned ? (
+              <div className="w-full flex items-center justify-center gap-2.5 px-4 py-3 bg-red-50/50 rounded-2xl border border-red-100 text-red-500 font-bold text-sm cursor-not-allowed">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 448 512" fill="currentColor">
+                  <path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/>
+                </svg>
+                <span>TikTok Account Banned</span>
+              </div>
+            ) : (
+              <a 
+                href={item.tiktok_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2.5 px-4 py-3 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-100 text-slate-700 hover:text-black font-bold text-sm transition-all group"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 448 512" fill="currentColor" className="text-slate-800 group-hover:text-black transition-colors">
+                  <path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/>
+                </svg>
+                <span>{item.username}</span>
+              </a>
+            )}
           </div>
 
           <div className="mt-auto">

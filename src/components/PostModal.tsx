@@ -16,11 +16,16 @@ const PostModal = ({ onClose, onSuccess, currentUser, showToast, CATEGORIES, onO
     tiktok_url: "",
     video_url: "", // Preview Video
     gdrive_url: "",
-    terabox_url: ""
+    terabox_url: "",
+    is_banned: false // Menambahkan state awal untuk status banned
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const target = e.target;
+    // Logika khusus untuk menangani input bertipe checkbox
+    const value = target.type === 'checkbox' ? (target as HTMLInputElement).checked : target.value;
+    
+    setFormData({ ...formData, [target.name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,7 +35,7 @@ const PostModal = ({ onClose, onSuccess, currentUser, showToast, CATEGORIES, onO
     try {
       const { error } = await supabase.from('batches').insert([
         {
-          ...formData, // video_url akan otomatis ikut terkirim ke database
+          ...formData, // is_banned otomatis ikut terkirim dari formData
           uploaded_by: currentUser,
           video_count: parseInt(formData.video_count) || 0,
           status: 'pending' // Sistem moderasi aktif, status diset 'pending'
@@ -139,14 +144,30 @@ const PostModal = ({ onClose, onSuccess, currentUser, showToast, CATEGORIES, onO
             <div className="space-y-1.5 md:col-span-2">
               <label className="text-sm font-semibold text-slate-700">TikTok Profile Link</label>
               <input 
-                required
+                required={!formData.is_banned} // Tidak wajib diisi jika akun sudah dibanned
                 type="url" 
                 name="tiktok_url" 
                 value={formData.tiktok_url} 
                 onChange={handleChange} 
-                placeholder="https://tiktok.com/@username" 
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" 
+                disabled={formData.is_banned} // Disable input saat ditandai banned
+                placeholder={formData.is_banned ? "Link not required for banned accounts" : "https://tiktok.com/@username"} 
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:opacity-60 disabled:bg-slate-100" 
               />
+              
+              {/* Checkbox Penanda Banned */}
+              <div className="flex items-center gap-2 mt-3 p-3 bg-red-50/50 border border-red-100 rounded-xl">
+                <input 
+                  type="checkbox" 
+                  name="is_banned" 
+                  id="is_banned"
+                  checked={formData.is_banned} 
+                  onChange={handleChange} 
+                  className="w-4 h-4 rounded border-slate-300 text-red-500 focus:ring-red-500 cursor-pointer"
+                />
+                <label htmlFor="is_banned" className="text-sm font-semibold text-red-600 cursor-pointer select-none">
+                  Mark as Banned Account (Check this if the TikTok account is banned)
+                </label>
+              </div>
             </div>
 
             <div className="space-y-1.5 md:col-span-2">
