@@ -132,7 +132,7 @@ export default function Home() {
       .order('created_at', { ascending: false });
     
     if (error) {
-      showToast('Gagal memuat data dari database', 'error');
+      showToast('Failed to load data from database', 'error');
     } else {
       const realtimeBatches = (batchesData || []).map(batch => {
         const uploaderProfile = profiles?.find(p => p.id === batch.user_id);
@@ -176,12 +176,12 @@ export default function Home() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setCurrentUser(null);
-    showToast("Anda telah keluar.", "info");
+    showToast("You have been logged out.", "info");
   };
 
   const handleDownloadInitiate = (providerName: string, url: string) => {
-    if (!url) return showToast('Link unduhan tidak tersedia', 'error');
-    showToast(`Mengalihkan ke ${providerName}...`);
+    if (!url) return showToast('Download link is not available', 'error');
+    showToast(`Redirecting to ${providerName}...`);
     setTimeout(() => {
       window.open(url, '_blank');
       setPreviewItem(null);
