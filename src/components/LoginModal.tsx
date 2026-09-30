@@ -17,9 +17,14 @@ export default function LoginModal({ onClose, onSuccess, showToast, EmeraldFolde
     setIsSuccess(false);
     
     if (isRegistering) {
+      // PERBAIKAN: Menambahkan opsi emailRedirectTo agar Supabase tahu ke mana 
+      // harus mengembalikan user setelah mengklik tautan di email.
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: authEmail,
         password: authPassword,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`, 
+        }
       });
 
       if (authError) {
