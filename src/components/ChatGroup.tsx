@@ -88,7 +88,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     }
   }, [isOpen]);
 
-  // Realtime Subscription aman kalawan Random Channel ID & Cleanup
+  // Realtime Subscription dengan Random Channel ID & Cleanup
   useEffect(() => {
     if (!isOpen) return;
 
@@ -155,12 +155,12 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     }
   };
 
+  // Logika baru: Tidak memanggil setShowEmojiPicker(false) agar popup tetap terbuka
   const onEmojiClick = (emojiChar: string) => {
     setNewMessage((prev) => prev + emojiChar);
-    setShowEmojiPicker(false);
   };
 
-  // Parser pikeun ngarobah emoji teks jadi gambar WebP 3D nu bergerak di jero gelembung chat
+  // Parser untuk mengubah emoji teks jadi gambar WebP 3D bergerak di dalam gelembung chat
   const renderMessageWith3DEmojis = (text: string) => {
     const emojiRegex = new RegExp(`(${Object.keys(EMOJI_MAP).map(e => e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
     const parts = text.split(emojiRegex);
