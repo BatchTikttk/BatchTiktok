@@ -11,7 +11,6 @@ export default function Navbar({
   handleLogout, 
   setShowAddModal, 
   setShowLoginModal,
-  setShowRulesModal,
   EmeraldFolderIcon,
   onOpenProfile,
   onOpenTopContributors
@@ -115,8 +114,19 @@ export default function Navbar({
     }
   };
 
+  // Navigasi halaman baru untuk Rules Page
+  const handleGoToRules = () => {
+    setIsMobileMenuOpen(false);
+    setIsRegionOpen(false);
+    window.history.pushState({}, '', '/rules');
+    window.dispatchEvent(new Event('popstate'));
+  };
+
   const isTopContributorsActive = 
     activeCategory === 'Top Contributors' || window.location.pathname === '/top-contributors';
+
+  // State active untuk rules page
+  const isRulesActive = window.location.pathname === '/rules';
 
   return (
     <nav className="sticky top-0 z-40 bg-[#F8FAFC]/80 backdrop-blur-xl border-b border-white/50">
@@ -195,9 +205,12 @@ export default function Navbar({
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Action ubah: arahkan ke halaman rules bukan modal */}
             <button 
-              onClick={() => setShowRulesModal(true)}
-              className="p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold text-slate-600 flex items-center gap-2 transition-all border-none cursor-pointer"
+              onClick={handleGoToRules}
+              className={`p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold flex items-center gap-2 transition-all border-none cursor-pointer ${
+                isRulesActive ? 'text-emerald-600 ring-2 ring-emerald-500/20' : 'text-slate-600'
+              }`}
               title="Posting Rules"
             >
               <Scale size={16} className="text-emerald-500" />
@@ -321,9 +334,12 @@ export default function Navbar({
           </button>
 
           <div className="border-t border-slate-100 mt-2 pt-2 flex flex-col gap-2">
+            {/* Action ubah di mobile */}
             <button 
-              onClick={() => {setShowRulesModal(true); setIsMobileMenuOpen(false);}} 
-              className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors rounded-2xl border-none bg-transparent cursor-pointer"
+              onClick={handleGoToRules} 
+              className={`px-4 py-3 flex items-center gap-2 text-left text-sm font-bold hover:bg-slate-50 transition-colors rounded-2xl border-none bg-transparent cursor-pointer ${
+                isRulesActive ? 'text-emerald-600 bg-emerald-50' : 'text-slate-600'
+              }`}
             >
               <Scale size={18} className="text-emerald-500" /> Posting Rules
             </button>
