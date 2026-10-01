@@ -2,12 +2,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabase';
 import { Search, CheckCircle2, Play, XCircle } from 'lucide-react';
 
-// Import semua komponen dari foldernya
+// Removed the RulesModal/RulesPage import from here
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoginModal from "../components/LoginModal";
 import PostModal from "../components/PostModal";
-import RulesModal from "../components/RulesModal";
 import PreviewModal from "../components/PreviewModal";
 import { EmeraldFolderIcon, UserBadge } from "../components/SharedIcons"; 
 
@@ -75,7 +74,6 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showRulesModal, setShowRulesModal] = useState(false); 
   
   const [previewItem, setPreviewItem] = useState<any>(null);
   const [toastConfig, setToastConfig] = useState({ message: '', isVisible: false, type: 'success' });
@@ -85,7 +83,6 @@ export default function Home() {
     fetchAdmins();
     checkUser();
 
-    // Supabase Realtime Listener
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -123,7 +120,6 @@ export default function Home() {
   };
 
   const fetchBatches = async () => {
-    // 1. Mengambil kolom avatar_url dari tabel profiles
     const { data: profiles } = await supabase
       .from('profiles')
       .select('id, username, avatar_url');
@@ -138,7 +134,6 @@ export default function Home() {
       showToast('Failed to load data from database', 'error');
     } else {
       const realtimeBatches = (batchesData || []).map(batch => {
-        // Cocokkan berdasarkan user_id atau username sebagai fallback
         const uploaderProfile = profiles?.find(
           p => (batch.user_id && p.id === batch.user_id) ||
                (p.username && batch.uploaded_by && p.username.toLowerCase() === batch.uploaded_by.toLowerCase())
@@ -147,8 +142,8 @@ export default function Home() {
         return {
           ...batch,
           uploaded_by: uploaderProfile?.username || batch.uploaded_by,
-          avatar_url: uploaderProfile?.avatar_url || null,        // dimasukkan ke objek batch
-          uploader_avatar: uploaderProfile?.avatar_url || null  // alias tambahan untuk kompatibilitas
+          avatar_url: uploaderProfile?.avatar_url || null,
+          uploader_avatar: uploaderProfile?.avatar_url || null 
         };
       });
 
@@ -231,14 +226,15 @@ export default function Home() {
           handleLogout={handleLogout}
           setShowAddModal={() => setShowAddModal(true)}
           setShowLoginModal={() => setShowLoginModal(true)}
-          setShowRulesModal={() => setShowRulesModal(true)} 
+          setShowRulesModal={() => {
+            window.history.pushState({}, '', '/rules');
+            window.dispatchEvent(new Event('popstate'));
+          }} 
           EmeraldFolderIcon={EmeraldFolderIcon}
         />
 
-        {/* HERO SECTION DIPERBARUI DI SINI */}
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-6 mb-10">
           <div className="bg-slate-900 rounded-[2.5rem] py-12 px-8 sm:py-16 sm:px-14 shadow-2xl relative overflow-hidden">
-            {/* Latar Belakang Gradient Solid Navy */}
             <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-950 pointer-events-none"></div>
             
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-10">
@@ -269,7 +265,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-        {/* AKHIR HERO SECTION DIPERBARUI */}
 
         <main className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="animate-in fade-in duration-500">
@@ -331,10 +326,6 @@ export default function Home() {
           onSuccess={checkUser}
           showToast={showToast}
         />
-      )}
-
-      {showRulesModal && (
-        <RulesModal onClose={() => setShowRulesModal(false)} />
       )}
     </div>
   );

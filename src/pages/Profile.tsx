@@ -26,7 +26,7 @@ import {
 import { EmeraldFolderIcon, UserBadge } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import RulesModal from '../components/RulesModal';
+// import RulesModal from '../components/RulesModal'; // TELAH DIHAPUS
 import PostModal from '../components/PostModal';
 import LoginModal from '../components/LoginModal';
 import AvatarModal from '../components/Avatar';
@@ -66,9 +66,9 @@ export default function Profile({
 
   // Modals State
   const [showAvatarModal, setShowAvatarModal] = useState(false);
-  const [showRulesModal, setShowRulesModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  // const [showRulesModal, setShowRulesModal] = useState(false); // TELAH DIHAPUS
   
   // Edit Batch State
   const [editingBatch, setEditingBatch] = useState<any>(null);
@@ -329,7 +329,11 @@ export default function Profile({
           handleLogout={handleLogoutAction}
           setShowAddModal={() => setShowAddModal(true)}
           setShowLoginModal={() => setShowLoginModal(true)}
-          setShowRulesModal={() => setShowRulesModal(true)}
+          setShowRulesModal={() => {
+            // DIPERBARUI: Navigasi URL alih-alih membuka modal
+            window.history.pushState({}, '', '/rules');
+            window.dispatchEvent(new Event('popstate'));
+          }}
         />
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
@@ -819,9 +823,7 @@ export default function Profile({
         />
       )}
 
-      {showRulesModal && (
-        <RulesModal onClose={() => setShowRulesModal(false)} />
-      )}
+      {/* showRulesModal TELAH DIHAPUS */}
 
       {showAddModal && (
         <PostModal 

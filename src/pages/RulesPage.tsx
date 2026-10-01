@@ -76,8 +76,15 @@ const RulesPage = () => {
             <div>
               <h3 className="font-bold text-slate-800 text-lg">Approved Direct Media Hosts (Mirrors)</h3>
               <p className="text-slate-600 mt-2 leading-relaxed font-medium">
-                If you wish to provide direct video streams or image gallery mirrors alongside your main archive, you may use external direct media hosts such as <strong>qu.ax</strong> or <strong>Goonbok</strong>. These ensure fast, embeddable playback without excessive redirects.
+                If you wish to provide direct video streams or image gallery mirrors alongside your main archive, you may use external direct media hosts such as <strong>qu.ax</strong> or <strong>chatbox.moe</strong>. 
               </p>
+              <div className="mt-3 p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
+                <p className="text-sm text-indigo-800 font-semibold">
+                  <span className="text-rose-500 font-bold">Important note for qu.ax:</span> You must append the <code className="bg-white px-1.5 py-0.5 rounded text-rose-600">.mp4</code> extension to the end of the original link to ensure proper video playback. 
+                  <br className="mb-1" />
+                  Example: Change <code className="bg-white px-1 py-0.5 rounded text-slate-500 font-mono">https://qu.ax/pka2S</code> to <code className="bg-white px-1 py-0.5 rounded text-emerald-600 font-mono font-bold">https://qu.ax/pka2S.mp4</code>
+                </p>
+              </div>
             </div>
           </div>
 
