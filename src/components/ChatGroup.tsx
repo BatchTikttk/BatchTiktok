@@ -22,21 +22,24 @@ interface UserProfile {
   is_admin: boolean;
 }
 
-// Aset Emoticon 3D Bergerak (Animated WebP Google Noto 3D)
-const EMOJI_LIST = [
-  { char: '😀', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f600/512.webp' },
-  { char: '😂', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f602/512.webp' },
-  { char: '🥰', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f970/512.webp' },
-  { char: '😎', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f60e/512.webp' },
-  { char: '🥺', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f97a/512.webp' },
-  { char: '😭', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.webp' },
-  { char: '😡', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f621/512.webp' },
-  { char: '👍', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f44d/512.webp' },
-  { char: '🙏', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f64f/512.webp' },
-  { char: '✨', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/2728/512.webp' },
-  { char: '🔥', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f525/512.webp' },
-  { char: '🎉', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f389/512.webp' },
-];
+// Map Emoticon 3D WebP Bergerak (Google Noto 3D)
+const EMOJI_MAP: Record<string, string> = {
+  '😀': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f600/512.webp',
+  '😂': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f602/512.webp',
+  '🥰': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f970/512.webp',
+  '😎': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f60e/512.webp',
+  '🥺': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f97a/512.webp',
+  '😭': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.webp',
+  '😡': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f621/512.webp',
+  '👍': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f44d/512.webp',
+  '🙏': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f64f/512.webp',
+  '✨': 'https://fonts.gstatic.com/s/e/notoemoji/latest/2728/512.webp',
+  '🔥': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f525/512.webp',
+  '🎉': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f389/512.webp',
+  '👋': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f44b/512.webp',
+};
+
+const EMOJI_LIST = Object.entries(EMOJI_MAP).map(([char, src]) => ({ char, src }));
 
 export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -85,7 +88,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     }
   }, [isOpen]);
 
-  // Combined Realtime Subscription (Mencegah error 'cannot add callbacks after subscribe')
+  // Combined Realtime Subscription
   useEffect(() => {
     if (!isOpen) return;
 
@@ -154,6 +157,26 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
   const onEmojiClick = (emojiChar: string) => {
     setNewMessage((prev) => prev + emojiChar);
     setShowEmojiPicker(false);
+  };
+
+  // Parser pikeun ngarobah emoji teks jadi gambar WebP 3D nu bergerak di jero gelembung chat
+  const renderMessageWith3DEmojis = (text: string) => {
+    const emojiRegex = new RegExp(`(${Object.keys(EMOJI_MAP).map(e => e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
+    const parts = text.split(emojiRegex);
+
+    return parts.map((part, index) => {
+      if (EMOJI_MAP[part]) {
+        return (
+          <img
+            key={index}
+            src={EMOJI_MAP[part]}
+            alt={part}
+            className="w-6 h-6 inline-block mx-0.5 align-middle object-contain"
+          />
+        );
+      }
+      return part;
+    });
   };
 
   return (
@@ -259,7 +282,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                             : 'bg-white text-slate-700 border border-slate-200 rounded-tl-none'
                         }`}
                       >
-                        {msg.message}
+                        {renderMessageWith3DEmojis(msg.message)}
                       </div>
 
                       <span className="text-[9px] font-bold text-slate-400 mt-1 px-1">
