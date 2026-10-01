@@ -4,18 +4,18 @@ export const UserBadge = ({
   username, 
   count, 
   adminList = [], 
-  role 
+  isAdmin = false 
 }: { 
   username: string; 
   count: number; 
-  adminList: string[]; 
-  role?: string | null; 
+  adminList?: string[]; 
+  isAdmin?: boolean; 
 }) => {
-  if (!username) return null;
+  if (!username) return null;  
   
-  const isAdmin = adminList.includes(username.toLowerCase()) || role === 'admin';
+  const checkIsAdmin = Boolean(isAdmin) || (Array.isArray(adminList) && adminList.map(a => a.toLowerCase()).includes(username.toLowerCase()));
 
-  if (isAdmin) {
+  if (checkIsAdmin) {
     return (
       <div title="Official Admin" className="bg-emerald-100 p-0.5 rounded-full ml-0.5 flex-shrink-0">
         <CheckCircle2 size={12} className="text-emerald-600" />
@@ -89,9 +89,7 @@ export const EmeraldFolderIcon = ({ className = "w-24 h-24", country }: { classN
       case 'Vietnam':
         flagContent = (
           <>
-            {/* Latar Belakang Merah */}
             <rect x="13" y="13" width="10" height="10" fill="#EF4444" />
-            {/* Bintang Kuning di Tengah */}
             <polygon 
               points="18,15 18.67,16.9 20.85,16.9 19.08,18.18 19.76,20.42 18,19.14 16.24,20.42 16.92,18.18 15.15,16.9 17.33,16.9" 
               fill="#FACC15" 
