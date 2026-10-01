@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabase';
-import { Search, CheckCircle2, Play, XCircle } from 'lucide-react';
+import { Search, CheckCircle2, Play, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Removed the RulesModal/RulesPage import from here
 import Navbar from "../components/Navbar";
@@ -78,6 +78,15 @@ export default function Home() {
   const [previewItem, setPreviewItem] = useState<any>(null);
   const [toastConfig, setToastConfig] = useState({ message: '', isVisible: false, type: 'success' });
 
+  // State untuk Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
+
+  // Reset page ke 1 setiap kali search atau kategori diubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory, searchQuery]);
+
   useEffect(() => {
     fetchBatches();
     fetchAdmins();
@@ -124,6 +133,7 @@ export default function Home() {
       .from('profiles')
       .select('id, username, avatar_url');
     
+    // Pastikan tidak ada limit yang diset supaya seluruh data 'approved' ditarik
     const { data: batchesData, error } = await supabase
       .from('batches')
       .select('*')
@@ -213,6 +223,13 @@ export default function Home() {
     return matchesCategory && matchesSearch;
   });
 
+  // Logika Pagination
+  const totalPages = Math.ceil(filteredBatches.length / ITEMS_PER_PAGE);
+  const paginatedBatches = filteredBatches.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col justify-between">
       
@@ -268,9 +285,9 @@ export default function Home() {
 
         <main className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="animate-in fade-in duration-500">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
-              {filteredBatches.length > 0 ? (
-                filteredBatches.map(batch => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {paginatedBatches.length > 0 ? (
+                paginatedBatches.map(batch => (
                   <CreatorCard 
                     key={batch.id} 
                     data={batch} 
@@ -289,6 +306,43 @@ export default function Home() {
                 </div>
               )}
             </div>
+
+            {/* Kontrol Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-3 mt-12 mb-20">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors shadow-sm"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                
+                <div className="flex items-center gap-2">
+                  {[...Array(totalPages)].map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`w-10 h-10 rounded-xl font-bold text-sm transition-all shadow-sm ${
+                        currentPage === i + 1
+                          ? 'bg-emerald-500 text-white border-none'
+                          : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors shadow-sm"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+            )}
           </div>
         </main>
       </div>
