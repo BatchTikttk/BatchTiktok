@@ -31,7 +31,13 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => 
             Uploaded by <span className="font-semibold text-emerald-600 not-italic">{data.uploaded_by}</span>
           </span>
           <div className="flex items-center justify-center">
-            <UserBadge username={data.uploaded_by} count={uploaderCount} adminList={adminList} />
+            {/* Meneruskan properti role uploader ke UserBadge */}
+            <UserBadge 
+              username={data.uploaded_by} 
+              count={uploaderCount} 
+              adminList={adminList} 
+              role={data.uploader_role || data.role} 
+            />
           </div>
         </div>
         
@@ -139,9 +145,10 @@ export default function Home() {
   };
 
   const fetchBatches = async () => {
+    // Ambil kolom role dari profiles
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url');
+      .select('id, username, avatar_url, role');
     
     const { data: batchesData, error } = await supabase
       .from('batches')
@@ -162,7 +169,9 @@ export default function Home() {
           ...batch,
           uploaded_by: uploaderProfile?.username || batch.uploaded_by,
           avatar_url: uploaderProfile?.avatar_url || null,
-          uploader_avatar: uploaderProfile?.avatar_url || null 
+          uploader_avatar: uploaderProfile?.avatar_url || null,
+          uploader_role: uploaderProfile?.role || null,
+          role: uploaderProfile?.role || null
         };
       });
 

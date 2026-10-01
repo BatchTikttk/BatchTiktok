@@ -22,6 +22,36 @@ interface UserProfile {
   is_admin: boolean;
 }
 
+interface UserStats {
+  totalUploads: number;
+  totalApproved: number;
+}
+
+// Badge Tier Definitions (Matches Profile.tsx)
+const BADGES = [
+  {
+    id: 'low_tier',
+    title: 'Emerald Rookie',
+    tier: 'Tier 1 Badge',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Low%20Tier.webp',
+    isUnlocked: (stats: UserStats) => stats.totalUploads >= 10,
+  },
+  {
+    id: 'medium_tier',
+    title: 'Emerald Pro',
+    tier: 'Tier 2 Badge',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp',
+    isUnlocked: (stats: UserStats) => stats.totalApproved >= 30,
+  },
+  {
+    id: 'advance_tier',
+    title: 'Emerald Master',
+    tier: 'Tier 3 Badge',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp',
+    isUnlocked: (stats: UserStats) => stats.totalApproved >= 50,
+  },
+];
+
 // Map Emoticon 3D WebP Bergerak (Google Noto 3D)
 const EMOJI_MAP: Record<string, string> = {
   '😀': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f600/512.webp',
@@ -45,6 +75,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
+  const [userStatsMap, setUserStatsMap] = useState<Record<string, UserStats>>({});
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -62,6 +93,30 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
       .select('id, username, avatar_url, is_admin');
     if (!error && data) {
       setProfiles(data);
+    }
+  };
+
+  // Fetch batches data to calculate user upload stats for badges
+  const fetchUserStats = async () => {
+    const { data, error } = await supabase
+      .from('batches')
+      .select('user_id, status');
+
+    if (!error && data) {
+      const statsMap: Record<string, UserStats> = {};
+      
+      data.forEach((batch) => {
+        if (!batch.user_id) return;
+        if (!statsMap[batch.user_id]) {
+          statsMap[batch.user_id] = { totalUploads: 0, totalApproved: 0 };
+        }
+        statsMap[batch.user_id].totalUploads += 1;
+        if (batch.status === 'approved') {
+          statsMap[batch.user_id].totalApproved += 1;
+        }
+      });
+
+      setUserStatsMap(statsMap);
     }
   };
 
@@ -84,11 +139,12 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
   useEffect(() => {
     if (isOpen) {
       fetchProfiles();
+      fetchUserStats();
       fetchMessages();
     }
   }, [isOpen]);
 
-  // Realtime Subscription dengan Random Channel ID & Cleanup
+  // Realtime Subscription untuk Messages, Profiles, dan Batches
   useEffect(() => {
     if (!isOpen) return;
 
@@ -109,6 +165,13 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
         { event: '*', schema: 'public', table: 'profiles' },
         () => {
           fetchProfiles();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'batches' },
+        () => {
+          fetchUserStats();
         }
       )
       .subscribe();
@@ -155,9 +218,15 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     }
   };
 
-  // Logika baru: Tidak memanggil setShowEmojiPicker(false) agar popup tetap terbuka
   const onEmojiClick = (emojiChar: string) => {
     setNewMessage((prev) => prev + emojiChar);
+  };
+
+  // Function to get unlocked badges for a user ID
+  const getUserUnlockedBadges = (userId?: string) => {
+    if (!userId) return [];
+    const stats = userStatsMap[userId] || { totalUploads: 0, totalApproved: 0 };
+    return BADGES.filter((badge) => badge.isUnlocked(stats));
   };
 
   // Parser untuk mengubah emoji teks jadi gambar WebP 3D bergerak di dalam gelembung chat
@@ -186,7 +255,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2.5 bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-3.5 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 font-bold"
+          className="flex items-center gap-2.5 bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-3.5 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 font-bold cursor-pointer"
         >
           <MessageSquare size={20} className="fill-current" />
           <span>Global Chat</span>
@@ -200,7 +269,6 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
           {/* Header */}
           <div className="p-4 bg-white border-b border-slate-100 flex items-center justify-between shadow-sm z-10 relative">
             <div className="flex items-center gap-3">
-              {/* Icon tanpa background container */}
               <div className="text-emerald-500 relative flex items-center justify-center p-1">
                 <MessageSquare size={22} className="fill-current opacity-20 absolute" />
                 <MessageSquare size={22} />
@@ -215,7 +283,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-50 transition-colors"
+              className="p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-50 transition-colors cursor-pointer"
             >
               <X size={18} />
             </button>
@@ -230,7 +298,6 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
               </div>
             ) : messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                {/* 3D Animated Waving Hand WebP */}
                 <img
                   src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f44b/512.webp"
                   alt="3D Animated Waving Hand"
@@ -243,6 +310,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
               messages.map((msg) => {
                 const isMe = currentUser && msg.username.toLowerCase() === currentUser.toLowerCase();
                 const senderProfile = profiles.find((p) => p.id === msg.user_id);
+                const userBadges = getUserUnlockedBadges(msg.user_id);
 
                 return (
                   <div key={msg.id} className={`flex gap-2.5 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -265,8 +333,8 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                     {/* Bubble Message */}
                     <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[75%]`}>
                       
-                      {/* Name & Admin Badge */}
-                      <div className="flex items-center gap-1 mb-1 px-1">
+                      {/* Name, Admin Badge, & User Unlocked Badges */}
+                      <div className="flex items-center gap-1 mb-1 px-1 flex-wrap">
                         <span className="text-[11px] font-bold text-slate-600">
                           {isMe ? 'You' : senderProfile?.username || msg.username}
                         </span>
@@ -275,6 +343,17 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                             <CheckCircle2 size={12} className="text-emerald-500 fill-emerald-50" />
                           </span>
                         )}
+                        
+                        {/* Display User Unlocked Badges */}
+                        {userBadges.map((badge) => (
+                          <img
+                            key={badge.id}
+                            src={badge.iconUrl}
+                            alt={badge.title}
+                            title={`${badge.title} (${badge.tier})`}
+                            className="w-4 h-4 object-contain inline-block drop-shadow-sm hover:scale-125 transition-transform cursor-pointer"
+                          />
+                        ))}
                       </div>
 
                       <div
@@ -309,7 +388,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                     key={index}
                     type="button"
                     onClick={() => onEmojiClick(item.char)}
-                    className="p-1.5 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
+                    className="p-1.5 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center cursor-pointer"
                   >
                     <img src={item.src} alt={item.char} className="w-7 h-7 object-contain hover:scale-125 transition-transform" />
                   </button>
@@ -320,7 +399,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
             {!currentUser ? (
               <button
                 onClick={setShowLoginModal}
-                className="w-full py-3 px-4 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-emerald-600 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-slate-200 shadow-sm"
+                className="w-full py-3 px-4 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-emerald-600 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-slate-200 shadow-sm cursor-pointer"
               >
                 <LogIn size={16} />
                 Login with Google to chat
@@ -330,7 +409,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                 <button
                   type="button"
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className="p-2.5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-xl transition-colors"
+                  className="p-2.5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer"
                 >
                   <Smile size={20} />
                 </button>
@@ -345,7 +424,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                 <button
                   type="submit"
                   disabled={!newMessage.trim()}
-                  className="p-3 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:hover:bg-emerald-500 text-white rounded-xl transition-all shadow-md shadow-emerald-500/20"
+                  className="p-3 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:hover:bg-emerald-500 text-white rounded-xl transition-all shadow-md shadow-emerald-500/20 cursor-pointer"
                 >
                   <Send size={16} className="ml-0.5" />
                 </button>

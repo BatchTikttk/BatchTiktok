@@ -9,20 +9,26 @@ const BANNED_LOGO_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/obj
 const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: any) => {
   const [isMuted, setIsMuted] = useState(true);
   
-  // Ambil foto avatar bawaan langsung dari props item jika ada
+  // Ambil foto avatar & role bawaan langsung dari props item jika ada
   const [uploaderAvatar, setUploaderAvatar] = useState<string | null>(
     item?.uploader_avatar || item?.avatar_url || null
+  );
+  const [uploaderRole, setUploaderRole] = useState<string | null>(
+    item?.uploader_role || item?.role || null
   );
 
   useEffect(() => {
     let channel: any;
 
-    // Update avatar dari item props jika berubah
+    // Update state dari item props jika berubah
     if (item?.uploader_avatar || item?.avatar_url) {
       setUploaderAvatar(item.uploader_avatar || item.avatar_url);
     }
+    if (item?.uploader_role || item?.role) {
+      setUploaderRole(item.uploader_role || item.role);
+    }
 
-    const fetchUploaderAvatar = async () => {
+    const fetchUploaderProfile = async () => {
       if (!item) return;
 
       let profileData: any = null;
@@ -31,7 +37,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
       if (item.user_id) {
         const { data } = await supabase
           .from('profiles')
-          .select('id, avatar_url')
+          .select('id, avatar_url, role') // Tambahkan select role
           .eq('id', item.user_id)
           .maybeSingle();
 
@@ -43,7 +49,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
         const targetName = item.uploaded_by.trim();
         const { data } = await supabase
           .from('profiles')
-          .select('id, avatar_url')
+          .select('id, avatar_url, role') // Tambahkan select role
           .or(`username.ilike."${targetName}",full_name.ilike."${targetName}"`)
           .limit(1);
 
@@ -54,8 +60,11 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
         if (profileData.avatar_url) {
           setUploaderAvatar(profileData.avatar_url);
         }
+        if (profileData.role) {
+          setUploaderRole(profileData.role);
+        }
 
-        // Realtime Subscription
+        // Realtime Subscription untuk Avatar & Role
         channel = supabase
           .channel(`public:profiles:uploader_${profileData.id}`)
           .on(
@@ -69,6 +78,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
             (payload) => {
               if (payload.new) {
                 setUploaderAvatar(payload.new.avatar_url || null);
+                setUploaderRole(payload.new.role || null);
               }
             }
           )
@@ -76,14 +86,22 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
       }
     };
 
-    fetchUploaderAvatar();
+    fetchUploaderProfile();
 
     return () => {
       if (channel) {
         supabase.removeChannel(channel);
       }
     };
-  }, [item?.id, item?.user_id, item?.uploaded_by, item?.uploader_avatar, item?.avatar_url]);
+  }, [
+    item?.id, 
+    item?.user_id, 
+    item?.uploaded_by, 
+    item?.uploader_avatar, 
+    item?.avatar_url, 
+    item?.uploader_role, 
+    item?.role
+  ]);
 
   if (!item) return null;
 
@@ -201,7 +219,14 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
                   </div>
 
                   <span className="font-bold text-slate-700 not-italic">{item.uploaded_by}</span>
-                  <UserBadge username={item.uploaded_by} count={uploaderCount} adminList={adminList} />
+                  
+                  {/* Tambahkan properti role yang sudah diambil */}
+                  <UserBadge 
+                    username={item.uploaded_by} 
+                    count={uploaderCount} 
+                    adminList={adminList} 
+                    role={uploaderRole} 
+                  />
                 </span>
               </div>
             </div>
