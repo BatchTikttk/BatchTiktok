@@ -103,7 +103,7 @@ export default function Profile({
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userBatches, setUserBatches] = useState<any[]>([]);
-  const [allBatches, setAllBatches] = useState<any[]>([]); // Semua batch untuk Admin
+  const [allBatches, setAllBatches] = useState<any[]>([]); 
   const [adminList, setAdminList] = useState<string[]>([]);
   const [deletingId, setDeletingId] = useState<string | number | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<string | number | null>(null);
@@ -113,7 +113,6 @@ export default function Profile({
   const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'settings' | 'admin'>('overview');
   const [collectionSearchQuery, setCollectionSearchQuery] = useState('');
   
-  // Filter khusus Tab Admin
   const [adminStatusFilter, setAdminStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [adminSearchQuery, setAdminSearchQuery] = useState('');
 
@@ -124,7 +123,6 @@ export default function Profile({
   const [editingBatch, setEditingBatch] = useState<any>(null);
   const [isUpdatingBatch, setIsUpdatingBatch] = useState(false);
 
-  // Toast Notification State
   const [toastConfig, setToastConfig] = useState({ message: '', isVisible: false, type: 'success' });
 
   const selectableCategories = CATEGORIES.filter((c: string) => c !== 'Home' && c !== 'All');
@@ -194,9 +192,8 @@ export default function Profile({
     setLoading(false);
   };
 
-  // Mengambil SEMUA batch dari database untuk Admin
   const fetchAllBatches = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('batches')
       .select('*')
       .order('created_at', { ascending: false });
@@ -206,7 +203,6 @@ export default function Profile({
     }
   };
 
-  // Fungsi khusus Admin untuk mengubah status (approved / rejected / pending)
   const handleUpdateStatus = async (batchId: string | number, newStatus: 'approved' | 'rejected' | 'pending') => {
     setActionLoadingId(batchId);
     
@@ -221,8 +217,6 @@ export default function Profile({
       handleShowToast(`Gagal mengubah status: ${error.message}`, "error");
     } else {
       handleShowToast(`Batch berhasil diubah ke status: ${newStatus.toUpperCase()}`, "success");
-      
-      // Update state lokal secara instan
       setAllBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: newStatus } : b));
       setUserBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: newStatus } : b));
     }
@@ -284,7 +278,6 @@ export default function Profile({
     const totalUploads = userBatches.length;
     const totalApproved = userBatches.filter(b => b.status === 'approved').length;
     const totalPending = userBatches.filter(b => b.status === 'pending').length;
-    
     const totalVideos = userBatches.reduce((acc: number, b: any) => acc + (Number(b.video_count) || 0), 0);
     
     const totalGB = userBatches.reduce((acc: number, b: any) => {
@@ -323,13 +316,12 @@ export default function Profile({
     };
   }, [userBatches]);
 
-  // Active Unlocked Badges Filtered
   const unlockedBadges = useMemo(() => {
     return BADGES.filter(b => b.isUnlocked(stats));
   }, [stats]);
 
   const handleDeleteBatch = async (batchId: string | number) => {
-    if (!confirm("Are you sure you want to delete this collection folder?")) return;
+    if (!window.confirm("Are you sure you want to delete this collection folder?")) return;
 
     setDeletingId(batchId);
     const { error } = await supabase
@@ -352,7 +344,7 @@ export default function Profile({
     const target = e.target;
     const value = target.type === 'checkbox' ? (target as HTMLInputElement).checked : target.value;
     
-    setEditingBatch({ ...editingBatch, [target.name]: value });
+    setEditingBatch((prev: any) => ({ ...prev, [target.name]: value }));
   };
 
   const handleUpdateBatchSubmit = async (e: React.FormEvent) => {
@@ -406,7 +398,6 @@ export default function Profile({
     );
   }, [userBatches, collectionSearchQuery]);
 
-  // Filtering untuk Tab Admin Control
   const filteredAdminBatches = useMemo(() => {
     return allBatches.filter(batch => {
       const matchesStatus = adminStatusFilter === 'all' || batch.status === adminStatusFilter;
@@ -438,7 +429,6 @@ export default function Profile({
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col justify-between">
-      
       <div>
         <Navbar 
           activeCategory="" 
@@ -460,15 +450,11 @@ export default function Profile({
         />
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
-          
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
             {/* LEFT SIDEBAR */}
             <div className="lg:col-span-4 space-y-6">
-              
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center relative overflow-hidden">
-                
-                {/* Avatar Display */}
                 <div 
                   className="relative group cursor-pointer"
                   onClick={() => setShowAvatarModal(true)}
@@ -502,7 +488,6 @@ export default function Profile({
                     />
                   </div>
 
-                  {/* Auto-Equipped Unlocked Badges Showcase */}
                   {unlockedBadges.length > 0 && (
                     <div className="mt-2.5 flex items-center justify-center gap-2 flex-wrap bg-slate-50/80 px-3 py-1.5 rounded-2xl border border-slate-100">
                       <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Equipped Badges:</span>
@@ -548,7 +533,6 @@ export default function Profile({
                     {stats.totalUploads} Uploads
                   </span>
                 </div>
-
               </div>
 
               {/* Sidebar Nav Tabs */}
@@ -556,9 +540,7 @@ export default function Profile({
                 <button
                   onClick={() => setActiveTab('overview')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all border-none cursor-pointer ${
-                    activeTab === 'overview'
-                      ? 'bg-emerald-50 text-emerald-600'
-                      : 'text-slate-600 hover:bg-slate-50'
+                    activeTab === 'overview' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                   <LayoutDashboard size={18} /> Overview Stats
@@ -567,9 +549,7 @@ export default function Profile({
                 <button
                   onClick={() => setActiveTab('collections')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all border-none cursor-pointer ${
-                    activeTab === 'collections'
-                      ? 'bg-emerald-50 text-emerald-600'
-                      : 'text-slate-600 hover:bg-slate-50'
+                    activeTab === 'collections' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                   <FolderHeart size={18} /> My Batch Collections
@@ -578,15 +558,12 @@ export default function Profile({
                 <button
                   onClick={() => setActiveTab('settings')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all border-none cursor-pointer ${
-                    activeTab === 'settings'
-                      ? 'bg-emerald-50 text-emerald-600'
-                      : 'text-slate-600 hover:bg-slate-50'
+                    activeTab === 'settings' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                   <Settings size={18} /> Account Settings
                 </button>
 
-                {/* TAB KHUSUS ADMIN CONTROL */}
                 {userProfile?.is_admin && (
                   <>
                     <hr className="my-2 border-slate-100" />
@@ -596,9 +573,7 @@ export default function Profile({
                         fetchAllBatches();
                       }}
                       className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all border-none cursor-pointer ${
-                        activeTab === 'admin'
-                          ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
-                          : 'text-amber-600 bg-amber-50 hover:bg-amber-100/70'
+                        activeTab === 'admin' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'text-amber-600 bg-amber-50 hover:bg-amber-100/70'
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -629,17 +604,11 @@ export default function Profile({
             {/* RIGHT CONTENT AREA */}
             <div className="lg:col-span-8 space-y-6">
               
-              {/* TAB 1: OVERVIEW STATS & BADGES */}
               {activeTab === 'overview' && (
                 <div className="space-y-6 animate-in fade-in duration-200">
-                  
-                  {/* Stats Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    
                     <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
-                      <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl">
-                        <Folder size={26} />
-                      </div>
+                      <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl"><Folder size={26} /></div>
                       <div>
                         <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Total Folders</span>
                         <span className="text-3xl font-black text-slate-800">{stats.totalUploads}</span>
@@ -647,9 +616,7 @@ export default function Profile({
                     </div>
 
                     <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
-                      <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl">
-                        <Video size={26} />
-                      </div>
+                      <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl"><Video size={26} /></div>
                       <div>
                         <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Total Videos</span>
                         <span className="text-3xl font-black text-slate-800">{stats.totalVideos}</span>
@@ -657,9 +624,7 @@ export default function Profile({
                     </div>
 
                     <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
-                      <div className="p-4 bg-purple-50 text-purple-600 rounded-2xl">
-                        <HardDrive size={26} />
-                      </div>
+                      <div className="p-4 bg-purple-50 text-purple-600 rounded-2xl"><HardDrive size={26} /></div>
                       <div>
                         <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Total Storage</span>
                         <span className="text-3xl font-black text-slate-800">{stats.totalSizeDisplay}</span>
@@ -667,9 +632,7 @@ export default function Profile({
                     </div>
 
                     <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
-                      <div className="p-4 bg-amber-50 text-amber-600 rounded-2xl">
-                        <BarChart3 size={26} />
-                      </div>
+                      <div className="p-4 bg-amber-50 text-amber-600 rounded-2xl"><BarChart3 size={26} /></div>
                       <div>
                         <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Approved Status</span>
                         <div className="flex items-baseline gap-2">
@@ -683,10 +646,9 @@ export default function Profile({
                         </div>
                       </div>
                     </div>
-
                   </div>
 
-                  {/* BADGES & ACHIEVEMENTS SECTION */}
+                  {/* BADGES SECTION */}
                   <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100">
                     <div className="flex items-center justify-between mb-6">
                       <div>
@@ -713,9 +675,7 @@ export default function Profile({
                           <div 
                             key={badge.id}
                             className={`relative p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-between ${
-                              unlocked 
-                                ? 'bg-gradient-to-b from-white to-emerald-50/30 border-emerald-200/80 shadow-sm hover:shadow-md' 
-                                : 'bg-slate-50/60 border-slate-200/70 opacity-80'
+                              unlocked ? 'bg-gradient-to-b from-white to-emerald-50/30 border-emerald-200/80 shadow-sm hover:shadow-md' : 'bg-slate-50/60 border-slate-200/70 opacity-80'
                             }`}
                           >
                             <div className="flex items-center justify-between mb-3">
@@ -741,9 +701,7 @@ export default function Profile({
                                   src={badge.iconUrl} 
                                   alt={badge.title} 
                                   className={`w-20 h-20 object-contain transition-all duration-300 ${
-                                    unlocked 
-                                      ? 'drop-shadow-[0_8px_16px_rgba(16,185,129,0.25)] hover:scale-110' 
-                                      : 'grayscale opacity-40'
+                                    unlocked ? 'drop-shadow-[0_8px_16px_rgba(16,185,129,0.25)] hover:scale-110' : 'grayscale opacity-40'
                                   }`}
                                 />
                               </div>
@@ -762,9 +720,7 @@ export default function Profile({
                               </div>
                               <div className="w-full bg-slate-200/80 rounded-full h-2 overflow-hidden">
                                 <div 
-                                  className={`h-full transition-all duration-500 rounded-full ${
-                                    unlocked ? 'bg-emerald-500' : 'bg-slate-400'
-                                  }`}
+                                  className={`h-full transition-all duration-500 rounded-full ${unlocked ? 'bg-emerald-500' : 'bg-slate-400'}`}
                                   style={{ width: `${percent}%` }}
                                 ></div>
                               </div>
@@ -774,65 +730,9 @@ export default function Profile({
                       })}
                     </div>
                   </div>
-
-                  {/* Recent Collections */}
-                  <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100">
-                    <div className="flex items-center justify-between mb-6">
-                      <div>
-                        <h2 className="text-lg font-bold text-slate-800 tracking-tight">Recent Collections</h2>
-                        <p className="text-xs text-slate-400 font-medium">Overview of your latest uploaded video folders</p>
-                      </div>
-                      <button 
-                        onClick={() => setActiveTab('collections')}
-                        className="text-xs font-bold text-emerald-600 hover:text-emerald-700 border-none bg-transparent cursor-pointer"
-                      >
-                        View All →
-                      </button>
-                    </div>
-
-                    {userBatches.length > 0 ? (
-                      <div className="space-y-3">
-                        {userBatches.slice(0, 3).map((batch) => (
-                          <div 
-                            key={batch.id} 
-                            className="p-4 rounded-2xl bg-slate-50/60 flex items-center justify-between gap-4 border border-slate-100/50"
-                          >
-                            <div className="flex items-center gap-3.5">
-                              <EmeraldFolderIcon className="w-10 h-10 flex-shrink-0" country={batch.country} />
-                              <div>
-                                <h3 className="text-sm font-bold text-slate-800">{batch.username}</h3>
-                                <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 font-medium">
-                                  <span className="text-emerald-600 font-bold">{batch.country}</span>
-                                  <span>•</span>
-                                  <span>{batch.video_count} Videos</span>
-                                </div>
-                              </div>
-                            </div>
-                            {batch.status === 'approved' ? (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100/80 text-emerald-700">
-                                <CheckCircle2 size={14} /> Approved
-                              </span>
-                            ) : batch.status === 'rejected' ? (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-100/80 text-red-700">
-                                <XCircle size={14} /> Rejected
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100/80 text-amber-700">
-                                <Clock size={14} /> Pending
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-slate-400 text-center py-6">No collections uploaded yet.</p>
-                    )}
-                  </div>
-
                 </div>
               )}
 
-              {/* TAB 2: BATCH COLLECTIONS */}
               {activeTab === 'collections' && (
                 <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100 animate-in fade-in duration-200">
                   <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
@@ -848,7 +748,7 @@ export default function Profile({
                         placeholder="Search collections..." 
                         value={collectionSearchQuery}
                         onChange={(e) => setCollectionSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm font-medium text-slate-700"
+                        className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-medium text-slate-700"
                       />
                     </div>
                   </div>
@@ -858,7 +758,7 @@ export default function Profile({
                       {filteredBatches.map((batch) => (
                         <div 
                           key={batch.id} 
-                          className="p-4 rounded-2xl bg-slate-50/60 hover:bg-slate-50 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-slate-100/50"
+                          className="p-4 rounded-2xl bg-slate-50/65 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-slate-100"
                         >
                           <div className="flex items-center gap-3.5">
                             <EmeraldFolderIcon className="w-10 h-10 flex-shrink-0" country={batch.country} />
@@ -929,7 +829,6 @@ export default function Profile({
                 </div>
               )}
 
-              {/* TAB 3: ACCOUNT SETTINGS */}
               {activeTab === 'settings' && (
                 <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100 space-y-6 animate-in fade-in duration-200">
                   <div>
@@ -968,18 +867,14 @@ export default function Profile({
                           value={usernameInput}
                           onChange={(e) => setUsernameInput(e.target.value)}
                           placeholder="Enter your username"
-                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200/80 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
                         />
                         <button
                           onClick={handleUpdateUsername}
                           disabled={updatingUsername || usernameInput.trim() === activeUsername}
                           className="px-5 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-sm transition-all border-none cursor-pointer flex-shrink-0 flex items-center justify-center min-w-[90px]"
                         >
-                          {updatingUsername ? (
-                            <Loader2 className="animate-spin" size={16} />
-                          ) : (
-                            'Save'
-                          )}
+                          {updatingUsername ? <Loader2 className="animate-spin" size={16} /> : 'Save'}
                         </button>
                       </div>
                     </div>
@@ -987,11 +882,8 @@ export default function Profile({
                 </div>
               )}
 
-              {/* TAB 4: ADMIN CONTROL PANEL (PENDING / APPROVED / REJECTED) */}
               {activeTab === 'admin' && userProfile?.is_admin && (
                 <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100 space-y-6 animate-in fade-in duration-200">
-                  
-                  {/* Header Tab Admin */}
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
                     <div>
                       <div className="flex items-center gap-2">
@@ -1011,14 +903,11 @@ export default function Profile({
                     </button>
                   </div>
 
-                  {/* Summary Status Badges */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <button 
                       onClick={() => setAdminStatusFilter('pending')}
                       className={`p-3.5 rounded-2xl border text-left transition-all ${
-                        adminStatusFilter === 'pending' 
-                          ? 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/20' 
-                          : 'bg-slate-50 border-slate-100 text-slate-700 hover:bg-amber-50/50'
+                        adminStatusFilter === 'pending' ? 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/20' : 'bg-slate-50 border-slate-100 text-slate-700 hover:bg-amber-50/50'
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -1031,9 +920,7 @@ export default function Profile({
                     <button 
                       onClick={() => setAdminStatusFilter('approved')}
                       className={`p-3.5 rounded-2xl border text-left transition-all ${
-                        adminStatusFilter === 'approved' 
-                          ? 'bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-500/20' 
-                          : 'bg-slate-50 border-slate-100 text-slate-700 hover:bg-emerald-50/50'
+                        adminStatusFilter === 'approved' ? 'bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-500/20' : 'bg-slate-50 border-slate-100 text-slate-700 hover:bg-emerald-50/50'
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -1046,9 +933,7 @@ export default function Profile({
                     <button 
                       onClick={() => setAdminStatusFilter('rejected')}
                       className={`p-3.5 rounded-2xl border text-left transition-all ${
-                        adminStatusFilter === 'rejected' 
-                          ? 'bg-red-500 text-white border-red-500 shadow-md shadow-red-500/20' 
-                          : 'bg-slate-50 border-slate-100 text-slate-700 hover:bg-red-50/50'
+                        adminStatusFilter === 'rejected' ? 'bg-red-500 text-white border-red-500 shadow-md shadow-red-500/20' : 'bg-slate-50 border-slate-100 text-slate-700 hover:bg-red-50/50'
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -1061,9 +946,7 @@ export default function Profile({
                     <button 
                       onClick={() => setAdminStatusFilter('all')}
                       className={`p-3.5 rounded-2xl border text-left transition-all ${
-                        adminStatusFilter === 'all' 
-                          ? 'bg-slate-800 text-white border-slate-800 shadow-md' 
-                          : 'bg-slate-50 border-slate-100 text-slate-700 hover:bg-slate-100'
+                        adminStatusFilter === 'all' ? 'bg-slate-800 text-white border-slate-800 shadow-md' : 'bg-slate-50 border-slate-100 text-slate-700 hover:bg-slate-100'
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -1074,7 +957,6 @@ export default function Profile({
                     </button>
                   </div>
 
-                  {/* Search Bar Admin */}
                   <div className="relative">
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input 
@@ -1082,25 +964,19 @@ export default function Profile({
                       placeholder="Cari berdasarkan username uploader atau negara..." 
                       value={adminSearchQuery}
                       onChange={(e) => setAdminSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all text-sm font-medium text-slate-700"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium text-slate-700"
                     />
                   </div>
 
-                  {/* Daftar Batch Moderation */}
                   {filteredAdminBatches.length > 0 ? (
                     <div className="space-y-4">
                       {filteredAdminBatches.map((batch) => (
                         <div 
                           key={batch.id} 
                           className={`p-5 rounded-3xl border transition-all flex flex-col gap-4 ${
-                            batch.status === 'pending'
-                              ? 'bg-amber-50/30 border-amber-200/80'
-                              : batch.status === 'approved'
-                              ? 'bg-emerald-50/20 border-emerald-200/60'
-                              : 'bg-red-50/20 border-red-200/60'
+                            batch.status === 'pending' ? 'bg-amber-50/30 border-amber-200/80' : batch.status === 'approved' ? 'bg-emerald-50/20 border-emerald-200/60' : 'bg-red-50/20 border-red-200/60'
                           }`}
                         >
-                          {/* Info Atas */}
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div className="flex items-center gap-3.5">
                               <EmeraldFolderIcon className="w-12 h-12 flex-shrink-0" country={batch.country} />
@@ -1117,7 +993,6 @@ export default function Profile({
                               </div>
                             </div>
 
-                            {/* Badge Status */}
                             <div className="flex items-center gap-2">
                               {batch.status === 'approved' && (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800">
@@ -1137,7 +1012,6 @@ export default function Profile({
                             </div>
                           </div>
 
-                          {/* Detail Link Check */}
                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 bg-white/80 p-3 rounded-2xl border border-slate-100 text-xs">
                             {batch.tiktok_url && (
                               <a href={batch.tiktok_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-blue-600 hover:underline font-semibold truncate">
@@ -1161,38 +1035,26 @@ export default function Profile({
                             )}
                           </div>
 
-                          {/* Tombol Kontrol Aksi Admin */}
                           <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100/80">
                             <div className="flex items-center gap-2">
-                              {/* Tombol Approve */}
                               <button
                                 onClick={() => handleUpdateStatus(batch.id, 'approved')}
                                 disabled={actionLoadingId === batch.id || batch.status === 'approved'}
                                 className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 text-white text-xs font-extrabold rounded-xl transition-all border-none cursor-pointer flex items-center gap-1.5 shadow-sm"
                               >
-                                {actionLoadingId === batch.id ? (
-                                  <Loader2 size={14} className="animate-spin" />
-                                ) : (
-                                  <Check size={14} />
-                                )}
+                                {actionLoadingId === batch.id ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                                 Approve
                               </button>
 
-                              {/* Tombol Reject */}
                               <button
                                 onClick={() => handleUpdateStatus(batch.id, 'rejected')}
                                 disabled={actionLoadingId === batch.id || batch.status === 'rejected'}
                                 className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white text-xs font-extrabold rounded-xl transition-all border-none cursor-pointer flex items-center gap-1.5 shadow-sm"
                               >
-                                {actionLoadingId === batch.id ? (
-                                  <Loader2 size={14} className="animate-spin" />
-                                ) : (
-                                  <X size={14} />
-                                )}
+                                {actionLoadingId === batch.id ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
                                 Reject
                               </button>
 
-                              {/* Reset ke Pending jika perlu */}
                               {batch.status !== 'pending' && (
                                 <button
                                   onClick={() => handleUpdateStatus(batch.id, 'pending')}
@@ -1221,7 +1083,6 @@ export default function Profile({
                               </button>
                             </div>
                           </div>
-
                         </div>
                       ))}
                     </div>
@@ -1232,14 +1093,11 @@ export default function Profile({
                       <p className="text-xs text-slate-400 mt-0.5">Coba ubah status filter atau kata kunci pencarian Anda.</p>
                     </div>
                   )}
-
                 </div>
               )}
 
             </div>
-
           </div>
-
         </main>
       </div>
 
@@ -1259,7 +1117,7 @@ export default function Profile({
                 <h2 className="text-xl font-bold text-slate-800">Edit Batch Collection</h2>
                 <p className="mt-1 text-xs font-medium text-slate-500">Update batch information as Admin.</p>
               </div>
-              <button onClick={() => setEditingBatch(null)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
+              <button onClick={() => setEditingBatch(null)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer">
                 <X size={20} />
               </button>
             </div>
@@ -1268,12 +1126,12 @@ export default function Profile({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-slate-700">Creator Username</label>
-                  <input required type="text" name="username" value={editingBatch.username || ''} onChange={handleEditChange} placeholder="Example: jennie_bp" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
+                  <input required type="text" name="username" value={editingBatch.username || ''} onChange={handleEditChange} placeholder="Example: jennie_bp" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                 </div>
                 
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-slate-700">Country / Region</label>
-                  <select name="country" value={editingBatch.country || ''} onChange={handleEditChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all">
+                  <select name="country" value={editingBatch.country || ''} onChange={handleEditChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     {selectableCategories.map((cat: string) => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
@@ -1282,17 +1140,17 @@ export default function Profile({
 
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-slate-700">Video Count</label>
-                  <input required type="number" name="video_count" value={editingBatch.video_count || ''} onChange={handleEditChange} placeholder="Example: 150" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
+                  <input required type="number" name="video_count" value={editingBatch.video_count || ''} onChange={handleEditChange} placeholder="Example: 150" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-slate-700">File Size</label>
-                  <input required type="text" name="size_file" value={editingBatch.size_file || ''} onChange={handleEditChange} placeholder="Example: 500 MB" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
+                  <input required type="text" name="size_file" value={editingBatch.size_file || ''} onChange={handleEditChange} placeholder="Example: 500 MB" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="text-sm font-semibold text-slate-700">TikTok Profile Link</label>
-                  <input required={!editingBatch.is_banned} type="url" name="tiktok_url" value={editingBatch.tiktok_url || ''} onChange={handleEditChange} disabled={editingBatch.is_banned} placeholder={editingBatch.is_banned ? "Link not required for banned accounts" : "https://tiktok.com/@username"} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:opacity-60 disabled:bg-slate-100" />
+                  <input required={!editingBatch.is_banned} type="url" name="tiktok_url" value={editingBatch.tiktok_url || ''} onChange={handleEditChange} disabled={editingBatch.is_banned} placeholder={editingBatch.is_banned ? "Link not required for banned accounts" : "https://tiktok.com/@username"} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-60 disabled:bg-slate-100" />
                   
                   <div className="flex items-center gap-2 mt-3 p-3 bg-red-50/50 border border-red-100 rounded-xl">
                     <input type="checkbox" name="is_banned" id="edit_is_banned" checked={editingBatch.is_banned || false} onChange={handleEditChange} className="w-4 h-4 rounded border-slate-300 text-red-500 focus:ring-red-500 cursor-pointer" />
@@ -1304,25 +1162,25 @@ export default function Profile({
 
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="text-sm font-semibold text-slate-700">Video Preview</label>
-                  <input type="url" name="video_url" value={editingBatch.video_url || ''} onChange={handleEditChange} placeholder="https://files.catbox.moe/..." className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
+                  <input type="url" name="video_url" value={editingBatch.video_url || ''} onChange={handleEditChange} placeholder="https://files.catbox.moe/..." className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2 mt-2">
                   <label className="text-sm font-semibold text-slate-700">Google Drive Link</label>
-                  <input type="url" name="gdrive_url" value={editingBatch.gdrive_url || ''} onChange={handleEditChange} placeholder="https://drive.google.com/..." className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
+                  <input type="url" name="gdrive_url" value={editingBatch.gdrive_url || ''} onChange={handleEditChange} placeholder="https://drive.google.com/..." className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="text-sm font-semibold text-slate-700">TeraBox Link</label>
-                  <input type="url" name="terabox_url" value={editingBatch.terabox_url || ''} onChange={handleEditChange} placeholder="https://terabox.com/..." className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
+                  <input type="url" name="terabox_url" value={editingBatch.terabox_url || ''} onChange={handleEditChange} placeholder="https://terabox.com/..." className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                 </div>
               </div>
 
               <div className="mt-8 pt-5 border-t border-slate-100 flex justify-end gap-3">
-                <button type="button" onClick={() => setEditingBatch(null)} className="px-6 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
+                <button type="button" onClick={() => setEditingBatch(null)} className="px-6 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer">
                   Cancel
                 </button>
-                <button type="submit" disabled={isUpdatingBatch} className="px-6 py-2.5 rounded-xl font-bold text-white bg-blue-500 hover:bg-blue-600 transition-colors flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-md hover:shadow-lg">
+                <button type="submit" disabled={isUpdatingBatch} className="px-6 py-2.5 rounded-xl font-bold text-white bg-blue-500 hover:bg-blue-600 transition-colors flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-md cursor-pointer">
                   {isUpdatingBatch ? "Saving..." : <><Save size={18} /> Save Changes</>}
                 </button>
               </div>
@@ -1364,9 +1222,7 @@ export default function Profile({
         />
       )}
 
-      {/* Render Notification Toast */}
       <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
-
     </div>
   );
 }
