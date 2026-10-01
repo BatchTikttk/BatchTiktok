@@ -200,9 +200,10 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
           {/* Header */}
           <div className="p-4 bg-white border-b border-slate-100 flex items-center justify-between shadow-sm z-10 relative">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 relative">
-                <MessageSquare size={18} className="fill-current opacity-20 absolute" />
-                <MessageSquare size={18} />
+              {/* Icon tanpa background container */}
+              <div className="text-emerald-500 relative flex items-center justify-center p-1">
+                <MessageSquare size={22} className="fill-current opacity-20 absolute" />
+                <MessageSquare size={22} />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-800 leading-tight">Global Group Chat</h3>
