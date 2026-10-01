@@ -3,9 +3,43 @@ import Home from './pages/Home';
 import Profile from './pages/Profile';
 import RulesPage from './pages/RulesPage';
 import LegalPage from './pages/LegalPage';
+import ChatGroup from './components/ChatGroup';
+import LoginModal from './components/LoginModal';
+import { supabase } from './supabase';
 
 export default function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  // Fungsi untuk mengecek user yang sedang login di Supabase
+  const checkUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', session.user.id)
+        .single();
+        
+      if (data) setCurrentUser(data.username);
+    } else {
+      setCurrentUser(null);
+    }
+  };
+
+  useEffect(() => {
+    checkUser();
+
+    // Listener realtime untuk perubahan status autentikasi Supabase
+    const { data: authListener } = supabase.auth.onAuthStateChange(() => {
+      checkUser();
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     if (window.location.hash === '#profile') {
@@ -36,22 +70,46 @@ export default function App() {
     window.dispatchEvent(new Event('popstate'));
   };
 
-  if (currentPath === '/profile') {
-    return (
-      <Profile 
-        currentUser={null} 
-        onBack={() => navigateTo('/')}
+  const renderPage = () => {
+    if (currentPath === '/profile') {
+      return (
+        <Profile 
+          currentUser={currentUser} 
+          onBack={() => navigateTo('/')}
+        />
+      );
+    }
+
+    if (currentPath === '/rules') {
+      return <RulesPage />;
+    }
+
+    if (currentPath === '/legal') {
+      return <LegalPage />;
+    }
+
+    return <Home />;
+  };
+
+  return (
+    <div className="relative min-h-screen">
+      {/* Halaman aktif */}
+      {renderPage()}
+
+      {/* Floating Chat Group yang muncul di semua halaman */}
+      <ChatGroup 
+        currentUser={currentUser} 
+        setShowLoginModal={() => setShowLoginModal(true)} 
       />
-    );
-  }
 
-  if (currentPath === '/rules') {
-    return <RulesPage />;
-  }
-
-  if (currentPath === '/legal') {
-    return <LegalPage />;
-  }
-
-  return <Home />;
+      {/* Modal Login jika user mencoba kirim pesan dari Chat Group saat belum login */}
+      {showLoginModal && (
+        <LoginModal 
+          onClose={() => setShowLoginModal(false)}
+          onSuccess={checkUser}
+          showToast={(msg: string) => console.log(msg)}
+        />
+      )}
+    </div>
+  );
 }
