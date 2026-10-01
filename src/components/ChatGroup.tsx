@@ -85,12 +85,13 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     }
   }, [isOpen]);
 
-  // Realtime subscription
+  // Combined Realtime Subscription (Mencegah error 'cannot add callbacks after subscribe')
   useEffect(() => {
     if (!isOpen) return;
 
-    const messageChannel = supabase
-      .channel('realtime-group-chat')
+    const channelName = `group-chat-room-${Date.now()}`;
+    const chatChannel = supabase
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'group_messages' },
@@ -99,10 +100,6 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
           setMessages((prev) => [...prev, newMsg]);
         }
       )
-      .subscribe();
-
-    const profileChannel = supabase
-      .channel('realtime-profiles-chat')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'profiles' },
@@ -113,8 +110,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
       .subscribe();
 
     return () => {
-      supabase.removeChannel(messageChannel);
-      supabase.removeChannel(profileChannel);
+      supabase.removeChannel(chatChannel);
     };
   }, [isOpen]);
 
@@ -209,7 +205,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
               </div>
             ) : messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                {/* Gambar 3D WebP Asli Bergerak (Waving Hand) */}
+                {/* 3D Animated Waving Hand WebP */}
                 <img
                   src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f44b/512.webp"
                   alt="3D Animated Waving Hand"
@@ -280,7 +276,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
           {/* Footer Input */}
           <div className="p-3 bg-white border-t border-slate-100 relative">
             
-            {/* Popover Emoji Picker dengan Animasi 3D WebP */}
+            {/* Popover Emoji Picker 3D WebP */}
             {showEmojiPicker && (
               <div className="absolute bottom-16 left-4 bg-white border border-slate-200 shadow-xl rounded-2xl p-3 grid grid-cols-6 gap-2 z-20 animate-in fade-in zoom-in-95 duration-200">
                 {EMOJI_LIST.map((item, index) => (
