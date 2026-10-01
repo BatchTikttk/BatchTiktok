@@ -22,7 +22,9 @@ import {
   Edit2,
   Search,
   X,
-  Save
+  Save,
+  Award,
+  Lock
 } from 'lucide-react';
 import { EmeraldFolderIcon, UserBadge } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
@@ -33,7 +35,44 @@ import AvatarModal from '../components/Avatar';
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
-// Komponen Toast lokal agar serasi dengan Homepage
+// Badge Tier Definitions & Logic
+const BADGES = [
+  {
+    id: 'low_tier',
+    title: 'Emerald Rookie',
+    tier: 'Tier 1 Badge',
+    description: 'Unlocked automatically after uploading at least 10 video batches.',
+    reqText: '10 Uploaded Batches',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Low%20Tier.webp',
+    isUnlocked: (stats: any) => stats.totalUploads >= 10,
+    getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 10),
+    target: 10,
+  },
+  {
+    id: 'medium_tier',
+    title: 'Emerald Pro',
+    tier: 'Tier 2 Badge',
+    description: 'Unlocked automatically upon reaching 30 approved video batches.',
+    reqText: '30 Approved Batches',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp',
+    isUnlocked: (stats: any) => stats.totalApproved >= 30,
+    getCurrentProgress: (stats: any) => Math.min(stats.totalApproved, 30),
+    target: 30,
+  },
+  {
+    id: 'advance_tier',
+    title: 'Emerald Master',
+    tier: 'Tier 3 Badge',
+    description: 'Unlocked automatically upon reaching 50 approved video batches.',
+    reqText: '50 Approved Batches',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp',
+    isUnlocked: (stats: any) => stats.totalApproved >= 50,
+    getCurrentProgress: (stats: any) => Math.min(stats.totalApproved, 50),
+    target: 50,
+  },
+];
+
+// Local Toast Component
 const Toast = ({ message, isVisible, type = 'success' }: any) => (
   <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-2 transition-all duration-300 z-[9999] ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'} ${type === 'success' ? 'bg-slate-900 text-white' : 'bg-red-500 text-white'}`}>
     {type === 'success' ? <CheckCircle2 size={18} className="text-emerald-400" /> : <XCircle size={18} className="text-red-400" />}
@@ -76,7 +115,7 @@ export default function Profile({
   const [editingBatch, setEditingBatch] = useState<any>(null);
   const [isUpdatingBatch, setIsUpdatingBatch] = useState(false);
 
-  // State Toast Notifikasi
+  // Toast Notification State
   const [toastConfig, setToastConfig] = useState({ message: '', isVisible: false, type: 'success' });
 
   const selectableCategories = CATEGORIES.filter((c: string) => c !== 'Home' && c !== 'All');
@@ -235,6 +274,11 @@ export default function Profile({
     };
   }, [userBatches]);
 
+  // Active Unlocked Badges Filtered
+  const unlockedBadges = useMemo(() => {
+    return BADGES.filter(b => b.isUnlocked(stats));
+  }, [stats]);
+
   const handleDeleteBatch = async (batchId: string | number) => {
     if (!confirm("Are you sure you want to delete this collection folder?")) return;
 
@@ -352,8 +396,9 @@ export default function Profile({
             {/* LEFT SIDEBAR */}
             <div className="lg:col-span-4 space-y-6">
               
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center">
+              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center relative overflow-hidden">
                 
+                {/* Avatar Display */}
                 <div 
                   className="relative group cursor-pointer"
                   onClick={() => setShowAvatarModal(true)}
@@ -375,8 +420,8 @@ export default function Profile({
                   </button>
                 </div>
 
-                <div className="mt-4 flex flex-col items-center">
-                  <div className="flex items-center gap-2">
+                <div className="mt-4 flex flex-col items-center w-full">
+                  <div className="flex items-center gap-2 flex-wrap justify-center">
                     <h1 className="text-xl font-black text-slate-800 tracking-tight">
                       {activeUsername || 'User'}
                     </h1>
@@ -387,7 +432,29 @@ export default function Profile({
                     />
                   </div>
 
-                  <div className="mt-1 flex items-center gap-2">
+                  {/* Auto-Equipped Unlocked Badges Showcase */}
+                  {unlockedBadges.length > 0 && (
+                    <div className="mt-2.5 flex items-center justify-center gap-2 flex-wrap bg-slate-50/80 px-3 py-1.5 rounded-2xl border border-slate-100">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Equipped Badges:</span>
+                      <div className="flex items-center gap-1.5">
+                        {unlockedBadges.map((badge) => (
+                          <div 
+                            key={badge.id} 
+                            className="relative group/badge cursor-pointer"
+                            title={`${badge.title} (${badge.reqText})`}
+                          >
+                            <img 
+                              src={badge.iconUrl} 
+                              alt={badge.title} 
+                              className="w-7 h-7 object-contain drop-shadow hover:scale-125 transition-transform"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mt-2 flex items-center gap-2">
                     {userProfile?.is_admin && (
                       <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full">
                         <ShieldCheck size={12} /> Official Admin
@@ -463,9 +530,11 @@ export default function Profile({
             {/* RIGHT CONTENT AREA */}
             <div className="lg:col-span-8 space-y-6">
               
-              {/* TAB 1: OVERVIEW STATS */}
+              {/* TAB 1: OVERVIEW STATS & BADGES */}
               {activeTab === 'overview' && (
                 <div className="space-y-6 animate-in fade-in duration-200">
+                  
+                  {/* Stats Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     
                     <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
@@ -518,6 +587,99 @@ export default function Profile({
 
                   </div>
 
+                  {/* BADGES & ACHIEVEMENTS SECTION */}
+                  <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100">
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Award className="text-emerald-500" size={22} />
+                          <h2 className="text-lg font-bold text-slate-800 tracking-tight">Profile Badges & Achievements</h2>
+                        </div>
+                        <p className="text-xs text-slate-400 font-medium mt-0.5">
+                          Badges are automatically unlocked and mounted on your profile as you meet contribution milestones.
+                        </p>
+                      </div>
+                      <span className="text-xs font-extrabold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100">
+                        {unlockedBadges.length} / {BADGES.length} Unlocked
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {BADGES.map((badge) => {
+                        const unlocked = badge.isUnlocked(stats);
+                        const progress = badge.getCurrentProgress(stats);
+                        const percent = Math.min(Math.round((progress / badge.target) * 100), 100);
+
+                        return (
+                          <div 
+                            key={badge.id}
+                            className={`relative p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-between ${
+                              unlocked 
+                                ? 'bg-gradient-to-b from-white to-emerald-50/30 border-emerald-200/80 shadow-sm hover:shadow-md' 
+                                : 'bg-slate-50/60 border-slate-200/70 opacity-80'
+                            }`}
+                          >
+                            {/* Unlock Badge Indicator */}
+                            <div className="flex items-center justify-between mb-3">
+                              <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-lg uppercase tracking-wider ${
+                                unlocked ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'
+                              }`}>
+                                {badge.tier}
+                              </span>
+                              {unlocked ? (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-600">
+                                  <Sparkles size={12} /> Equipped
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-400">
+                                  <Lock size={12} /> Locked
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Badge WebP Image */}
+                            <div className="flex flex-col items-center my-3 text-center">
+                              <div className="relative w-20 h-20 mb-3 flex items-center justify-center">
+                                <img 
+                                  src={badge.iconUrl} 
+                                  alt={badge.title} 
+                                  className={`w-20 h-20 object-contain transition-all duration-300 ${
+                                    unlocked 
+                                      ? 'drop-shadow-[0_8px_16px_rgba(16,185,129,0.25)] hover:scale-110' 
+                                      : 'grayscale opacity-40'
+                                  }`}
+                                />
+                              </div>
+                              <h3 className="text-sm font-extrabold text-slate-800">{badge.title}</h3>
+                              <p className="text-[11px] text-slate-500 font-medium leading-relaxed mt-1">
+                                {badge.description}
+                              </p>
+                            </div>
+
+                            {/* Progress Bar */}
+                            <div className="mt-4 pt-3 border-t border-slate-100/80">
+                              <div className="flex justify-between items-center text-[11px] font-bold mb-1.5">
+                                <span className="text-slate-400">Progress</span>
+                                <span className={unlocked ? 'text-emerald-600 font-extrabold' : 'text-slate-600'}>
+                                  {progress} / {badge.target}
+                                </span>
+                              </div>
+                              <div className="w-full bg-slate-200/80 rounded-full h-2 overflow-hidden">
+                                <div 
+                                  className={`h-full transition-all duration-500 rounded-full ${
+                                    unlocked ? 'bg-emerald-500' : 'bg-slate-400'
+                                  }`}
+                                  style={{ width: `${percent}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Recent Collections */}
                   <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100">
                     <div className="flex items-center justify-between mb-6">
                       <div>
@@ -566,6 +728,7 @@ export default function Profile({
                       <p className="text-xs text-slate-400 text-center py-6">No collections uploaded yet.</p>
                     )}
                   </div>
+
                 </div>
               )}
 
@@ -851,7 +1014,7 @@ export default function Profile({
         />
       )}
 
-      {/* Render Toast Notifikasi */}
+      {/* Render Notification Toast */}
       <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
 
     </div>
