@@ -24,7 +24,10 @@ import {
   X,
   Save,
   Award,
-  Lock
+  Lock,
+  Check,
+  AlertCircle,
+  ExternalLink
 } from 'lucide-react';
 import { EmeraldFolderIcon, UserBadge } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
@@ -100,13 +103,19 @@ export default function Profile({
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userBatches, setUserBatches] = useState<any[]>([]);
+  const [allBatches, setAllBatches] = useState<any[]>([]); // Semua batch untuk Admin
   const [adminList, setAdminList] = useState<string[]>([]);
   const [deletingId, setDeletingId] = useState<string | number | null>(null);
+  const [actionLoadingId, setActionLoadingId] = useState<string | number | null>(null);
 
   const [usernameInput, setUsernameInput] = useState('');
   const [updatingUsername, setUpdatingUsername] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'settings' | 'admin'>('overview');
   const [collectionSearchQuery, setCollectionSearchQuery] = useState('');
+  
+  // Filter khusus Tab Admin
+  const [adminStatusFilter, setAdminStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
+  const [adminSearchQuery, setAdminSearchQuery] = useState('');
 
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -130,6 +139,12 @@ export default function Profile({
     fetchUserData(true);
     fetchAdmins();
   }, [currentUser]);
+
+  useEffect(() => {
+    if (userProfile?.is_admin) {
+      fetchAllBatches();
+    }
+  }, [userProfile?.is_admin]);
 
   const fetchAdmins = async () => {
     const { data } = await supabase
@@ -177,6 +192,40 @@ export default function Profile({
     }
 
     setLoading(false);
+  };
+
+  // Mengambil SEMUA batch dari database untuk Admin
+  const fetchAllBatches = async () => {
+    const { data, error } = await supabase
+      .from('batches')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (data) {
+      setAllBatches(data);
+    }
+  };
+
+  // Fungsi khusus Admin untuk mengubah status (approved / rejected / pending)
+  const handleUpdateStatus = async (batchId: string | number, newStatus: 'approved' | 'rejected' | 'pending') => {
+    setActionLoadingId(batchId);
+    
+    const { error } = await supabase
+      .from('batches')
+      .update({ status: newStatus })
+      .eq('id', batchId);
+
+    setActionLoadingId(null);
+
+    if (error) {
+      handleShowToast(`Gagal mengubah status: ${error.message}`, "error");
+    } else {
+      handleShowToast(`Batch berhasil diubah ke status: ${newStatus.toUpperCase()}`, "success");
+      
+      // Update state lokal secara instan
+      setAllBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: newStatus } : b));
+      setUserBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: newStatus } : b));
+    }
   };
 
   const handleUpdateAvatar = async (avatarUrl: string) => {
@@ -294,6 +343,7 @@ export default function Profile({
       handleShowToast("Failed to delete folder", "error");
     } else {
       setUserBatches(prev => prev.filter(b => b.id !== batchId));
+      setAllBatches(prev => prev.filter(b => b.id !== batchId));
       handleShowToast("Folder deleted successfully", "success");
     }
   };
@@ -332,6 +382,7 @@ export default function Profile({
       handleShowToast("Batch updated successfully!", "success");
       
       setUserBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...editingBatch, is_edited: true } : b));
+      setAllBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...editingBatch, is_edited: true } : b));
       setEditingBatch(null);
     } catch (error: any) {
       handleShowToast(error.message || "Failed to update batch", "error");
@@ -354,6 +405,25 @@ export default function Profile({
       (batch.country && batch.country.toLowerCase().includes(lowerQuery))
     );
   }, [userBatches, collectionSearchQuery]);
+
+  // Filtering untuk Tab Admin Control
+  const filteredAdminBatches = useMemo(() => {
+    return allBatches.filter(batch => {
+      const matchesStatus = adminStatusFilter === 'all' || batch.status === adminStatusFilter;
+      const lowerQuery = adminSearchQuery.toLowerCase();
+      const matchesSearch = !adminSearchQuery.trim() || 
+        (batch.username && batch.username.toLowerCase().includes(lowerQuery)) ||
+        (batch.country && batch.country.toLowerCase().includes(lowerQuery));
+      return matchesStatus && matchesSearch;
+    });
+  }, [allBatches, adminStatusFilter, adminSearchQuery]);
+
+  const adminStats = useMemo(() => {
+    const pendingCount = allBatches.filter(b => b.status === 'pending').length;
+    const approvedCount = allBatches.filter(b => b.status === 'approved').length;
+    const rejectedCount = allBatches.filter(b => b.status === 'rejected').length;
+    return { pendingCount, approvedCount, rejectedCount, total: allBatches.length };
+  }, [allBatches]);
 
   if (loading) {
     return (
@@ -516,6 +586,35 @@ export default function Profile({
                   <Settings size={18} /> Account Settings
                 </button>
 
+                {/* TAB KHUSUS ADMIN CONTROL */}
+                {userProfile?.is_admin && (
+                  <>
+                    <hr className="my-2 border-slate-100" />
+                    <button
+                      onClick={() => {
+                        setActiveTab('admin');
+                        fetchAllBatches();
+                      }}
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all border-none cursor-pointer ${
+                        activeTab === 'admin'
+                          ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
+                          : 'text-amber-600 bg-amber-50 hover:bg-amber-100/70'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <ShieldCheck size={18} /> Admin Control
+                      </div>
+                      {adminStats.pendingCount > 0 && (
+                        <span className={`px-2 py-0.5 text-[10px] rounded-full font-black ${
+                          activeTab === 'admin' ? 'bg-white text-amber-600' : 'bg-amber-500 text-white'
+                        }`}>
+                          {adminStats.pendingCount}
+                        </span>
+                      )}
+                    </button>
+                  </>
+                )}
+
                 <hr className="my-2 border-slate-100" />
 
                 <button
@@ -619,7 +718,6 @@ export default function Profile({
                                 : 'bg-slate-50/60 border-slate-200/70 opacity-80'
                             }`}
                           >
-                            {/* Unlock Badge Indicator */}
                             <div className="flex items-center justify-between mb-3">
                               <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-lg uppercase tracking-wider ${
                                 unlocked ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'
@@ -637,7 +735,6 @@ export default function Profile({
                               )}
                             </div>
 
-                            {/* Badge WebP Image */}
                             <div className="flex flex-col items-center my-3 text-center">
                               <div className="relative w-20 h-20 mb-3 flex items-center justify-center">
                                 <img 
@@ -656,7 +753,6 @@ export default function Profile({
                               </p>
                             </div>
 
-                            {/* Progress Bar */}
                             <div className="mt-4 pt-3 border-t border-slate-100/80">
                               <div className="flex justify-between items-center text-[11px] font-bold mb-1.5">
                                 <span className="text-slate-400">Progress</span>
@@ -715,6 +811,10 @@ export default function Profile({
                             {batch.status === 'approved' ? (
                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100/80 text-emerald-700">
                                 <CheckCircle2 size={14} /> Approved
+                              </span>
+                            ) : batch.status === 'rejected' ? (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-100/80 text-red-700">
+                                <XCircle size={14} /> Rejected
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100/80 text-amber-700">
@@ -779,6 +879,10 @@ export default function Profile({
                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100/80 text-emerald-700">
                                 <CheckCircle2 size={14} /> Approved
                               </span>
+                            ) : batch.status === 'rejected' ? (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-100/80 text-red-700">
+                                <XCircle size={14} /> Rejected
+                              </span>
                             ) : (
                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100/80 text-amber-700">
                                 <Clock size={14} /> Pending Review
@@ -835,7 +939,6 @@ export default function Profile({
 
                   <hr className="border-slate-100" />
 
-                  {/* Avatar Settings Section */}
                   <div className="flex flex-col sm:flex-row items-center gap-6 p-5 bg-slate-50/70 rounded-2xl border border-slate-100">
                     <div className="w-20 h-20 rounded-2xl bg-emerald-500 overflow-hidden flex items-center justify-center text-white shadow-md flex-shrink-0">
                       {userProfile?.avatar_url ? (
@@ -856,7 +959,6 @@ export default function Profile({
                     </div>
                   </div>
 
-                  {/* Account Information */}
                   <div className="space-y-4 pt-2">
                     <div>
                       <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Username</label>
@@ -885,6 +987,255 @@ export default function Profile({
                 </div>
               )}
 
+              {/* TAB 4: ADMIN CONTROL PANEL (PENDING / APPROVED / REJECTED) */}
+              {activeTab === 'admin' && userProfile?.is_admin && (
+                <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100 space-y-6 animate-in fade-in duration-200">
+                  
+                  {/* Header Tab Admin */}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="text-amber-500" size={24} />
+                        <h2 className="text-xl font-black text-slate-800 tracking-tight">Admin Moderation Center</h2>
+                      </div>
+                      <p className="text-xs text-slate-400 font-medium mt-1">
+                        Kontrol dan kelola persetujuan batch video uploader secara langsung tanpa lewat Supabase.
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={fetchAllBatches}
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all border-none cursor-pointer self-start md:self-auto flex items-center gap-1.5"
+                    >
+                      <Loader2 size={14} className={actionLoadingId ? "animate-spin" : ""} /> Refresh Data
+                    </button>
+                  </div>
+
+                  {/* Summary Status Badges */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <button 
+                      onClick={() => setAdminStatusFilter('pending')}
+                      className={`p-3.5 rounded-2xl border text-left transition-all ${
+                        adminStatusFilter === 'pending' 
+                          ? 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/20' 
+                          : 'bg-slate-50 border-slate-100 text-slate-700 hover:bg-amber-50/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-extrabold uppercase tracking-wider">Pending</span>
+                        <Clock size={16} />
+                      </div>
+                      <div className="text-2xl font-black mt-1">{adminStats.pendingCount}</div>
+                    </button>
+
+                    <button 
+                      onClick={() => setAdminStatusFilter('approved')}
+                      className={`p-3.5 rounded-2xl border text-left transition-all ${
+                        adminStatusFilter === 'approved' 
+                          ? 'bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-500/20' 
+                          : 'bg-slate-50 border-slate-100 text-slate-700 hover:bg-emerald-50/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-extrabold uppercase tracking-wider">Approved</span>
+                        <CheckCircle2 size={16} />
+                      </div>
+                      <div className="text-2xl font-black mt-1">{adminStats.approvedCount}</div>
+                    </button>
+
+                    <button 
+                      onClick={() => setAdminStatusFilter('rejected')}
+                      className={`p-3.5 rounded-2xl border text-left transition-all ${
+                        adminStatusFilter === 'rejected' 
+                          ? 'bg-red-500 text-white border-red-500 shadow-md shadow-red-500/20' 
+                          : 'bg-slate-50 border-slate-100 text-slate-700 hover:bg-red-50/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-extrabold uppercase tracking-wider">Rejected</span>
+                        <XCircle size={16} />
+                      </div>
+                      <div className="text-2xl font-black mt-1">{adminStats.rejectedCount}</div>
+                    </button>
+
+                    <button 
+                      onClick={() => setAdminStatusFilter('all')}
+                      className={`p-3.5 rounded-2xl border text-left transition-all ${
+                        adminStatusFilter === 'all' 
+                          ? 'bg-slate-800 text-white border-slate-800 shadow-md' 
+                          : 'bg-slate-50 border-slate-100 text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-extrabold uppercase tracking-wider">Semua Batch</span>
+                        <Folder size={16} />
+                      </div>
+                      <div className="text-2xl font-black mt-1">{adminStats.total}</div>
+                    </button>
+                  </div>
+
+                  {/* Search Bar Admin */}
+                  <div className="relative">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input 
+                      type="text" 
+                      placeholder="Cari berdasarkan username uploader atau negara..." 
+                      value={adminSearchQuery}
+                      onChange={(e) => setAdminSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all text-sm font-medium text-slate-700"
+                    />
+                  </div>
+
+                  {/* Daftar Batch Moderation */}
+                  {filteredAdminBatches.length > 0 ? (
+                    <div className="space-y-4">
+                      {filteredAdminBatches.map((batch) => (
+                        <div 
+                          key={batch.id} 
+                          className={`p-5 rounded-3xl border transition-all flex flex-col gap-4 ${
+                            batch.status === 'pending'
+                              ? 'bg-amber-50/30 border-amber-200/80'
+                              : batch.status === 'approved'
+                              ? 'bg-emerald-50/20 border-emerald-200/60'
+                              : 'bg-red-50/20 border-red-200/60'
+                          }`}
+                        >
+                          {/* Info Atas */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="flex items-center gap-3.5">
+                              <EmeraldFolderIcon className="w-12 h-12 flex-shrink-0" country={batch.country} />
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <h3 className="text-base font-black text-slate-800">{batch.username}</h3>
+                                  <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-slate-200/80 text-slate-700">
+                                    {batch.country}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-slate-400 font-medium mt-0.5">
+                                  {batch.video_count} Video • {batch.size_file || `${batch.size_gb || 0} GB`}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Badge Status */}
+                            <div className="flex items-center gap-2">
+                              {batch.status === 'approved' && (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800">
+                                  <CheckCircle2 size={14} /> Approved
+                                </span>
+                              )}
+                              {batch.status === 'rejected' && (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-red-100 text-red-800">
+                                  <XCircle size={14} /> Rejected
+                                </span>
+                              )}
+                              {batch.status === 'pending' && (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-800">
+                                  <Clock size={14} /> Pending Review
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Detail Link Check */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 bg-white/80 p-3 rounded-2xl border border-slate-100 text-xs">
+                            {batch.tiktok_url && (
+                              <a href={batch.tiktok_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-blue-600 hover:underline font-semibold truncate">
+                                <ExternalLink size={12} /> TikTok Profile
+                              </a>
+                            )}
+                            {batch.gdrive_url && (
+                              <a href={batch.gdrive_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-emerald-600 hover:underline font-semibold truncate">
+                                <ExternalLink size={12} /> Google Drive
+                              </a>
+                            )}
+                            {batch.terabox_url && (
+                              <a href={batch.terabox_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-purple-600 hover:underline font-semibold truncate">
+                                <ExternalLink size={12} /> TeraBox Link
+                              </a>
+                            )}
+                            {batch.video_url && (
+                              <a href={batch.video_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-amber-600 hover:underline font-semibold truncate">
+                                <ExternalLink size={12} /> Video Preview
+                              </a>
+                            )}
+                          </div>
+
+                          {/* Tombol Kontrol Aksi Admin */}
+                          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100/80">
+                            <div className="flex items-center gap-2">
+                              {/* Tombol Approve */}
+                              <button
+                                onClick={() => handleUpdateStatus(batch.id, 'approved')}
+                                disabled={actionLoadingId === batch.id || batch.status === 'approved'}
+                                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 text-white text-xs font-extrabold rounded-xl transition-all border-none cursor-pointer flex items-center gap-1.5 shadow-sm"
+                              >
+                                {actionLoadingId === batch.id ? (
+                                  <Loader2 size={14} className="animate-spin" />
+                                ) : (
+                                  <Check size={14} />
+                                )}
+                                Approve
+                              </button>
+
+                              {/* Tombol Reject */}
+                              <button
+                                onClick={() => handleUpdateStatus(batch.id, 'rejected')}
+                                disabled={actionLoadingId === batch.id || batch.status === 'rejected'}
+                                className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white text-xs font-extrabold rounded-xl transition-all border-none cursor-pointer flex items-center gap-1.5 shadow-sm"
+                              >
+                                {actionLoadingId === batch.id ? (
+                                  <Loader2 size={14} className="animate-spin" />
+                                ) : (
+                                  <X size={14} />
+                                )}
+                                Reject
+                              </button>
+
+                              {/* Reset ke Pending jika perlu */}
+                              {batch.status !== 'pending' && (
+                                <button
+                                  onClick={() => handleUpdateStatus(batch.id, 'pending')}
+                                  disabled={actionLoadingId === batch.id}
+                                  className="px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-xl transition-all border-none cursor-pointer flex items-center gap-1"
+                                >
+                                  Set Pending
+                                </button>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => setEditingBatch(batch)}
+                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all border-none bg-transparent cursor-pointer"
+                                title="Edit Batch"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteBatch(batch.id)}
+                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all border-none bg-transparent cursor-pointer"
+                                title="Hapus Batch"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </div>
+
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-12 text-center bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
+                      <AlertCircle className="mx-auto text-slate-400 mb-2" size={32} />
+                      <p className="text-sm font-bold text-slate-600">Tidak ada data batch ditemukan</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Coba ubah status filter atau kata kunci pencarian Anda.</p>
+                    </div>
+                  )}
+
+                </div>
+              )}
+
             </div>
 
           </div>
@@ -897,7 +1248,7 @@ export default function Profile({
         onBack();
       }} />
 
-      {/* Edit Batch Modal Inline */}
+      {/* Modal Edit Batch */}
       {editingBatch && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setEditingBatch(null)}></div>
@@ -906,7 +1257,7 @@ export default function Profile({
             <div className="p-6 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
               <div>
                 <h2 className="text-xl font-bold text-slate-800">Edit Batch Collection</h2>
-                <p className="mt-1 text-xs font-medium text-slate-500">Update your previously submitted batch information.</p>
+                <p className="mt-1 text-xs font-medium text-slate-500">Update batch information as Admin.</p>
               </div>
               <button onClick={() => setEditingBatch(null)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
                 <X size={20} />
@@ -952,9 +1303,7 @@ export default function Profile({
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                    <label className="text-sm font-semibold text-slate-700">Video Preview</label>
-                  </div>
+                  <label className="text-sm font-semibold text-slate-700">Video Preview</label>
                   <input type="url" name="video_url" value={editingBatch.video_url || ''} onChange={handleEditChange} placeholder="https://files.catbox.moe/..." className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
                 </div>
 
@@ -995,6 +1344,7 @@ export default function Profile({
           onClose={() => setShowAddModal(false)}
           onSuccess={() => {
             fetchUserData(false);
+            if (userProfile?.is_admin) fetchAllBatches();
             setShowAddModal(false);
           }}
           currentUser={activeUsername}
