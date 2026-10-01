@@ -88,13 +88,14 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     }
   }, [isOpen]);
 
-  // Combined Realtime Subscription
+  // Realtime Subscription aman kalawan Random Channel ID & Cleanup
   useEffect(() => {
     if (!isOpen) return;
 
-    const channelName = `group-chat-room-${Date.now()}`;
-    const chatChannel = supabase
-      .channel(channelName)
+    const channelId = `chat-room-${Math.random().toString(36).substring(2, 9)}`;
+    const chatChannel = supabase.channel(channelId);
+
+    chatChannel
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'group_messages' },
