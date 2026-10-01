@@ -57,11 +57,15 @@ export const EmeraldFolderIcon = ({ className = "w-24 h-24", country }: { classN
           </>
         );
         break;
-      case 'Vietnam':
+      case 'Taiwan':
         flagContent = (
           <>
+            {/* Latar Belakang Merah */}
             <rect x="13" y="13" width="10" height="10" fill="#EF4444" />
-            <polygon points="18,14.2 19.2,16.2 21.5,16.2 19.6,17.6 20.3,19.8 18,18.4 15.7,19.8 16.4,17.6 14.5,16.2 16.8,16.2" fill="#FACC15" />
+            {/* Kanton Biru di Kiri Atas */}
+            <rect x="13" y="13" width="5" height="5" fill="#1E3A8A" />
+            {/* Matahari Putih */}
+            <circle cx="15.5" cy="15.5" r="1.5" fill="#FFFFFF" />
           </>
         );
         break;

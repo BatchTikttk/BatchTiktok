@@ -6,7 +6,7 @@ export default function Navbar({
   activeCategory, 
   setActiveCategory, 
   resetSearch,
-  CATEGORIES, 
+  CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines'], 
   currentUser,
   handleLogout, 
   setShowAddModal, 
@@ -114,7 +114,7 @@ export default function Navbar({
     }
   };
 
-  // Navigasi halaman baru untuk Rules Page
+  // Navigasi ke Halaman Rules
   const handleGoToRules = () => {
     setIsMobileMenuOpen(false);
     setIsRegionOpen(false);
@@ -205,7 +205,6 @@ export default function Navbar({
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Action ubah: arahkan ke halaman rules bukan modal */}
             <button 
               onClick={handleGoToRules}
               className={`p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold flex items-center gap-2 transition-all border-none cursor-pointer ${
@@ -334,7 +333,6 @@ export default function Navbar({
           </button>
 
           <div className="border-t border-slate-100 mt-2 pt-2 flex flex-col gap-2">
-            {/* Action ubah di mobile */}
             <button 
               onClick={handleGoToRules} 
               className={`px-4 py-3 flex items-center gap-2 text-left text-sm font-bold hover:bg-slate-50 transition-colors rounded-2xl border-none bg-transparent cursor-pointer ${

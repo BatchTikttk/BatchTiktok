@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabase';
-import { Search, CheckCircle2, Play, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, CheckCircle2, Play, XCircle, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 
-// Removed the RulesModal/RulesPage import from here
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoginModal from "../components/LoginModal";
@@ -10,7 +9,7 @@ import PostModal from "../components/PostModal";
 import PreviewModal from "../components/PreviewModal";
 import { EmeraldFolderIcon, UserBadge } from "../components/SharedIcons"; 
 
-export const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Vietnam', 'Philippines'];
+export const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines'];
 
 const Toast = ({ message, isVisible, type = 'success' }: any) => (
   <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-2 transition-all duration-300 z-[9999] ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'} ${type === 'success' ? 'bg-slate-900 text-white' : 'bg-red-500 text-white'}`}>
@@ -25,27 +24,33 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => 
       onClick={() => onOpenPreview(data)} 
       className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative"
     >
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
-        <span className="text-[11px] font-medium text-slate-500 italic">
-          Uploaded by <span className="font-semibold text-emerald-600 not-italic">{data.uploaded_by}</span>
-        </span>
-        <div className="flex items-center justify-center">
-          <UserBadge username={data.uploaded_by} count={uploaderCount} adminList={adminList} />
+      {/* Bagian Top: Uploaded By & Indikator Updated Minimalis */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-0.5 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[11px] font-medium text-slate-500 italic">
+            Uploaded by <span className="font-semibold text-emerald-600 not-italic">{data.uploaded_by}</span>
+          </span>
+          <div className="flex items-center justify-center">
+            <UserBadge username={data.uploaded_by} count={uploaderCount} adminList={adminList} />
+          </div>
         </div>
+        
+        {/* Indikator Updated Tanpa Background */}
+        {data.is_edited && (
+          <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-500" title="Folder has been updated">
+            <Check size={12} strokeWidth={3} />
+            Updated
+          </span>
+        )}
       </div>
 
       <div className="mb-5 mt-2 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
         <EmeraldFolderIcon country={data.country} />
       </div>
       
-      {/* Penambahan Badge Edited */}
-      <h3 className="text-lg font-bold text-slate-800 mb-1 tracking-tight flex items-center justify-center gap-2">
+      {/* Folder Name kembali bersih */}
+      <h3 className="text-lg font-bold text-slate-800 mb-1 tracking-tight">
         {data.username}
-        {data.is_edited && (
-          <span className="text-[9px] font-bold tracking-wider text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-md uppercase">
-            Edited
-          </span>
-        )}
       </h3>
       
       <span className="text-[11px] font-bold tracking-wider text-white bg-emerald-500 px-3 py-1 rounded-full mb-4 shadow-sm border-none">
@@ -88,7 +93,6 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 12;
 
-  // Reset page ke 1 setiap kali search atau kategori diubah
   useEffect(() => {
     setCurrentPage(1);
   }, [activeCategory, searchQuery]);
@@ -139,7 +143,6 @@ export default function Home() {
       .from('profiles')
       .select('id, username, avatar_url');
     
-    // Pastikan tidak ada limit yang diset supaya seluruh data 'approved' ditarik
     const { data: batchesData, error } = await supabase
       .from('batches')
       .select('*')
@@ -229,7 +232,6 @@ export default function Home() {
     return matchesCategory && matchesSearch;
   });
 
-  // Logika Pagination
   const totalPages = Math.ceil(filteredBatches.length / ITEMS_PER_PAGE);
   const paginatedBatches = filteredBatches.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
@@ -313,7 +315,6 @@ export default function Home() {
               )}
             </div>
 
-            {/* Kontrol Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-3 mt-12 mb-20">
                 <button
