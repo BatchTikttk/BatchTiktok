@@ -1,9 +1,19 @@
 import { CheckCircle2, Crown, Award } from 'lucide-react';
 
-export const UserBadge = ({ username, count, adminList = [] }: { username: string, count: number, adminList: string[] }) => {
+export const UserBadge = ({ 
+  username, 
+  count, 
+  adminList = [], 
+  role 
+}: { 
+  username: string; 
+  count: number; 
+  adminList: string[]; 
+  role?: string | null; 
+}) => {
   if (!username) return null;
   
-  const isAdmin = adminList.includes(username.toLowerCase());
+  const isAdmin = adminList.includes(username.toLowerCase()) || role === 'admin';
 
   if (isAdmin) {
     return (
