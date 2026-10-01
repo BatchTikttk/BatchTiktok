@@ -38,8 +38,14 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => 
         <EmeraldFolderIcon country={data.country} />
       </div>
       
-      <h3 className="text-lg font-bold text-slate-800 mb-1 tracking-tight">
+      {/* Penambahan Badge Edited */}
+      <h3 className="text-lg font-bold text-slate-800 mb-1 tracking-tight flex items-center justify-center gap-2">
         {data.username}
+        {data.is_edited && (
+          <span className="text-[9px] font-bold tracking-wider text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-md uppercase">
+            Edited
+          </span>
+        )}
       </h3>
       
       <span className="text-[11px] font-bold tracking-wider text-white bg-emerald-500 px-3 py-1 rounded-full mb-4 shadow-sm border-none">
