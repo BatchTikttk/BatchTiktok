@@ -22,7 +22,21 @@ interface UserProfile {
   is_admin: boolean;
 }
 
-const EMOJI_LIST = ['😀', '😂', '🥰', '😎', '🥺', '😭', '😡', '👍', '🙏', '✨', '🔥', '🎉'];
+// Aset Emoticon 3D Bergerak (Animated WebP Google Noto 3D)
+const EMOJI_LIST = [
+  { char: '😀', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f600/512.webp' },
+  { char: '😂', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f602/512.webp' },
+  { char: '🥰', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f970/512.webp' },
+  { char: '😎', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f60e/512.webp' },
+  { char: '🥺', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f97a/512.webp' },
+  { char: '😭', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.webp' },
+  { char: '😡', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f621/512.webp' },
+  { char: '👍', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f44d/512.webp' },
+  { char: '🙏', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f64f/512.webp' },
+  { char: '✨', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/2728/512.webp' },
+  { char: '🔥', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f525/512.webp' },
+  { char: '🎉', src: 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f389/512.webp' },
+];
 
 export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,7 +52,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Fetch profiles data (avatar & is_admin)
+  // Fetch profiles data
   const fetchProfiles = async () => {
     const { data, error } = await supabase
       .from('profiles')
@@ -48,7 +62,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     }
   };
 
-  // Fetch message history
+  // Fetch messages
   const fetchMessages = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -64,7 +78,6 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     scrollToBottom();
   };
 
-  // Triggered when widget opens
   useEffect(() => {
     if (isOpen) {
       fetchProfiles();
@@ -72,11 +85,10 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     }
   }, [isOpen]);
 
-  // Realtime Sync for Messages & Profiles
+  // Realtime subscription
   useEffect(() => {
     if (!isOpen) return;
 
-    // Listen for new messages
     const messageChannel = supabase
       .channel('realtime-group-chat')
       .on(
@@ -89,7 +101,6 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
       )
       .subscribe();
 
-    // Listen for profile changes
     const profileChannel = supabase
       .channel('realtime-profiles-chat')
       .on(
@@ -107,7 +118,6 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     };
   }, [isOpen]);
 
-  // Auto scroll on new message
   useEffect(() => {
     if (isOpen) {
       scrollToBottom();
@@ -145,33 +155,13 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     }
   };
 
-  const onEmojiClick = (emoji: string) => {
-    setNewMessage(prev => prev + emoji);
+  const onEmojiClick = (emojiChar: string) => {
+    setNewMessage((prev) => prev + emojiChar);
     setShowEmojiPicker(false);
   };
 
   return (
     <div className="fixed bottom-6 right-6 z-[9990] font-sans">
-      {/* Inline styles for Waving Animation */}
-      <style>
-        {`
-          @keyframes wave-hand {
-            0% { transform: rotate(0deg); }
-            10% { transform: rotate(14deg); }
-            20% { transform: rotate(-8deg); }
-            30% { transform: rotate(14deg); }
-            40% { transform: rotate(-4deg); }
-            50% { transform: rotate(10deg); }
-            60%, 100% { transform: rotate(0deg); }
-          }
-          .animate-wave {
-            animation: wave-hand 2.5s infinite;
-            transform-origin: 70% 70%;
-            display: inline-block;
-          }
-        `}
-      </style>
-
       {/* Floating Toggle Button */}
       {!isOpen && (
         <button
@@ -183,14 +173,14 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
         </button>
       )}
 
-      {/* Chat Container (Light Mode) */}
+      {/* Chat Box (Light Theme) */}
       {isOpen && (
         <div className="w-[360px] sm:w-[400px] h-[540px] bg-white border border-slate-200 rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
           
           {/* Header */}
           <div className="p-4 bg-white border-b border-slate-100 flex items-center justify-between shadow-sm z-10 relative">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500">
+              <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 relative">
                 <MessageSquare size={18} className="fill-current opacity-20 absolute" />
                 <MessageSquare size={18} />
               </div>
@@ -219,27 +209,29 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
               </div>
             ) : messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                {/* 3D Emoticon with Wave Animation */}
-                <div className="animate-wave text-6xl mb-4 drop-shadow-xl cursor-default">
-                  👋
-                </div>
+                {/* Gambar 3D WebP Asli Bergerak (Waving Hand) */}
+                <img
+                  src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f44b/512.webp"
+                  alt="3D Animated Waving Hand"
+                  className="w-20 h-20 mb-3 object-contain drop-shadow-md select-none pointer-events-none"
+                />
                 <h4 className="text-sm font-bold text-slate-700 mb-1">No messages yet</h4>
                 <p className="text-[11.5px] text-slate-500 font-medium">Send the first message to start the conversation.</p>
               </div>
             ) : (
               messages.map((msg) => {
                 const isMe = currentUser && msg.username.toLowerCase() === currentUser.toLowerCase();
-                const senderProfile = profiles.find(p => p.id === msg.user_id);
-                
+                const senderProfile = profiles.find((p) => p.id === msg.user_id);
+
                 return (
                   <div key={msg.id} className={`flex gap-2.5 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                     
                     {/* Avatar */}
                     <div className="flex-shrink-0 mt-1">
                       {senderProfile?.avatar_url ? (
-                        <img 
-                          src={senderProfile.avatar_url} 
-                          alt={msg.username} 
+                        <img
+                          src={senderProfile.avatar_url}
+                          alt={msg.username}
                           className="w-8 h-8 rounded-full object-cover shadow-sm border border-slate-200"
                         />
                       ) : (
@@ -255,9 +247,8 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                       {/* Name & Admin Badge */}
                       <div className="flex items-center gap-1 mb-1 px-1">
                         <span className="text-[11px] font-bold text-slate-600">
-                          {isMe ? 'You' : (senderProfile?.username || msg.username)}
+                          {isMe ? 'You' : senderProfile?.username || msg.username}
                         </span>
-                        {/* Admin Badge Fix: Wrap in span to support tooltip title without TS error */}
                         {senderProfile?.is_admin && (
                           <span title="Admin Verified" className="inline-flex items-center">
                             <CheckCircle2 size={12} className="text-emerald-500 fill-emerald-50" />
@@ -289,16 +280,17 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
           {/* Footer Input */}
           <div className="p-3 bg-white border-t border-slate-100 relative">
             
-            {/* Popover Emoji Picker */}
+            {/* Popover Emoji Picker dengan Animasi 3D WebP */}
             {showEmojiPicker && (
               <div className="absolute bottom-16 left-4 bg-white border border-slate-200 shadow-xl rounded-2xl p-3 grid grid-cols-6 gap-2 z-20 animate-in fade-in zoom-in-95 duration-200">
-                {EMOJI_LIST.map((emoji, index) => (
-                  <button 
+                {EMOJI_LIST.map((item, index) => (
+                  <button
                     key={index}
-                    onClick={() => onEmojiClick(emoji)}
-                    className="text-xl hover:bg-slate-100 p-1.5 rounded-lg transition-colors"
+                    type="button"
+                    onClick={() => onEmojiClick(item.char)}
+                    className="p-1.5 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
                   >
-                    {emoji}
+                    <img src={item.src} alt={item.char} className="w-7 h-7 object-contain hover:scale-125 transition-transform" />
                   </button>
                 ))}
               </div>
