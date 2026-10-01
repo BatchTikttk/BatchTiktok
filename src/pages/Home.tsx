@@ -24,24 +24,21 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => 
       onClick={() => onOpenPreview(data)} 
       className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative"
     >
-      {/* Bagian Top: Uploaded By & Indikator Updated Minimalis */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-0.5 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
         <div className="flex items-center gap-1.5">
           <span className="text-[11px] font-medium text-slate-500 italic">
             Uploaded by <span className="font-semibold text-emerald-600 not-italic">{data.uploaded_by}</span>
           </span>
           <div className="flex items-center justify-center">
-            {/* Meneruskan properti role uploader ke UserBadge */}
             <UserBadge 
               username={data.uploaded_by} 
               count={uploaderCount} 
               adminList={adminList} 
-              role={data.uploader_role || data.role} 
+              isAdmin={data.uploader_role === 'admin' || data.role === 'admin'} 
             />
           </div>
         </div>
         
-        {/* Indikator Updated Tanpa Background */}
         {data.is_edited && (
           <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-500" title="Folder has been updated">
             <Check size={12} strokeWidth={3} />
@@ -54,7 +51,6 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => 
         <EmeraldFolderIcon country={data.country} />
       </div>
       
-      {/* Folder Name kembali bersih */}
       <h3 className="text-lg font-bold text-slate-800 mb-1 tracking-tight">
         {data.username}
       </h3>
@@ -95,7 +91,6 @@ export default function Home() {
   const [previewItem, setPreviewItem] = useState<any>(null);
   const [toastConfig, setToastConfig] = useState({ message: '', isVisible: false, type: 'success' });
 
-  // State untuk Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 12;
 
@@ -145,7 +140,6 @@ export default function Home() {
   };
 
   const fetchBatches = async () => {
-    // Ambil kolom role dari profiles
     const { data: profiles } = await supabase
       .from('profiles')
       .select('id, username, avatar_url, role');

@@ -32,7 +32,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
 
       let profileData: any = null;
 
-      // Priority 1: Query berdasarkan user_id
       if (item.user_id) {
         const { data } = await supabase
           .from('profiles')
@@ -43,7 +42,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
         if (data) profileData = data;
       }
 
-      // Priority 2: Fallback query berdasarkan username / full_name
       if (!profileData && item.uploaded_by) {
         const targetName = item.uploaded_by.trim();
         const { data } = await supabase
@@ -63,7 +61,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
           setUploaderIsAdmin(profileData.is_admin);
         }
 
-        // Realtime Subscription
         channel = supabase
           .channel(`public:profiles:uploader_${profileData.id}`)
           .on(
@@ -199,7 +196,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
                 <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500">
                   <span className="italic">Uploaded by</span> 
                   
-                  {/* Container Avatar Uploader */}
                   <div className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 shadow-sm">
                     {uploaderAvatar ? (
                       <img 
@@ -215,7 +211,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
 
                   <span className="font-bold text-slate-700 not-italic">{item.uploaded_by}</span>
                   
-                  {/* Mengirim properti isAdmin ke UserBadge */}
                   <UserBadge 
                     username={item.uploaded_by} 
                     count={uploaderCount} 
