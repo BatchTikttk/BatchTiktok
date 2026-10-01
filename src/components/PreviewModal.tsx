@@ -13,16 +13,21 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
   const [uploaderAvatar, setUploaderAvatar] = useState<string | null>(
     item?.uploader_avatar || item?.avatar_url || null
   );
+  
+  // TAMBAHAN: State untuk menyimpan role uploader
+  const [uploaderRole, setUploaderRole] = useState<string | null>(item?.role || null);
 
   useEffect(() => {
     let channel: any;
 
-    // Update avatar dari item props jika berubah
     if (item?.uploader_avatar || item?.avatar_url) {
       setUploaderAvatar(item.uploader_avatar || item.avatar_url);
     }
+    if (item?.role) {
+      setUploaderRole(item.role);
+    }
 
-    const fetchUploaderAvatar = async () => {
+    const fetchUploaderAvatarAndRole = async () => {
       if (!item) return;
 
       let profileData: any = null;
@@ -31,7 +36,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
       if (item.user_id) {
         const { data } = await supabase
           .from('profiles')
-          .select('id, avatar_url')
+          .select('id, avatar_url, role') // 👈 Tambahkan role di sini
           .eq('id', item.user_id)
           .maybeSingle();
 
@@ -43,7 +48,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
         const targetName = item.uploaded_by.trim();
         const { data } = await supabase
           .from('profiles')
-          .select('id, avatar_url')
+          .select('id, avatar_url, role') // 👈 Tambahkan role di sini juga
           .or(`username.ilike."${targetName}",full_name.ilike."${targetName}"`)
           .limit(1);
 
@@ -53,6 +58,9 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
       if (profileData) {
         if (profileData.avatar_url) {
           setUploaderAvatar(profileData.avatar_url);
+        }
+        if (profileData.role) {
+          setUploaderRole(profileData.role); // 👈 Simpan role ke state
         }
 
         // Realtime Subscription
@@ -69,6 +77,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
             (payload) => {
               if (payload.new) {
                 setUploaderAvatar(payload.new.avatar_url || null);
+                setUploaderRole(payload.new.role || null); // 👈 Update role jika berubah realtime
               }
             }
           )
@@ -76,14 +85,14 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
       }
     };
 
-    fetchUploaderAvatar();
+    fetchUploaderAvatarAndRole();
 
     return () => {
       if (channel) {
         supabase.removeChannel(channel);
       }
     };
-  }, [item?.id, item?.user_id, item?.uploaded_by, item?.uploader_avatar, item?.avatar_url]);
+  }, [item?.id, item?.user_id, item?.uploaded_by, item?.uploader_avatar, item?.avatar_url, item?.role]);
 
   if (!item) return null;
 
@@ -201,7 +210,15 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
                   </div>
 
                   <span className="font-bold text-slate-700 not-italic">{item.uploaded_by}</span>
-                  <UserBadge username={item.uploaded_by} count={uploaderCount} adminList={adminList} />
+                  {/* 
+                     👇 TAMBAHAN: Kirimkan props role={uploaderRole} ke UserBadge 
+                  */}
+                  <UserBadge 
+                    username={item.uploaded_by} 
+                    count={uploaderCount} 
+                    adminList={adminList} 
+                    role={uploaderRole} 
+                  />
                 </span>
               </div>
             </div>
