@@ -38,7 +38,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Fetch data profil (untuk mendapatkan avatar & is_admin)
+  // Fetch profiles data (avatar & is_admin)
   const fetchProfiles = async () => {
     const { data, error } = await supabase
       .from('profiles')
@@ -48,7 +48,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     }
   };
 
-  // Fetch riwayat pesan
+  // Fetch message history
   const fetchMessages = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -64,7 +64,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     scrollToBottom();
   };
 
-  // Dijalankan saat widget dibuka
+  // Triggered when widget opens
   useEffect(() => {
     if (isOpen) {
       fetchProfiles();
@@ -72,11 +72,11 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     }
   }, [isOpen]);
 
-  // Realtime Sync untuk Pesan & Profil
+  // Realtime Sync for Messages & Profiles
   useEffect(() => {
     if (!isOpen) return;
 
-    // Listen untuk pesan baru
+    // Listen for new messages
     const messageChannel = supabase
       .channel('realtime-group-chat')
       .on(
@@ -89,14 +89,14 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
       )
       .subscribe();
 
-    // Listen jika ada profil yang berubah (misal ganti avatar atau diangkat jadi admin)
+    // Listen for profile changes
     const profileChannel = supabase
       .channel('realtime-profiles-chat')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'profiles' },
         () => {
-          fetchProfiles(); // Refresh profil jika ada update
+          fetchProfiles();
         }
       )
       .subscribe();
@@ -107,7 +107,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     };
   }, [isOpen]);
 
-  // Auto scroll ke bawah setiap ada pesan baru
+  // Auto scroll on new message
   useEffect(() => {
     if (isOpen) {
       scrollToBottom();
@@ -152,7 +152,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
 
   return (
     <div className="fixed bottom-6 right-6 z-[9990] font-sans">
-      {/* Tombol Floating untuk Buka/Tutup Chat */}
+      {/* Floating Toggle Button */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
@@ -163,7 +163,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
         </button>
       )}
 
-      {/* Box Obrolan (Light Mode) */}
+      {/* Chat Container (Light Mode) */}
       {isOpen && (
         <div className="w-[360px] sm:w-[400px] h-[540px] bg-white border border-slate-200 rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
           
@@ -190,7 +190,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
             </button>
           </div>
 
-          {/* Body List Pesan (Tanpa Scrollbar Visual tapi bisa di scroll) */}
+          {/* Messages Body */}
           <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50/50 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {loading ? (
               <div className="h-full flex items-center justify-center text-slate-400 gap-2 text-sm font-medium">
@@ -199,7 +199,6 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
               </div>
             ) : messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                {/* 3D Emoticon Effect untuk empty state */}
                 <div className="text-6xl mb-4 drop-shadow-xl transform hover:scale-110 transition-transform cursor-default">
                   👋
                 </div>
@@ -232,14 +231,16 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                     {/* Bubble Message */}
                     <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[75%]`}>
                       
-                      {/* Nama & Badge Admin */}
+                      {/* Name & Admin Badge */}
                       <div className="flex items-center gap-1 mb-1 px-1">
                         <span className="text-[11px] font-bold text-slate-600">
                           {isMe ? 'You' : (senderProfile?.username || msg.username)}
                         </span>
-                        {/* Centang Hijau Admin Sinkron */}
+                        {/* Admin Badge Fix: Wrap in span to support tooltip title without TS error */}
                         {senderProfile?.is_admin && (
-                          <CheckCircle2 size={12} className="text-emerald-500 fill-emerald-50" title="Admin Verified" />
+                          <span title="Admin Verified" className="inline-flex items-center">
+                            <CheckCircle2 size={12} className="text-emerald-500 fill-emerald-50" />
+                          </span>
                         )}
                       </div>
 
@@ -264,7 +265,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Footer Input Pesan */}
+          {/* Footer Input */}
           <div className="p-3 bg-white border-t border-slate-100 relative">
             
             {/* Popover Emoji Picker */}
