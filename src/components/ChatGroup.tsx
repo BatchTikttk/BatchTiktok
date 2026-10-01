@@ -170,9 +170,10 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
           {/* Header */}
           <div className="p-4 bg-white border-b border-slate-100 flex items-center justify-between shadow-sm z-10 relative">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500">
-                <MessageSquare size={18} className="fill-current opacity-20 absolute" />
-                <MessageSquare size={18} />
+              {/* Icon tanpa background container */}
+              <div className="text-emerald-500 relative flex items-center justify-center p-1">
+                <MessageSquare size={22} className="fill-current opacity-20 absolute" />
+                <MessageSquare size={22} />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-800 leading-tight">Global Group Chat</h3>
@@ -199,7 +200,26 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
               </div>
             ) : messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                <div className="text-6xl mb-4 drop-shadow-xl transform hover:scale-110 transition-transform cursor-default">
+                {/* CSS Keyframes Animasi Melambai */}
+                <style>{`
+                  @keyframes wave-hand {
+                    0% { transform: rotate(0.0deg); }
+                    10% { transform: rotate(14.0deg); }
+                    20% { transform: rotate(-8.0deg); }
+                    30% { transform: rotate(14.0deg); }
+                    40% { transform: rotate(-4.0deg); }
+                    50% { transform: rotate(10.0deg); }
+                    60% { transform: rotate(0.0deg); }
+                    100% { transform: rotate(0.0deg); }
+                  }
+                  .animate-waving-hand {
+                    animation: wave-hand 2.5s infinite;
+                    transform-origin: 70% 70%;
+                    display: inline-block;
+                  }
+                `}</style>
+
+                <div className="text-6xl mb-4 drop-shadow-xl animate-waving-hand cursor-default">
                   👋
                 </div>
                 <h4 className="text-sm font-bold text-slate-700 mb-1">No messages yet</h4>
@@ -236,7 +256,6 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                         <span className="text-[11px] font-bold text-slate-600">
                           {isMe ? 'You' : (senderProfile?.username || msg.username)}
                         </span>
-                        {/* Admin Badge Fix: Wrap in span to support tooltip title without TS error */}
                         {senderProfile?.is_admin && (
                           <span title="Admin Verified" className="inline-flex items-center">
                             <CheckCircle2 size={12} className="text-emerald-500 fill-emerald-50" />
