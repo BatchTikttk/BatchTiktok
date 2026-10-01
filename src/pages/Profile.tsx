@@ -29,7 +29,7 @@ import {
   AlertCircle,
   ExternalLink
 } from 'lucide-react';
-import { EmeraldFolderIcon, UserBadge } from '../components/SharedIcons';
+import { EmeraldFolderIcon } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import PostModal from '../components/PostModal';
@@ -104,7 +104,7 @@ export default function Profile({
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userBatches, setUserBatches] = useState<any[]>([]);
   const [allBatches, setAllBatches] = useState<any[]>([]); 
-  const [adminList, setAdminList] = useState<string[]>([]);
+  const [, setAdminList] = useState<string[]>([]);
   const [deletingId, setDeletingId] = useState<string | number | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<string | number | null>(null);
 
@@ -481,33 +481,20 @@ export default function Profile({
                     <h1 className="text-xl font-black text-slate-800 tracking-tight">
                       {activeUsername || 'User'}
                     </h1>
-                    <UserBadge 
-                      username={activeUsername || ''} 
-                      adminList={adminList} 
-                      count={stats.totalUploads} 
-                    />
-                  </div>
-
-                  {unlockedBadges.length > 0 && (
-                    <div className="mt-2.5 flex items-center justify-center gap-2 flex-wrap bg-slate-50/80 px-3 py-1.5 rounded-2xl border border-slate-100">
-                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Equipped Badges:</span>
-                      <div className="flex items-center gap-1.5">
-                        {unlockedBadges.map((badge) => (
-                          <div 
-                            key={badge.id} 
-                            className="relative group/badge cursor-pointer"
-                            title={`${badge.title} (${badge.reqText})`}
-                          >
-                            <img 
-                              src={badge.iconUrl} 
-                              alt={badge.title} 
-                              className="w-7 h-7 object-contain drop-shadow hover:scale-125 transition-transform"
-                            />
-                          </div>
-                        ))}
+                    {unlockedBadges.map((badge) => (
+                      <div 
+                        key={badge.id} 
+                        className="relative group/badge cursor-pointer"
+                        title={`${badge.title} (${badge.reqText})`}
+                      >
+                        <img 
+                          src={badge.iconUrl} 
+                          alt={badge.title} 
+                          className="w-7 h-7 object-contain drop-shadow hover:scale-110 transition-transform"
+                        />
                       </div>
-                    </div>
-                  )}
+                    ))}
+                  </div>
 
                   <div className="mt-2 flex items-center gap-2">
                     {userProfile?.is_admin && (
