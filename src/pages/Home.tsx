@@ -19,16 +19,37 @@ const Toast = ({ message, isVisible, type = 'success' }: any) => (
 );
 
 const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => {
+  // Fungsi untuk menarik lencana gambar sesuai data dari Profile_4.tsx
+  const getAchievementBadge = (count: number) => {
+    if (count >= 50) return { title: 'Emerald Master', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp' };
+    if (count >= 30) return { title: 'Emerald Pro', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp' };
+    if (count >= 10) return { title: 'Emerald Rookie', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Low%20Tier.webp' };
+    return null;
+  };
+
+  const badge = getAchievementBadge(uploaderCount);
+
   return (
     <div 
       onClick={() => onOpenPreview(data)} 
       className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative"
     >
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-0.5 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
-        <div className="flex items-center gap-1.5">
-          <span className="text-[11px] font-medium text-slate-500 italic">
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
+        <div className="flex items-center gap-1.5 flex-wrap justify-center">
+          <span className="text-[11px] font-medium text-slate-500 italic flex items-center gap-1.5">
             Uploaded by <span className="font-semibold text-emerald-600 not-italic">{data.uploaded_by}</span>
           </span>
+          
+          {/* Lencana Gambar */}
+          {badge && (
+            <img 
+              src={badge.url} 
+              alt={badge.title} 
+              title={`${badge.title} (${uploaderCount} Uploads)`}
+              className="w-5 h-5 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform ml-0.5"
+            />
+          )}
+
           <div className="flex items-center justify-center">
             <UserBadge 
               username={data.uploaded_by} 
