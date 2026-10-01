@@ -60,11 +60,8 @@ export const EmeraldFolderIcon = ({ className = "w-24 h-24", country }: { classN
       case 'Taiwan':
         flagContent = (
           <>
-            {/* Latar Belakang Merah */}
             <rect x="13" y="13" width="10" height="10" fill="#EF4444" />
-            {/* Kanton Biru di Kiri Atas */}
             <rect x="13" y="13" width="5" height="5" fill="#1E3A8A" />
-            {/* Matahari Putih */}
             <circle cx="15.5" cy="15.5" r="1.5" fill="#FFFFFF" />
           </>
         );
@@ -76,6 +73,19 @@ export const EmeraldFolderIcon = ({ className = "w-24 h-24", country }: { classN
             <rect x="13" y="18" width="10" height="5" fill="#EF4444" />
             <polygon points="13,13 13,23 18.5,18" fill="#FFFFFF" />
             <circle cx="14.8" cy="18" r="1.5" fill="#FACC15" />
+          </>
+        );
+        break;
+      case 'Vietnam':
+        flagContent = (
+          <>
+            {/* Latar Belakang Merah */}
+            <rect x="13" y="13" width="10" height="10" fill="#EF4444" />
+            {/* Bintang Kuning di Tengah */}
+            <polygon 
+              points="18,15 18.67,16.9 20.85,16.9 19.08,18.18 19.76,20.42 18,19.14 16.24,20.42 16.92,18.18 15.15,16.9 17.33,16.9" 
+              fill="#FACC15" 
+            />
           </>
         );
         break;

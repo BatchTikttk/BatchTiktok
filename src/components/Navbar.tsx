@@ -6,7 +6,7 @@ export default function Navbar({
   activeCategory, 
   setActiveCategory, 
   resetSearch,
-  CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines'], 
+  CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'], 
   currentUser,
   handleLogout, 
   setShowAddModal, 

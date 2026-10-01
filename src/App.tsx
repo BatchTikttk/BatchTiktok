@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import RulesPage from './pages/RulesPage';
+import LegalPage from './pages/LegalPage';
 
 export default function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
@@ -13,6 +14,9 @@ export default function App() {
     } else if (window.location.hash === '#rules') {
       window.history.replaceState({}, '', '/rules');
       setCurrentPath('/rules');
+    } else if (window.location.hash === '#legal') {
+      window.history.replaceState({}, '', '/legal');
+      setCurrentPath('/legal');
     } else if (window.location.hash === '#') {
       window.history.replaceState({}, '', '/');
       setCurrentPath('/');
@@ -43,6 +47,10 @@ export default function App() {
 
   if (currentPath === '/rules') {
     return <RulesPage />;
+  }
+
+  if (currentPath === '/legal') {
+    return <LegalPage />;
   }
 
   return <Home />;

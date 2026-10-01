@@ -31,7 +31,7 @@ import PostModal from '../components/PostModal';
 import LoginModal from '../components/LoginModal';
 import AvatarModal from '../components/Avatar';
 
-const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines'];
+const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
 // Komponen Toast lokal agar serasi dengan Homepage
 const Toast = ({ message, isVisible, type = 'success' }: any) => (

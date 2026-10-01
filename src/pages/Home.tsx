@@ -9,7 +9,7 @@ import PostModal from "../components/PostModal";
 import PreviewModal from "../components/PreviewModal";
 import { EmeraldFolderIcon, UserBadge } from "../components/SharedIcons"; 
 
-export const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines'];
+export const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
 const Toast = ({ message, isVisible, type = 'success' }: any) => (
   <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-2 transition-all duration-300 z-[9999] ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'} ${type === 'success' ? 'bg-slate-900 text-white' : 'bg-red-500 text-white'}`}>
