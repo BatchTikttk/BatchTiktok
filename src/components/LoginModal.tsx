@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { User, Mail, Lock, X, Loader2, Folder, Eye, EyeOff, Check } from 'lucide-react';
 import { supabase } from '../supabase';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { Turnstile } from '@marsidev/react-turnstile';
 
-// Client ID dari dashboard Google Cloud / Supabase Anda
 const GOOGLE_CLIENT_ID = "1067355347912-mvrekrrcgai9sbibseamcbtq4e65ce4v.apps.googleusercontent.com";
+const TURNSTILE_SITE_KEY = "0x4AAAAAAFL5HA7QswddqBV1";
 
 export default function LoginModalWrapper(props: any) {
   return (
@@ -22,6 +23,7 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,14 +31,20 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
     setIsSuccess(false);
     
     if (isRegistering) {
-      // 1. Proses Pendaftaran Email Baru
+      if (!captchaToken) {
+        showToast('Please complete the CAPTCHA verification', 'error');
+        setIsLoading(false);
+        return;
+      }
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: authEmail,
         password: authPassword,
         options: {
+          captchaToken: captchaToken,
           data: {
             username: authUsername,
-            full_name: authUsername, // Mengisi Display Name di Dashboard Supabase
+            full_name: authUsername,
           },
         }
       });
@@ -44,10 +52,11 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
       if (authError) {
         showToast(authError.message, 'error');
         setIsLoading(false);
+        // Reset token agar user bisa mencoba CAPTCHA ulang jika gagal
+        setCaptchaToken(null);
         return;
       }
 
-      // 2. Simpan/Update Username ke Tabel 'profiles' menggunakan UPSERT
       if (authData.user) {
         const { error: profileError } = await supabase
           .from('profiles')
@@ -64,7 +73,6 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
         setIsSuccess(true);
         showToast('Registration successful! Welcome.', 'success');
         
-        // 3. Karena Email Confirmation mati, langsung otomatis login
         setTimeout(async () => {
           setIsSuccess(false);
           setIsRegistering(false);
@@ -78,7 +86,6 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
         return;
       }
     } else {
-      // Proses Login Email biasa
       const { error } = await supabase.auth.signInWithPassword({
         email: authEmail,
         password: authPassword,
@@ -98,7 +105,6 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
     setIsLoading(false);
   };
 
-  // Fungsi penanganan Login Google
   const handleGoogleSuccess = async (credentialResponse: any) => {
     setIsLoading(true);
     try {
@@ -129,7 +135,6 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
       ></div>
       
       <div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-        
         <button 
           onClick={onClose} 
           disabled={isLoading || isSuccess}
@@ -164,7 +169,6 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
           </div>
 
           <form onSubmit={handleAuth} className="space-y-4">
-            
             {isRegistering && (
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -222,10 +226,22 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
               </button>
             </div>
 
+            {/* Komponen Turnstile CAPTCHA */}
+            {isRegistering && (
+              <div className="flex justify-center mt-2 mb-2">
+                <Turnstile
+                  siteKey={TURNSTILE_SITE_KEY}
+                  onSuccess={(token) => setCaptchaToken(token)}
+                  onError={() => setCaptchaToken(null)}
+                  onExpire={() => setCaptchaToken(null)}
+                />
+              </div>
+            )}
+
             <button 
               type="submit" 
-              disabled={isLoading || isSuccess}
-              className={`w-full py-3.5 mt-2 rounded-2xl ${isSuccess ? 'bg-emerald-600' : 'bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700'} text-white font-bold shadow-[0_8px_20px_rgba(16,185,129,0.25)] hover:shadow-[0_10px_25px_rgba(16,185,129,0.35)] transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 border-none disabled:opacity-80 disabled:pointer-events-none cursor-pointer`}
+              disabled={isLoading || isSuccess || (isRegistering && !captchaToken)}
+              className={`w-full py-3.5 mt-2 rounded-2xl ${isSuccess ? 'bg-emerald-600' : 'bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700'} text-white font-bold shadow-[0_8px_20px_rgba(16,185,129,0.25)] hover:shadow-[0_10px_25px_rgba(16,185,129,0.35)] transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 border-none disabled:opacity-50 disabled:pointer-events-none cursor-pointer`}
             >
               {isLoading ? (
                 <>
@@ -243,7 +259,6 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
             </button>
           </form>
           
-          {/* Garis Pemisah & Tombol Login Google */}
           <div className="mt-6">
             <div className="flex items-center justify-center space-x-2">
               <span className="h-px w-full bg-slate-200"></span>
@@ -280,6 +295,7 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
                 onClick={() => {
                   setIsRegistering(!isRegistering);
                   setIsSuccess(false);
+                  setCaptchaToken(null);
                 }}
                 disabled={isLoading || isSuccess}
                 className="ml-1.5 font-bold text-emerald-600 hover:text-emerald-700 hover:underline underline-offset-4 bg-transparent border-none p-0 transition-colors cursor-pointer"
