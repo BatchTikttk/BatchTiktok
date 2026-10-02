@@ -22,7 +22,6 @@ import {
   Search,
   X,
   Save,
-  Award,
   Lock,
   Check,
   AlertCircle,
