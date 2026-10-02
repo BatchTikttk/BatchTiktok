@@ -6,8 +6,17 @@ import { supabase } from '../supabase';
 const MOCK_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
 const BANNED_LOGO_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/BannedLogo.webp";
 
-const PreviewModal = ({ item, onClose, onDownload, uploaderCount }: any) => {
-  const [isMuted, setIsMuted] = useState(true);
+// Interface TypeScript untuk mencegah error saat deployment / build
+interface PreviewModalProps {
+  item: any;
+  onClose: () => void;
+  onDownload: (source: string, url: string, id: any) => void;
+  uploaderCount?: number;
+  onSelectCreator?: (creatorName: string) => void;
+}
+
+const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCreator }: PreviewModalProps) => {
+  const [isMuted, setIsMuted] = useState<boolean>(true);
   
   const [uploaderAvatar, setUploaderAvatar] = useState<string | null>(
     item?.uploader_avatar || item?.avatar_url || null
@@ -24,6 +33,21 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount }: any) => {
   };
 
   const badge = getAchievementBadge(uploaderCount);
+
+  // Handler navigasi ke Halaman Detail Kreator
+  const handleCreatorClick = (creatorName?: string) => {
+    const targetName = creatorName || item?.username || item?.uploaded_by;
+    if (!targetName) return;
+
+    if (onClose) onClose();
+
+    if (onSelectCreator) {
+      onSelectCreator(targetName);
+    } else {
+      window.history.pushState({}, '', `/creator/${encodeURIComponent(targetName)}`);
+      window.dispatchEvent(new Event('popstate'));
+    }
+  };
 
   useEffect(() => {
     let channel: any;
@@ -75,8 +99,8 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount }: any) => {
               table: 'profiles',
               filter: `id=eq.${profileData.id}`,
             },
-            (payload) => {
-              if (payload.new) {
+            (payload: any) => {
+              if (payload?.new) {
                 if (payload.new.avatar_url !== undefined) {
                   setUploaderAvatar(payload.new.avatar_url);
                 }
@@ -163,7 +187,13 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount }: any) => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
           
           <div className="absolute bottom-6 left-6 right-6 text-white pointer-events-none">
-            <h4 className="font-bold text-lg drop-shadow-md flex items-center gap-2">
+            <h4 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCreatorClick(item.username);
+              }}
+              className="font-bold text-lg drop-shadow-md flex items-center gap-2 pointer-events-auto cursor-pointer hover:text-emerald-400 transition-colors"
+            >
               {item.username}
             </h4>
             <p className="text-xs text-white/90 line-clamp-2 mt-1 drop-shadow-md">
@@ -179,7 +209,13 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount }: any) => {
             </div>
             <div className="flex-1">
               <h2 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-                <span>{item.username}</span>
+                <span 
+                  onClick={() => handleCreatorClick(item.username)} 
+                  className="cursor-pointer hover:text-emerald-600 transition-colors"
+                  title={`View details for ${item.username}`}
+                >
+                  {item.username}
+                </span>
                 {item.is_banned && (
                   <img 
                     src={BANNED_LOGO_URL} 
@@ -197,14 +233,19 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount }: any) => {
                 
                 <span className="text-slate-300 text-sm">•</span>
                 
-                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500">
+                {/* Area uploader yang dapat diklik untuk navigasi */}
+                <div 
+                  onClick={() => handleCreatorClick(item.uploaded_by || item.username)}
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 cursor-pointer hover:opacity-80 transition-opacity"
+                  title={`View profile of ${item.uploaded_by}`}
+                >
                   <span className="italic">Uploaded by</span> 
                   
                   <div className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200 shadow-sm">
                     {uploaderAvatar ? (
                       <img 
                         src={uploaderAvatar} 
-                        alt={item.uploaded_by} 
+                        alt={item.uploaded_by || 'Uploader'} 
                         className="w-full h-full object-cover" 
                         onError={() => setUploaderAvatar(null)}
                       />
@@ -213,9 +254,10 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount }: any) => {
                     )}
                   </div>
 
-                  <span className="font-bold text-slate-700 not-italic">{item.uploaded_by}</span>
+                  <span className="font-bold text-slate-700 not-italic hover:text-emerald-600 transition-colors">
+                    {item.uploaded_by}
+                  </span>
                   
-                  {/* Perbaikan badge admin: dibungkus span untuk atribut title */}
                   {uploaderIsAdmin ? (
                     <span title="Admin Verified">
                       <ShieldCheck 
@@ -231,7 +273,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount }: any) => {
                       className="w-5 h-5 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform ml-0.5"
                     />
                   ) : null}
-                </span>
+                </div>
               </div>
             </div>
           </div>

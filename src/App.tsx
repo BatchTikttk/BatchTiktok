@@ -3,7 +3,8 @@ import Home from './pages/Home';
 import Profile from './pages/Profile';
 import RulesPage from './pages/RulesPage';
 import LegalPage from './pages/LegalPage';
-import TopContributors from './pages/TopContributors'; // 1. IMPORT DITAMBAHKAN
+import TopContributors from './pages/TopContributors';
+import CreatorPage from './pages/CreatorPage'; // 1. IMPORT HALAMAN CREATOR DITAMBAHKAN
 import ChatGroup from './components/ChatGroup';
 import LoginModal from './components/LoginModal';
 import { supabase } from './supabase';
@@ -43,6 +44,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    // Normalisasi fallback URL berbasis hash (#)
     if (window.location.hash === '#profile') {
       window.history.replaceState({}, '', '/profile');
       setCurrentPath('/profile');
@@ -52,9 +54,13 @@ export default function App() {
     } else if (window.location.hash === '#legal') {
       window.history.replaceState({}, '', '/legal');
       setCurrentPath('/legal');
-    } else if (window.location.hash === '#top-contributors') { // 2. ROUTING DITAMBAHKAN
+    } else if (window.location.hash === '#top-contributors') {
       window.history.replaceState({}, '', '/top-contributors');
       setCurrentPath('/top-contributors');
+    } else if (window.location.hash.startsWith('#creator/')) { // Tangkap jika ada hash creator
+      const targetPath = window.location.hash.replace('#', '/');
+      window.history.replaceState({}, '', targetPath);
+      setCurrentPath(targetPath);
     } else if (window.location.hash === '#') {
       window.history.replaceState({}, '', '/');
       setCurrentPath('/');
@@ -92,8 +98,14 @@ export default function App() {
       return <LegalPage />;
     }
 
-    if (currentPath === '/top-contributors') { // 3. RENDER HALAMAN DITAMBAHKAN
+    if (currentPath === '/top-contributors') {
       return <TopContributors />;
+    }
+
+    // 2. ROUTING DINAMIS UNTUK CREATOR PAGE DITAMBAHKAN
+    if (currentPath.startsWith('/creator/')) {
+      const username = decodeURIComponent(currentPath.split('/creator/')[1] || '');
+      return <CreatorPage username={username} />;
     }
 
     return <Home />;
