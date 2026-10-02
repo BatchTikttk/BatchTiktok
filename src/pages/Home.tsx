@@ -45,11 +45,12 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: any) => {
           </span>
           
           {data.uploader_is_admin ? (
-            <ShieldCheck 
-              size={15} 
-              className="text-[#fbbf24] ml-0.5 cursor-help drop-shadow-sm hover:scale-110 transition-transform" 
-              title="Admin Verified" 
-            />
+            <span title="Admin Verified">
+              <ShieldCheck 
+                size={15} 
+                className="text-[#fbbf24] ml-0.5 cursor-help drop-shadow-sm hover:scale-110 transition-transform" 
+              />
+            </span>
           ) : badge ? (
             <img 
               src={badge.url} 
