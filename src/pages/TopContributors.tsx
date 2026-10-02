@@ -64,7 +64,6 @@ export default function TopContributors() {
   const [loading, setLoading] = useState(true);
   const [contributors, setContributors] = useState<any[]>([]);
   
-  // Sinkronisasi state dari logika homepage
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -74,7 +73,6 @@ export default function TopContributors() {
     fetchTopContributors();
     checkUser();
 
-    // Subscribe ke perubahan auth/profile seperti di beranda
     const channel = supabase
       .channel('schema-db-changes-top')
       .on(
@@ -138,13 +136,17 @@ export default function TopContributors() {
         
         const stats: Stats = { totalUploads, totalApproved, totalVideos };
         
+        // Menyamakan perhitungan level persis seperti di Profile_2.tsx
+        const calculatedLevel = Math.floor(totalUploads / 3) + 1;
+
         const unlockedBadges = BADGES.filter(badge => badge.isUnlocked(stats));
         const highestBadge = unlockedBadges.length > 0 ? unlockedBadges[unlockedBadges.length - 1] : null;
 
         return {
           ...profile,
           stats,
-          highestBadge
+          highestBadge,
+          level: calculatedLevel // Menggunakan hasil perhitungan yang seragam
         };
       })
       .filter(user => user.stats.totalUploads > 0 && user.role !== 'admin' && user.is_admin !== true)
@@ -155,7 +157,6 @@ export default function TopContributors() {
     setLoading(false);
   };
 
-  // Peringkat Top 3 & Sisa Kontributor
   const rank1 = contributors[0];
   const rank2 = contributors[1];
   const rank3 = contributors[2];
@@ -185,7 +186,6 @@ export default function TopContributors() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            {/* Bagian Kiri: Profil Kontributor */}
             <div className="lg:col-span-2 space-y-6">
               <div className="flex items-center gap-2 mb-2">
                 <Users className="text-emerald-500" size={20} />
@@ -214,7 +214,6 @@ export default function TopContributors() {
                       className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 relative group transition-all hover:shadow-md cursor-pointer flex items-center justify-between"
                     >
                       <div className="flex items-center gap-4">
-                        {/* Container Avatar Dibuat Bulat (rounded-full) */}
                         <div className="w-14 h-14 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
                           {user.avatar_url ? (
                             <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
@@ -228,9 +227,15 @@ export default function TopContributors() {
                           <h3 className="text-base font-black text-slate-800 group-hover:text-emerald-600 transition-colors">
                             @{user.username}
                           </h3>
-                          <p className="text-[11px] text-slate-400 font-semibold mt-0.5">
-                            Community Contributor
-                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-[11px] text-slate-400 font-semibold">
+                              Community Contributor
+                            </p>
+                            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                            <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                              Level {user.level}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
@@ -249,11 +254,9 @@ export default function TopContributors() {
               )}
             </div>
 
-            {/* Bagian Kanan: Widget Leaderboard */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-100 sticky top-8">
                 
-                {/* Header Widget dengan Icon Trophy */}
                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
                   <div className="p-2.5 bg-amber-50 text-amber-500 rounded-2xl flex-shrink-0">
                     <Trophy size={20} />
@@ -266,10 +269,8 @@ export default function TopContributors() {
 
                 {!loading && contributors.length > 0 ? (
                   <>
-                    {/* Podium Top 3 */}
                     <div className="flex justify-center items-end gap-3 my-6">
                       
-                      {/* Peringkat 2 (Kiri) */}
                       {rank2 && (
                         <div 
                           className="flex flex-col items-center cursor-pointer group" 
@@ -299,7 +300,6 @@ export default function TopContributors() {
                         </div>
                       )}
 
-                      {/* Peringkat 1 (Tengah) */}
                       {rank1 && (
                         <div 
                           className="flex flex-col items-center mb-4 cursor-pointer group" 
@@ -329,7 +329,6 @@ export default function TopContributors() {
                         </div>
                       )}
 
-                      {/* Peringkat 3 (Kanan) */}
                       {rank3 && (
                         <div 
                           className="flex flex-col items-center cursor-pointer group" 
@@ -360,7 +359,6 @@ export default function TopContributors() {
                       )}
                     </div>
 
-                    {/* Daftar Peringkat Lanjutan (Rank 4+) */}
                     {restOfContributors.length > 0 && (
                       <div className="mt-6 border-t border-slate-100 pt-5">
                         <div className="flex justify-between items-center mb-3 px-1">
