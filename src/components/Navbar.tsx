@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, Plus, LogIn, LogOut, User, ChevronDown, Scale, BarChart2 } from 'lucide-react';
+import { Menu, X, Plus, LogIn, LogOut, User, ChevronDown, Scale, BarChart2, Home, Globe, Trophy, MapPin } from 'lucide-react';
 import { supabase } from '../supabase';
 
 export default function Navbar({ 
@@ -148,12 +148,13 @@ export default function Navbar({
           <div className="hidden md:flex items-center gap-2 bg-white p-1.5 rounded-full shadow-[0_4px_20px_rgb(0,0,0,0.03)] border-none relative">
             <button
               onClick={() => handleGoToHome('Home')}
-              className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border-none cursor-pointer ${
+              className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border-none cursor-pointer flex items-center gap-1.5 ${
                 activeCategory === 'Home' && window.location.pathname === '/'
                   ? 'bg-emerald-50 text-emerald-600 shadow-sm' 
                   : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
               }`}
             >
+              <Home size={16} />
               Home
             </button>
 
@@ -166,6 +167,7 @@ export default function Navbar({
                     : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
                 }`}
               >
+                <Globe size={16} />
                 Region
                 <ChevronDown size={14} className={`transition-transform duration-200 ${isRegionOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -178,12 +180,13 @@ export default function Navbar({
                       <button
                         key={region}
                         onClick={() => handleGoToHome(region)}
-                        className={`w-full px-5 py-2.5 text-left text-sm font-bold transition-colors border-none bg-transparent cursor-pointer ${
+                        className={`w-full px-5 py-2.5 text-left text-sm font-bold transition-colors border-none bg-transparent cursor-pointer flex items-center gap-2 ${
                           activeCategory === region && window.location.pathname === '/'
                             ? 'text-emerald-600 bg-emerald-50/50' 
                             : 'text-slate-600 hover:text-emerald-600 hover:bg-emerald-50'
                         }`}
                       >
+                        <MapPin size={14} />
                         {region}
                       </button>
                     ))}
@@ -194,12 +197,13 @@ export default function Navbar({
 
             <button
               onClick={handleGoToTopContributors}
-              className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border-none cursor-pointer ${
+              className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border-none cursor-pointer flex items-center gap-1.5 ${
                 isTopContributorsActive
                   ? 'bg-emerald-50 text-emerald-600 shadow-sm' 
                   : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
               }`}
             >
+              <Trophy size={16} />
               Top Contributors
             </button>
           </div>
@@ -222,7 +226,7 @@ export default function Navbar({
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="px-4 py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold text-slate-600 flex items-center gap-2.5 transition-all border-none cursor-pointer"
                 >
-                  <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {avatarUrl ? (
                       <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
                     ) : typeof currentUser === 'object' && currentUser?.user_metadata?.avatar_url ? (
@@ -295,27 +299,29 @@ export default function Navbar({
           
           <button
             onClick={() => handleGoToHome('Home')}
-            className={`px-4 py-3 rounded-2xl text-left text-sm font-bold transition-all border-none cursor-pointer ${
+            className={`px-4 py-3 rounded-2xl text-left text-sm font-bold transition-all border-none cursor-pointer flex items-center gap-2 ${
               activeCategory === 'Home' && window.location.pathname === '/'
                 ? 'bg-emerald-50 text-emerald-600' 
                 : 'text-slate-600 hover:bg-slate-50'
             }`}
           >
+            <Home size={18} />
             Home
           </button>
 
           <div className="flex flex-col gap-1 px-2 pt-1 pb-1">
-            <span className="px-2 py-1 text-[11px] font-black text-slate-400 uppercase tracking-wider">Region</span>
+            <span className="px-2 py-1 text-[11px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><Globe size={12} /> Region</span>
             {regions.map((region: string) => (
               <button
                 key={region}
                 onClick={() => handleGoToHome(region)}
-                className={`px-4 py-2.5 rounded-2xl text-left text-sm font-bold transition-all border-none cursor-pointer ${
+                className={`px-4 py-2.5 rounded-2xl text-left text-sm font-bold transition-all border-none cursor-pointer flex items-center gap-2 ${
                   activeCategory === region && window.location.pathname === '/'
                     ? 'bg-emerald-50 text-emerald-600' 
                     : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
                 }`}
               >
+                <MapPin size={16} />
                 {region}
               </button>
             ))}
@@ -323,12 +329,13 @@ export default function Navbar({
 
           <button
             onClick={handleGoToTopContributors}
-            className={`px-4 py-3 rounded-2xl text-left text-sm font-bold transition-all border-none cursor-pointer ${
+            className={`px-4 py-3 rounded-2xl text-left text-sm font-bold transition-all border-none cursor-pointer flex items-center gap-2 ${
               isTopContributorsActive
                 ? 'bg-emerald-50 text-emerald-600' 
                 : 'text-slate-600 hover:bg-slate-50'
             }`}
           >
+            <Trophy size={18} />
             Top Contributors
           </button>
 
@@ -345,7 +352,7 @@ export default function Navbar({
             {currentUser ? (
               <>
                 <div className="px-4 py-2 mb-1 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {avatarUrl ? (
                       <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
                     ) : (

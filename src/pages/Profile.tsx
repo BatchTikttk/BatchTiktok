@@ -641,7 +641,7 @@ export default function Profile({
                       </div>
                       <div>
                         <div className="text-3xl font-bold text-slate-800">{stats.totalSizeDisplay}</div>
-                        <div className="text-[10px] mt-1 text-slate-400">Capacity used</div>
+                        <div className="text-[10px] mt-1 text-slate-400">Size Uploaded</div>
                       </div>
                     </div>
 
