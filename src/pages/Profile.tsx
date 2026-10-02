@@ -436,7 +436,7 @@ export default function Profile({
     return (
       <div className="min-h-screen bg-[#f0f4f8] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4 p-8 bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-          <div className="w-10 h-10 border-4 border-[#8b5cf6] border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-[#10b981] border-t-transparent rounded-full animate-spin"></div>
           <span className="text-sm font-bold text-slate-600 tracking-wide">Loading Profile...</span>
         </div>
       </div>
@@ -444,7 +444,7 @@ export default function Profile({
   }
 
   return (
-    <div className="min-h-screen bg-[#f0f4f8] font-sans selection:bg-purple-100 selection:text-purple-900 flex flex-col justify-between">
+    <div className="min-h-screen bg-[#f0f4f8] font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col justify-between">
       <div>
         <Navbar 
           activeCategory="" 
@@ -477,7 +477,7 @@ export default function Profile({
                   onClick={() => setShowAvatarModal(true)}
                   title="Click to change avatar"
                 >
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-violet-500 to-fuchsia-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-violet-500/20 border-4 border-white transition-all duration-300 group-hover:scale-105">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 border-4 border-white transition-all duration-300 group-hover:scale-105">
                     {userProfile?.avatar_url ? (
                       <img 
                         src={userProfile.avatar_url} 
@@ -488,7 +488,7 @@ export default function Profile({
                       <User size={40} strokeWidth={2.2} />
                     )}
                   </div>
-                  <div className="absolute bottom-0 right-0 p-2 bg-white text-slate-600 rounded-full shadow-md transition-all border border-slate-100 flex items-center justify-center hover:text-violet-600">
+                  <div className="absolute bottom-0 right-0 p-2 bg-white text-slate-600 rounded-full shadow-md transition-all border border-slate-100 flex items-center justify-center hover:text-emerald-600">
                     <Camera size={14} />
                   </div>
                 </div>
@@ -522,7 +522,7 @@ export default function Profile({
               {/* Sidebar Navigation - Style matched with screenshot */}
               <div className="space-y-2">
                 <div className="mb-4">
-                  <button className="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl text-sm font-bold bg-[#8b5cf6] text-white shadow-lg shadow-purple-500/30 transition-all border-none cursor-default pointer-events-none">
+                  <button className="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl text-sm font-bold bg-[#10b981] text-white shadow-lg shadow-emerald-500/30 transition-all border-none cursor-default pointer-events-none">
                     <div className="w-5 h-5 flex items-center justify-center bg-white/20 rounded-md">
                       <LayoutDashboard size={14} />
                     </div>
@@ -536,7 +536,7 @@ export default function Profile({
                     activeTab === 'overview' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
-                  <LayoutDashboard size={18} className={activeTab === 'overview' ? 'text-[#8b5cf6]' : ''} /> 
+                  <LayoutDashboard size={18} className={activeTab === 'overview' ? 'text-[#10b981]' : ''} /> 
                   Statistics
                 </button>
 
@@ -546,7 +546,7 @@ export default function Profile({
                     activeTab === 'collections' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
-                  <FolderHeart size={18} className={activeTab === 'collections' ? 'text-[#8b5cf6]' : ''} /> 
+                  <FolderHeart size={18} className={activeTab === 'collections' ? 'text-[#10b981]' : ''} /> 
                   Collections
                   <div className="ml-auto w-2 h-2 rounded-full bg-[#f97316]"></div>
                 </button>
@@ -557,7 +557,7 @@ export default function Profile({
                     activeTab === 'settings' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
-                  <Settings size={18} className={activeTab === 'settings' ? 'text-[#8b5cf6]' : ''} /> 
+                  <Settings size={18} className={activeTab === 'settings' ? 'text-[#10b981]' : ''} /> 
                   Settings
                 </button>
 
@@ -667,7 +667,7 @@ export default function Profile({
                         <h2 className="text-lg font-bold text-slate-800">Achievement Badges</h2>
                         <p className="text-xs text-slate-500 mt-1">Badges unlock automatically based on contributions</p>
                       </div>
-                      <span className="text-xs font-bold text-[#8b5cf6] bg-purple-50 px-4 py-2 rounded-full">
+                      <span className="text-xs font-bold text-[#10b981] bg-emerald-50 px-4 py-2 rounded-full">
                         {unlockedBadges.length} / {BADGES.length} Unlocked
                       </span>
                     </div>
@@ -721,13 +721,13 @@ export default function Profile({
                             <div className="mt-auto">
                               <div className="flex justify-between items-center text-[10px] font-bold mb-1.5">
                                 <span className="text-slate-400">Progress</span>
-                                <span className={unlocked ? 'text-[#8b5cf6]' : 'text-slate-500'}>
+                                <span className={unlocked ? 'text-[#10b981]' : 'text-slate-500'}>
                                   {progress} / {badge.target}
                                 </span>
                               </div>
                               <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                                 <div 
-                                  className={`h-full transition-all duration-500 rounded-full ${unlocked ? 'bg-[#8b5cf6]' : 'bg-slate-300'}`}
+                                  className={`h-full transition-all duration-500 rounded-full ${unlocked ? 'bg-[#10b981]' : 'bg-slate-300'}`}
                                   style={{ width: `${percent}%` }}
                                 ></div>
                               </div>
@@ -755,7 +755,7 @@ export default function Profile({
                         placeholder="Search collections..." 
                         value={collectionSearchQuery}
                         onChange={(e) => setCollectionSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-full focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/20 focus:border-[#8b5cf6] text-sm font-medium text-slate-700 transition-all"
+                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-full focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium text-slate-700 transition-all"
                       />
                     </div>
                   </div>
@@ -846,7 +846,7 @@ export default function Profile({
                   <p className="text-xs text-slate-500 mb-8">Customize your appearance and account information</p>
 
                   <div className="p-6 bg-slate-50 rounded-[32px] flex flex-col sm:flex-row items-center gap-6 mb-6">
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-violet-500 to-fuchsia-400 overflow-hidden flex items-center justify-center text-white shadow-md flex-shrink-0">
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-md flex-shrink-0">
                       {userProfile?.avatar_url ? (
                         <img src={userProfile.avatar_url} alt="Avatar Preview" className="w-full h-full object-cover" />
                       ) : (
@@ -860,7 +860,7 @@ export default function Profile({
                       </div>
                       <button
                         onClick={() => setShowAvatarModal(true)}
-                        className="inline-flex items-center gap-2 px-5 py-2 bg-white text-slate-700 text-xs font-bold rounded-full shadow-sm border border-slate-200 hover:border-[#8b5cf6] hover:text-[#8b5cf6] transition-all"
+                        className="inline-flex items-center gap-2 px-5 py-2 bg-white text-slate-700 text-xs font-bold rounded-full shadow-sm border border-slate-200 hover:border-[#10b981] hover:text-[#10b981] transition-all"
                       >
                         <Sparkles size={14} /> Change Avatar
                       </button>
@@ -876,12 +876,12 @@ export default function Profile({
                           value={usernameInput}
                           onChange={(e) => setUsernameInput(e.target.value)}
                           placeholder="Enter your username"
-                          className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/20 focus:border-[#8b5cf6] focus:bg-white transition-all"
+                          className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] focus:bg-white transition-all"
                         />
                         <button
                           onClick={handleUpdateUsername}
                           disabled={updatingUsername || usernameInput.trim() === activeUsername}
-                          className="px-6 py-3.5 bg-[#8b5cf6] hover:bg-[#7c3aed] disabled:opacity-50 text-white text-sm font-bold rounded-2xl shadow-md shadow-purple-500/20 transition-all flex-shrink-0 flex items-center justify-center min-w-[100px]"
+                          className="px-6 py-3.5 bg-[#10b981] hover:bg-[#059669] disabled:opacity-50 text-white text-sm font-bold rounded-2xl shadow-md shadow-emerald-500/20 transition-all flex-shrink-0 flex items-center justify-center min-w-[100px]"
                         >
                           {updatingUsername ? <Loader2 className="animate-spin" size={16} /> : 'Save'}
                         </button>
@@ -1012,7 +1012,7 @@ export default function Profile({
                               </a>
                             )}
                             {batch.terabox_url && (
-                              <a href={batch.terabox_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg text-slate-600 hover:text-purple-600 transition-colors shadow-sm">
+                              <a href={batch.terabox_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg text-slate-600 hover:text-teal-600 transition-colors shadow-sm">
                                 <ExternalLink size={12} /> TeraBox
                               </a>
                             )}
@@ -1104,12 +1104,12 @@ export default function Profile({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Username</label>
-                  <input required type="text" name="username" value={editingBatch.username || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/20 focus:border-[#8b5cf6] text-sm font-medium" />
+                  <input required type="text" name="username" value={editingBatch.username || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
                 </div>
                 
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Region</label>
-                  <select name="country" value={editingBatch.country || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/20 focus:border-[#8b5cf6] text-sm font-medium">
+                  <select name="country" value={editingBatch.country || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium">
                     {selectableCategories.map((cat: string) => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
@@ -1118,22 +1118,22 @@ export default function Profile({
 
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Video Count</label>
-                  <input required type="number" name="video_count" value={editingBatch.video_count || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/20 focus:border-[#8b5cf6] text-sm font-medium" />
+                  <input required type="number" name="video_count" value={editingBatch.video_count || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Size</label>
-                  <input required type="text" name="size_file" value={editingBatch.size_file || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/20 focus:border-[#8b5cf6] text-sm font-medium" />
+                  <input required type="text" name="size_file" value={editingBatch.size_file || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Downloads</label>
-                  <input type="number" name="clicks" value={editingBatch.clicks ?? editingBatch.click_count ?? editingBatch.total_clicks ?? editingBatch.click ?? 0} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/20 focus:border-[#8b5cf6] text-sm font-medium" />
+                  <input type="number" name="clicks" value={editingBatch.clicks ?? editingBatch.click_count ?? editingBatch.total_clicks ?? editingBatch.click ?? 0} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">TikTok Link</label>
-                  <input required={!editingBatch.is_banned} type="url" name="tiktok_url" value={editingBatch.tiktok_url || ''} onChange={handleEditChange} disabled={editingBatch.is_banned} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/20 focus:border-[#8b5cf6] disabled:opacity-50 text-sm font-medium" />
+                  <input required={!editingBatch.is_banned} type="url" name="tiktok_url" value={editingBatch.tiktok_url || ''} onChange={handleEditChange} disabled={editingBatch.is_banned} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] disabled:opacity-50 text-sm font-medium" />
                   
                   <div className="flex items-center gap-2 mt-3 pl-1">
                     <input type="checkbox" name="is_banned" id="edit_is_banned" checked={editingBatch.is_banned || false} onChange={handleEditChange} className="w-4 h-4 rounded border-slate-300 text-red-500 focus:ring-red-500 cursor-pointer" />
@@ -1145,7 +1145,7 @@ export default function Profile({
 
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Google Drive Link</label>
-                  <input type="url" name="gdrive_url" value={editingBatch.gdrive_url || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/20 focus:border-[#8b5cf6] text-sm font-medium" />
+                  <input type="url" name="gdrive_url" value={editingBatch.gdrive_url || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
                 </div>
               </div>
 
@@ -1153,7 +1153,7 @@ export default function Profile({
                 <button type="button" onClick={() => setEditingBatch(null)} className="px-6 py-3 rounded-full font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors text-xs">
                   Cancel
                 </button>
-                <button type="submit" disabled={isUpdatingBatch} className="px-6 py-3 rounded-full font-bold text-white bg-[#8b5cf6] hover:bg-[#7c3aed] transition-colors flex items-center gap-2 disabled:opacity-70 shadow-md shadow-purple-500/20 text-xs">
+                <button type="submit" disabled={isUpdatingBatch} className="px-6 py-3 rounded-full font-bold text-white bg-[#10b981] hover:bg-[#059669] transition-colors flex items-center gap-2 disabled:opacity-70 shadow-md shadow-emerald-500/20 text-xs">
                   {isUpdatingBatch ? "Saving..." : <><Save size={16} /> Save</>}
                 </button>
               </div>
