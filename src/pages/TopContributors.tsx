@@ -134,8 +134,8 @@ export default function TopContributors() {
       <div>
         <Navbar 
           activeCategory="Top Contributors"
-          setActiveCategory={(category) => {
-             // Mengarahkan kembali ke home jika user mengklik kategori regional di Navbar
+          // Tambahkan tipe : string di sini
+          setActiveCategory={(category: string) => {
              window.location.href = category === 'Home' ? '/' : `/?category=${category}`;
           }}
           resetSearch={() => {}}
@@ -153,7 +153,6 @@ export default function TopContributors() {
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
           
-          {/* Header Banner */}
           <div className="bg-slate-900 rounded-3xl p-8 sm:p-12 mb-10 shadow-xl relative overflow-hidden">
             <div className="relative z-10">
               <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight mb-3">
@@ -163,13 +162,11 @@ export default function TopContributors() {
                 Appreciation for the most active community members who consistently share the best collections.
               </p>
             </div>
-            {/* Dekorasi Background */}
             <div className="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            {/* Kolom Kiri: Contributor Profiles Grid */}
             <div className="lg:col-span-2 space-y-6">
               <div className="flex items-center gap-2 mb-2">
                 <Users className="text-emerald-500" size={20} />
@@ -194,7 +191,6 @@ export default function TopContributors() {
                   {contributors.map((user) => (
                     <div key={user.id} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 relative group transition-all hover:shadow-md">
                       
-                      {/* Lencana Diperbesar (w-12 h-12) */}
                       {user.highestBadge && (
                         <div className="absolute top-4 right-4" title={user.highestBadge.title}>
                           <img 
@@ -251,7 +247,6 @@ export default function TopContributors() {
               )}
             </div>
 
-            {/* Kolom Kanan: Leaderboard List */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 sticky top-8">
                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
@@ -314,9 +309,12 @@ export default function TopContributors() {
           </div>
         </main>
       </div>
-      <Footer onSelectCountry={() => {}} />
+      
+      {/* Tambahkan tipe : string di sini juga agar error tidak pindah */}
+      <Footer onSelectCountry={(category: string) => {
+         window.location.href = category === 'Home' ? '/' : `/?category=${category}`;
+      }} />
 
-      {/* Komponen Toast dan Modal agar interaksi login/logout di Navbar berfungsi */}
       <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
       
       {showAddModal && (
