@@ -27,7 +27,9 @@ import {
   Lock,
   Check,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Activity,
+  Shield
 } from 'lucide-react';
 import { EmeraldFolderIcon } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
@@ -214,9 +216,9 @@ export default function Profile({
     setActionLoadingId(null);
 
     if (error) {
-      handleShowToast(`Gagal mengubah status: ${error.message}`, "error");
+      handleShowToast(`Failed to update status: ${error.message}`, "error");
     } else {
-      handleShowToast(`Batch berhasil diubah ke status: ${newStatus.toUpperCase()}`, "success");
+      handleShowToast(`Batch successfully updated to: ${newStatus.toUpperCase()}`, "success");
       setAllBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: newStatus } : b));
       setUserBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: newStatus } : b));
     }
@@ -278,8 +280,32 @@ export default function Profile({
     const totalUploads = userBatches.length;
     const totalApproved = userBatches.filter(b => b.status === 'approved').length;
     const totalPending = userBatches.filter(b => b.status === 'pending').length;
+    const totalRejected = userBatches.filter(b => b.status === 'rejected').length;
     const totalVideos = userBatches.reduce((acc: number, b: any) => acc + (Number(b.video_count) || 0), 0);
     
+    const processedUploads = totalApproved + totalRejected;
+    const approvalRate = processedUploads > 0 ? Math.round((totalApproved / processedUploads) * 100) : 0;
+    
+    let accountHealth = 'New';
+    let healthColor = 'text-slate-500';
+    let healthBg = 'bg-slate-100';
+
+    if (totalUploads > 0) {
+      if (approvalRate >= 80) {
+        accountHealth = 'Excellent';
+        healthColor = 'text-emerald-700';
+        healthBg = 'bg-emerald-100';
+      } else if (approvalRate >= 50) {
+        accountHealth = 'Good';
+        healthColor = 'text-amber-700';
+        healthBg = 'bg-amber-100';
+      } else {
+        accountHealth = 'Needs Improvement';
+        healthColor = 'text-red-700';
+        healthBg = 'bg-red-100';
+      }
+    }
+
     const totalGB = userBatches.reduce((acc: number, b: any) => {
       if (b.size_gb !== undefined && b.size_gb !== null && b.size_gb !== '') {
         return acc + Number(b.size_gb);
@@ -311,8 +337,13 @@ export default function Profile({
       totalUploads,
       totalApproved,
       totalPending,
+      totalRejected,
       totalVideos,
-      totalSizeDisplay
+      totalSizeDisplay,
+      approvalRate,
+      accountHealth,
+      healthColor,
+      healthBg
     };
   }, [userBatches]);
 
@@ -593,7 +624,7 @@ export default function Profile({
               
               {activeTab === 'overview' && (
                 <div className="space-y-6 animate-in fade-in duration-200">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
                       <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl"><Folder size={26} /></div>
                       <div>
@@ -617,7 +648,8 @@ export default function Profile({
                         <span className="text-3xl font-black text-slate-800">{stats.totalSizeDisplay}</span>
                       </div>
                     </div>
-
+                    
+                    {/* Professional Metrics Addition */}
                     <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
                       <div className="p-4 bg-amber-50 text-amber-600 rounded-2xl"><BarChart3 size={26} /></div>
                       <div>
@@ -625,11 +657,26 @@ export default function Profile({
                         <div className="flex items-baseline gap-2">
                           <span className="text-3xl font-black text-slate-800">{stats.totalApproved}</span>
                           <span className="text-xs text-slate-400 font-semibold">/ {stats.totalUploads}</span>
-                          {stats.totalPending > 0 && (
-                            <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">
-                              {stats.totalPending} pending
-                            </span>
-                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
+                      <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl"><Activity size={26} /></div>
+                      <div>
+                        <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Approval Rate</span>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-3xl font-black text-slate-800">{stats.approvalRate}%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
+                      <div className={`p-4 rounded-2xl ${stats.healthBg} ${stats.healthColor}`}><Shield size={26} /></div>
+                      <div>
+                        <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Account Health</span>
+                        <div className="flex items-baseline gap-2">
+                          <span className={`text-xl font-black ${stats.healthColor}`}>{stats.accountHealth}</span>
                         </div>
                       </div>
                     </div>
@@ -878,7 +925,7 @@ export default function Profile({
                         <h2 className="text-xl font-black text-slate-800 tracking-tight">Admin Moderation Center</h2>
                       </div>
                       <p className="text-xs text-slate-400 font-medium mt-1">
-                        Kontrol dan kelola persetujuan batch video uploader secara langsung tanpa lewat Supabase.
+                        Directly control and manage uploader video batch approvals without accessing Supabase.
                       </p>
                     </div>
 
@@ -937,7 +984,7 @@ export default function Profile({
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-extrabold uppercase tracking-wider">Semua Batch</span>
+                        <span className="text-[11px] font-extrabold uppercase tracking-wider">All Batches</span>
                         <Folder size={16} />
                       </div>
                       <div className="text-2xl font-black mt-1">{adminStats.total}</div>
@@ -948,7 +995,7 @@ export default function Profile({
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input 
                       type="text" 
-                      placeholder="Cari berdasarkan username uploader atau negara..." 
+                      placeholder="Search by uploader username or country..." 
                       value={adminSearchQuery}
                       onChange={(e) => setAdminSearchQuery(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium text-slate-700"
@@ -1064,7 +1111,7 @@ export default function Profile({
                               <button
                                 onClick={() => handleDeleteBatch(batch.id)}
                                 className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all border-none bg-transparent cursor-pointer"
-                                title="Hapus Batch"
+                                title="Delete Batch"
                               >
                                 <Trash2 size={16} />
                               </button>
@@ -1076,8 +1123,8 @@ export default function Profile({
                   ) : (
                     <div className="py-12 text-center bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
                       <AlertCircle className="mx-auto text-slate-400 mb-2" size={32} />
-                      <p className="text-sm font-bold text-slate-600">Tidak ada data batch ditemukan</p>
-                      <p className="text-xs text-slate-400 mt-0.5">Coba ubah status filter atau kata kunci pencarian Anda.</p>
+                      <p className="text-sm font-bold text-slate-600">No batch data found</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Try changing your status filter or search keywords.</p>
                     </div>
                   )}
                 </div>

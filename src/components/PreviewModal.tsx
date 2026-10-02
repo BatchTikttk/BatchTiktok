@@ -259,7 +259,11 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
           <div className="mt-auto">
             <h3 className="text-sm font-bold text-slate-700 mb-3">Official Download Mirrors</h3>
             <div className="space-y-3">
-              <button onClick={() => onDownload('Google Drive', item.gdrive_url)} className="w-full p-4 bg-white hover:bg-blue-50/50 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] hover:shadow-md transition-all flex items-center justify-between group border border-slate-100">
+              {/* Menambahkan item.id pada callback Google Drive */}
+              <button 
+                onClick={() => onDownload('Google Drive', item.gdrive_url, item.id)} 
+                className="w-full p-4 bg-white hover:bg-blue-50/50 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] hover:shadow-md transition-all flex items-center justify-between group border border-slate-100"
+              >
                 <div className="flex items-center gap-3.5">
                   <div className="p-2.5 bg-blue-50 text-blue-500 rounded-xl group-hover:bg-blue-500 group-hover:text-white transition-colors">
                     <Cloud size={22} />
@@ -274,7 +278,11 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
                 </div>
               </button>
 
-              <button onClick={() => onDownload('TeraBox', item.terabox_url)} className="w-full p-4 bg-white hover:bg-cyan-50/50 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] hover:shadow-md transition-all flex items-center justify-between group border border-slate-100">
+              {/* Menambahkan item.id pada callback TeraBox */}
+              <button 
+                onClick={() => onDownload('TeraBox', item.terabox_url, item.id)} 
+                className="w-full p-4 bg-white hover:bg-cyan-50/50 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] hover:shadow-md transition-all flex items-center justify-between group border border-slate-100"
+              >
                 <div className="flex items-center gap-3.5">
                   <div className="p-2.5 bg-cyan-50 text-cyan-600 rounded-xl group-hover:bg-cyan-500 group-hover:text-white transition-colors">
                     <Box size={22} />

@@ -19,7 +19,6 @@ const Toast = ({ message, isVisible, type = 'success' }: any) => (
 );
 
 const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => {
-  // Fungsi untuk menarik lencana gambar sesuai data dari Profile_4.tsx
   const getAchievementBadge = (count: number) => {
     if (count >= 50) return { title: 'Emerald Master', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp' };
     if (count >= 30) return { title: 'Emerald Pro', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp' };
@@ -40,7 +39,6 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => 
             Uploaded by <span className="font-semibold text-emerald-600 not-italic">{data.uploaded_by}</span>
           </span>
           
-          {/* Lencana Gambar */}
           {badge && (
             <img 
               src={badge.url} 
@@ -226,8 +224,17 @@ export default function Home() {
     showToast("You have been logged out.", "info");
   };
 
-  const handleDownloadInitiate = (providerName: string, url: string) => {
+  // PEMBARUAN: Eksekusi RPC increment_download_count ke Supabase
+  const handleDownloadInitiate = async (providerName: string, url: string, batchId?: string) => {
     if (!url) return showToast('Download link is not available', 'error');
+
+    if (batchId) {
+      const { error } = await supabase.rpc('increment_download_count', { batch_id: batchId });
+      if (error) {
+        console.error('Failed to update download count:', error);
+      }
+    }
+
     showToast(`Redirecting to ${providerName}...`);
     setTimeout(() => {
       window.open(url, '_blank');
