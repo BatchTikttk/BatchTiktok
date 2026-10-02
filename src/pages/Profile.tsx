@@ -10,7 +10,6 @@ import {
   Clock, 
   Trash2, 
   TrendingUp, 
-  BarChart3,
   ShieldCheck,
   Camera,
   LayoutDashboard,
@@ -28,8 +27,7 @@ import {
   Check,
   AlertCircle,
   ExternalLink,
-  Activity,
-  Shield
+  MousePointerClick
 } from 'lucide-react';
 import { EmeraldFolderIcon } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
@@ -218,7 +216,7 @@ export default function Profile({
     if (error) {
       handleShowToast(`Failed to update status: ${error.message}`, "error");
     } else {
-      handleShowToast(`Batch successfully updated to: ${newStatus.toUpperCase()}`, "success");
+      handleShowToast(`Batch status updated to ${newStatus}`, "success");
       setAllBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: newStatus } : b));
       setUserBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: newStatus } : b));
     }
@@ -283,28 +281,11 @@ export default function Profile({
     const totalRejected = userBatches.filter(b => b.status === 'rejected').length;
     const totalVideos = userBatches.reduce((acc: number, b: any) => acc + (Number(b.video_count) || 0), 0);
     
-    const processedUploads = totalApproved + totalRejected;
-    const approvalRate = processedUploads > 0 ? Math.round((totalApproved / processedUploads) * 100) : 0;
-    
-    let accountHealth = 'New';
-    let healthColor = 'text-slate-500';
-    let healthBg = 'bg-slate-100';
-
-    if (totalUploads > 0) {
-      if (approvalRate >= 80) {
-        accountHealth = 'Excellent';
-        healthColor = 'text-emerald-700';
-        healthBg = 'bg-emerald-100';
-      } else if (approvalRate >= 50) {
-        accountHealth = 'Good';
-        healthColor = 'text-amber-700';
-        healthBg = 'bg-amber-100';
-      } else {
-        accountHealth = 'Needs Improvement';
-        healthColor = 'text-red-700';
-        healthBg = 'bg-red-100';
-      }
-    }
+    // Menghitung akumulasi jumlah klik asli dari database
+    const totalClicks = userBatches.reduce((acc: number, b: any) => {
+      const clickVal = b.clicks ?? b.click_count ?? b.total_clicks ?? b.click ?? b.views ?? 0;
+      return acc + (Number(clickVal) || 0);
+    }, 0);
 
     const totalGB = userBatches.reduce((acc: number, b: any) => {
       if (b.size_gb !== undefined && b.size_gb !== null && b.size_gb !== '') {
@@ -339,11 +320,8 @@ export default function Profile({
       totalPending,
       totalRejected,
       totalVideos,
-      totalSizeDisplay,
-      approvalRate,
-      accountHealth,
-      healthColor,
-      healthBg
+      totalClicks,
+      totalSizeDisplay
     };
   }, [userBatches]);
 
@@ -384,20 +362,29 @@ export default function Profile({
 
     setIsUpdatingBatch(true);
     try {
+      const clickVal = parseInt(editingBatch.clicks ?? editingBatch.click_count ?? editingBatch.total_clicks ?? editingBatch.click) || 0;
+      
+      const updateData: any = {
+        username: editingBatch.username,
+        country: editingBatch.country,
+        video_count: parseInt(editingBatch.video_count) || 0,
+        size_file: editingBatch.size_file,
+        tiktok_url: editingBatch.tiktok_url,
+        video_url: editingBatch.video_url,
+        gdrive_url: editingBatch.gdrive_url,
+        terabox_url: editingBatch.terabox_url,
+        is_banned: editingBatch.is_banned,
+        is_edited: true
+      };
+
+      if (editingBatch.clicks !== undefined) updateData.clicks = clickVal;
+      else if (editingBatch.click_count !== undefined) updateData.click_count = clickVal;
+      else if (editingBatch.total_clicks !== undefined) updateData.total_clicks = clickVal;
+      else updateData.clicks = clickVal;
+
       const { error } = await supabase
         .from('batches')
-        .update({
-          username: editingBatch.username,
-          country: editingBatch.country,
-          video_count: parseInt(editingBatch.video_count) || 0,
-          size_file: editingBatch.size_file,
-          tiktok_url: editingBatch.tiktok_url,
-          video_url: editingBatch.video_url,
-          gdrive_url: editingBatch.gdrive_url,
-          terabox_url: editingBatch.terabox_url,
-          is_banned: editingBatch.is_banned,
-          is_edited: true
-        })
+        .update(updateData)
         .eq('id', editingBatch.id);
 
       if (error) throw error;
@@ -543,7 +530,7 @@ export default function Profile({
                       <TrendingUp size={18} />
                     </div>
                     <div className="text-left">
-                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Creator Status</span>
+                      <span className="text-xs font-semibold text-slate-400 block">Creator Status</span>
                       <span className="text-xs font-bold text-slate-700">Level {Math.floor(stats.totalUploads / 3) + 1}</span>
                     </div>
                   </div>
@@ -624,11 +611,11 @@ export default function Profile({
               
               {activeTab === 'overview' && (
                 <div className="space-y-6 animate-in fade-in duration-200">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
                       <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl"><Folder size={26} /></div>
                       <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Total Folders</span>
+                        <span className="text-xs font-semibold text-slate-400 block mb-0.5">Total Folders</span>
                         <span className="text-3xl font-black text-slate-800">{stats.totalUploads}</span>
                       </div>
                     </div>
@@ -636,7 +623,7 @@ export default function Profile({
                     <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
                       <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl"><Video size={26} /></div>
                       <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Total Videos</span>
+                        <span className="text-xs font-semibold text-slate-400 block mb-0.5">Total Videos</span>
                         <span className="text-3xl font-black text-slate-800">{stats.totalVideos}</span>
                       </div>
                     </div>
@@ -644,40 +631,16 @@ export default function Profile({
                     <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
                       <div className="p-4 bg-purple-50 text-purple-600 rounded-2xl"><HardDrive size={26} /></div>
                       <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Total Storage</span>
+                        <span className="text-xs font-semibold text-slate-400 block mb-0.5">Total Storage</span>
                         <span className="text-3xl font-black text-slate-800">{stats.totalSizeDisplay}</span>
                       </div>
                     </div>
-                    
-                    {/* Professional Metrics Addition */}
-                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
-                      <div className="p-4 bg-amber-50 text-amber-600 rounded-2xl"><BarChart3 size={26} /></div>
-                      <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Approved Status</span>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-3xl font-black text-slate-800">{stats.totalApproved}</span>
-                          <span className="text-xs text-slate-400 font-semibold">/ {stats.totalUploads}</span>
-                        </div>
-                      </div>
-                    </div>
 
                     <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
-                      <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl"><Activity size={26} /></div>
+                      <div className="p-4 bg-amber-50 text-amber-600 rounded-2xl"><MousePointerClick size={26} /></div>
                       <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Approval Rate</span>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-3xl font-black text-slate-800">{stats.approvalRate}%</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
-                      <div className={`p-4 rounded-2xl ${stats.healthBg} ${stats.healthColor}`}><Shield size={26} /></div>
-                      <div>
-                        <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider mb-0.5">Account Health</span>
-                        <div className="flex items-baseline gap-2">
-                          <span className={`text-xl font-black ${stats.healthColor}`}>{stats.accountHealth}</span>
-                        </div>
+                        <span className="text-xs font-semibold text-slate-400 block mb-0.5">Total Clicks</span>
+                        <span className="text-3xl font-black text-slate-800">{stats.totalClicks}</span>
                       </div>
                     </div>
                   </div>
@@ -713,7 +676,7 @@ export default function Profile({
                             }`}
                           >
                             <div className="flex items-center justify-between mb-3">
-                              <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-lg uppercase tracking-wider ${
+                              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg ${
                                 unlocked ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'
                               }`}>
                                 {badge.tier}
@@ -798,12 +761,14 @@ export default function Profile({
                             <EmeraldFolderIcon className="w-10 h-10 flex-shrink-0" country={batch.country} />
                             <div>
                               <h3 className="text-sm font-bold text-slate-800">{batch.username}</h3>
-                              <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 font-medium">
+                              <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 font-medium flex-wrap">
                                 <span className="text-emerald-600 font-bold">{batch.country}</span>
                                 <span>•</span>
                                 <span>{batch.video_count} Videos</span>
                                 <span>•</span>
                                 <span>{batch.size_file || `${batch.size_gb || 0} GB`}</span>
+                                <span>•</span>
+                                <span>{batch.clicks ?? batch.click_count ?? batch.total_clicks ?? batch.click ?? 0} Clicks</span>
                               </div>
                             </div>
                           </div>
@@ -894,7 +859,7 @@ export default function Profile({
 
                   <div className="space-y-4 pt-2">
                     <div>
-                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Username</label>
+                      <label className="block text-xs font-bold text-slate-600 mb-1">Username</label>
                       <div className="flex gap-2">
                         <input 
                           type="text" 
@@ -945,7 +910,7 @@ export default function Profile({
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-extrabold uppercase tracking-wider">Pending</span>
+                        <span className="text-xs font-bold">Pending</span>
                         <Clock size={16} />
                       </div>
                       <div className="text-2xl font-black mt-1">{adminStats.pendingCount}</div>
@@ -958,7 +923,7 @@ export default function Profile({
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-extrabold uppercase tracking-wider">Approved</span>
+                        <span className="text-xs font-bold">Approved</span>
                         <CheckCircle2 size={16} />
                       </div>
                       <div className="text-2xl font-black mt-1">{adminStats.approvedCount}</div>
@@ -971,7 +936,7 @@ export default function Profile({
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-extrabold uppercase tracking-wider">Rejected</span>
+                        <span className="text-xs font-bold">Rejected</span>
                         <XCircle size={16} />
                       </div>
                       <div className="text-2xl font-black mt-1">{adminStats.rejectedCount}</div>
@@ -984,7 +949,7 @@ export default function Profile({
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-extrabold uppercase tracking-wider">All Batches</span>
+                        <span className="text-xs font-bold">All Batches</span>
                         <Folder size={16} />
                       </div>
                       <div className="text-2xl font-black mt-1">{adminStats.total}</div>
@@ -1022,7 +987,7 @@ export default function Profile({
                                   </span>
                                 </div>
                                 <p className="text-xs text-slate-400 font-medium mt-0.5">
-                                  {batch.video_count} Video • {batch.size_file || `${batch.size_gb || 0} GB`}
+                                  {batch.video_count} Video • {batch.size_file || `${batch.size_gb || 0} GB`} • {batch.clicks ?? batch.click_count ?? batch.total_clicks ?? batch.click ?? 0} Clicks
                                 </p>
                               </div>
                             </div>
@@ -1180,6 +1145,11 @@ export default function Profile({
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-slate-700">File Size</label>
                   <input required type="text" name="size_file" value={editingBatch.size_file || ''} onChange={handleEditChange} placeholder="Example: 500 MB" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-sm font-semibold text-slate-700">Total Clicks</label>
+                  <input type="number" name="clicks" value={editingBatch.clicks ?? editingBatch.click_count ?? editingBatch.total_clicks ?? editingBatch.click ?? 0} onChange={handleEditChange} placeholder="Example: 100" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
