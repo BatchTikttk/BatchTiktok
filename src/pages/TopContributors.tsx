@@ -155,6 +155,12 @@ export default function TopContributors() {
     setLoading(false);
   };
 
+  // Peringkat Top 3 & Sisa Kontributor
+  const rank1 = contributors[0];
+  const rank2 = contributors[1];
+  const rank3 = contributors[2];
+  const restOfContributors = contributors.slice(3, 10);
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans flex flex-col justify-between">
       <div>
@@ -177,21 +183,9 @@ export default function TopContributors() {
         />
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
-          
-          <div className="bg-slate-900 rounded-3xl p-8 sm:p-12 mb-10 shadow-xl relative overflow-hidden">
-            <div className="relative z-10">
-              <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight mb-3">
-                Top Contributors
-              </h1>
-              <p className="text-slate-400 font-medium max-w-xl text-sm sm:text-base leading-relaxed">
-                Appreciation for the most active community members who consistently share the best collections.
-              </p>
-            </div>
-            <div className="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-          </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
+            {/* Bagian Kiri: Profil Kontributor */}
             <div className="lg:col-span-2 space-y-6">
               <div className="flex items-center gap-2 mb-2">
                 <Users className="text-emerald-500" size={20} />
@@ -220,7 +214,8 @@ export default function TopContributors() {
                       className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 relative group transition-all hover:shadow-md cursor-pointer flex items-center justify-between"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-slate-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
+                        {/* Container Avatar Dibuat Bulat (rounded-full) */}
+                        <div className="w-14 h-14 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
                           {user.avatar_url ? (
                             <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
                           ) : (
@@ -254,66 +249,168 @@ export default function TopContributors() {
               )}
             </div>
 
+            {/* Bagian Kanan: Widget Leaderboard */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 sticky top-8">
+              <div className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-100 sticky top-8">
+                
+                {/* Header Widget dengan Icon Trophy */}
                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-                  <div className="p-2 bg-amber-50 text-amber-500 rounded-xl">
+                  <div className="p-2.5 bg-amber-50 text-amber-500 rounded-2xl flex-shrink-0">
                     <Trophy size={20} />
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-slate-800">Leaderboard</h2>
-                    <p className="text-[11px] text-slate-400 font-semibold">Top Community Ranks</p>
+                    <h2 className="text-lg font-bold text-slate-800 leading-tight">Leaderboard</h2>
+                    <p className="text-[11px] text-slate-400 font-semibold">Total Videos Uploaded</p>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  {contributors.slice(0, 5).map((user, index) => (
-                    <div 
-                      key={user.id} 
-                      onClick={() => handleNavigateToCreator(user.username)}
-                      className="flex items-center justify-between group cursor-pointer hover:bg-slate-50 p-2 rounded-2xl transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className={`w-6 text-center text-xs font-black ${index === 0 ? 'text-amber-500' : index === 1 ? 'text-slate-400' : index === 2 ? 'text-amber-700' : 'text-slate-300'}`}>
-                          #{index + 1}
-                        </span>
-                        <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden relative border border-slate-200 flex-shrink-0">
-                          {user.avatar_url ? (
-                            <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-xs">
-                              {user.username?.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-bold text-slate-700 group-hover:text-emerald-600 transition-colors truncate max-w-[100px]">
-                            @{user.username}
-                          </span>
-                          
-                          {user.highestBadge && (
-                            <img 
-                              src={user.highestBadge.iconUrl} 
-                              alt="Badge" 
-                              className="w-4 h-4 object-contain flex-shrink-0"
-                              title={user.highestBadge.title}
-                            />
-                          )}
-                        </div>
-                      </div>
+                {!loading && contributors.length > 0 ? (
+                  <>
+                    {/* Podium Top 3 */}
+                    <div className="flex justify-center items-end gap-3 my-6">
                       
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
-                        <Video size={14} className="text-emerald-500" /> {user.stats.totalVideos}
-                      </div>
+                      {/* Peringkat 2 (Kiri) */}
+                      {rank2 && (
+                        <div 
+                          className="flex flex-col items-center cursor-pointer group" 
+                          onClick={() => handleNavigateToCreator(rank2.username)}
+                        >
+                          <span className="text-[11px] text-slate-500 font-medium mb-1.5 truncate w-16 text-center group-hover:text-emerald-500">
+                            @{rank2.username}
+                          </span>
+                          <div className="relative">
+                            <div className="w-16 h-16 rounded-full border-[3px] border-slate-300 p-0.5 shadow-sm">
+                              {rank2.avatar_url ? (
+                                <img src={rank2.avatar_url} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold">
+                                  {rank2.username?.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                            </div>
+                            <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-[11px] font-black border-2 border-white shadow-sm">
+                              2
+                            </div>
+                          </div>
+                          <div className="mt-4 flex items-center gap-1 bg-slate-50 px-2.5 py-0.5 rounded-full border border-slate-100">
+                            <Video size={12} className="text-slate-400" />
+                            <span className="text-xs font-bold text-slate-700">{rank2.stats.totalVideos}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Peringkat 1 (Tengah) */}
+                      {rank1 && (
+                        <div 
+                          className="flex flex-col items-center mb-4 cursor-pointer group" 
+                          onClick={() => handleNavigateToCreator(rank1.username)}
+                        >
+                          <span className="text-[12px] text-slate-800 font-bold mb-1.5 truncate w-20 text-center group-hover:text-emerald-600">
+                            @{rank1.username}
+                          </span>
+                          <div className="relative">
+                            <div className="w-20 h-20 rounded-full border-[3px] border-amber-400 p-0.5 shadow-[0_4px_20px_rgba(251,191,36,0.35)]">
+                              {rank1.avatar_url ? (
+                                <img src={rank1.avatar_url} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-amber-50 rounded-full flex items-center justify-center text-amber-600 font-bold text-xl">
+                                  {rank1.username?.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                            </div>
+                            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-amber-400 text-white flex items-center justify-center text-xs font-black border-2 border-white shadow-sm">
+                              1
+                            </div>
+                          </div>
+                          <div className="mt-5 flex items-center gap-1.5 bg-amber-50 px-3 py-1 rounded-full border border-amber-200/60 shadow-xs">
+                            <Video size={13} className="text-amber-500 fill-amber-500/20" />
+                            <span className="text-xs font-black text-amber-700">{rank1.stats.totalVideos}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Peringkat 3 (Kanan) */}
+                      {rank3 && (
+                        <div 
+                          className="flex flex-col items-center cursor-pointer group" 
+                          onClick={() => handleNavigateToCreator(rank3.username)}
+                        >
+                          <span className="text-[11px] text-slate-500 font-medium mb-1.5 truncate w-16 text-center group-hover:text-emerald-500">
+                            @{rank3.username}
+                          </span>
+                          <div className="relative">
+                            <div className="w-16 h-16 rounded-full border-[3px] border-amber-700/50 p-0.5 shadow-sm">
+                              {rank3.avatar_url ? (
+                                <img src={rank3.avatar_url} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-amber-50 rounded-full flex items-center justify-center text-amber-700 font-bold">
+                                  {rank3.username?.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                            </div>
+                            <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-amber-700 text-white flex items-center justify-center text-[11px] font-black border-2 border-white shadow-sm">
+                              3
+                            </div>
+                          </div>
+                          <div className="mt-4 flex items-center gap-1 bg-slate-50 px-2.5 py-0.5 rounded-full border border-slate-100">
+                            <Video size={12} className="text-slate-400" />
+                            <span className="text-xs font-bold text-slate-700">{rank3.stats.totalVideos}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  ))}
-                  
-                  {!loading && contributors.length === 0 && (
-                     <div className="text-center text-sm text-slate-400 py-4">
-                       Belum ada data.
-                     </div>
-                  )}
-                </div>
+
+                    {/* Daftar Peringkat Lanjutan (Rank 4+) */}
+                    {restOfContributors.length > 0 && (
+                      <div className="mt-6 border-t border-slate-100 pt-5">
+                        <div className="flex justify-between items-center mb-3 px-1">
+                          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Top Members</h3>
+                          <span className="text-[11px] font-semibold text-slate-400">Total Uploaded</span>
+                        </div>
+                        <div className="space-y-1">
+                          {restOfContributors.map((user, idx) => (
+                            <div 
+                              key={user.id} 
+                              onClick={() => handleNavigateToCreator(user.username)}
+                              className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-2xl transition-colors cursor-pointer group"
+                            >
+                              <span className="w-5 text-center text-xs font-bold text-slate-400 group-hover:text-slate-600">
+                                {idx + 4}
+                              </span>
+                              <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
+                                {user.avatar_url ? (
+                                  <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-xs">
+                                    {user.username?.charAt(0).toUpperCase()}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1 overflow-hidden">
+                                <p className="text-[13px] font-bold text-slate-700 truncate group-hover:text-emerald-600">
+                                  @{user.username}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1 bg-slate-100/80 px-2.5 py-1 rounded-full">
+                                <Video size={12} className="text-emerald-500" />
+                                <span className="text-xs font-extrabold text-slate-700">{user.stats.totalVideos}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : loading ? (
+                  <div className="space-y-4 py-6 animate-pulse">
+                    <div className="h-16 bg-slate-100 rounded-2xl w-full"></div>
+                    <div className="h-24 bg-slate-100 rounded-2xl w-full"></div>
+                  </div>
+                ) : (
+                  <div className="text-center text-sm text-slate-400 py-8">
+                    Belum ada data kontributor.
+                  </div>
+                )}
               </div>
             </div>
 
