@@ -62,7 +62,7 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
         
         setIsLoading(false);
         setIsSuccess(true);
-        showToast('Pendaftaran berhasil! Selamat datang.', 'success');
+        showToast('Registration successful! Welcome.', 'success');
         
         // 3. Karena Email Confirmation mati, langsung otomatis login
         setTimeout(async () => {
@@ -98,7 +98,7 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
     setIsLoading(false);
   };
 
-  // Fungsi penanganan Login Google (Tidak Diubah)
+  // Fungsi penanganan Login Google
   const handleGoogleSuccess = async (credentialResponse: any) => {
     setIsLoading(true);
     try {
@@ -115,7 +115,7 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
         showToast('Successfully signed in with Google!', 'success');
       }
     } catch (err: any) {
-      showToast('Failed to process Google Login:' + err.message, 'error');
+      showToast('Failed to process Google login: ' + err.message, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -230,12 +230,12 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
               {isLoading ? (
                 <>
                   <Loader2 size={20} className="animate-spin" /> 
-                  <span>Memproses...</span>
+                  <span>Processing...</span>
                 </>
               ) : isSuccess ? (
                 <>
                   <Check size={20} className="animate-in zoom-in duration-300" />
-                  <span>Berhasil Mendaftar!</span>
+                  <span>Registration Successful!</span>
                 </>
               ) : (
                 <span>{isRegistering ? 'Sign Up' : 'Sign In'}</span>
@@ -265,7 +265,7 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
               <div className="absolute top-0 left-0 w-full h-full opacity-[0.01] z-10 cursor-pointer flex items-center justify-center transform scale-[3]">
                 <GoogleLogin 
                   onSuccess={handleGoogleSuccess} 
-                  onError={() => showToast('Login Google cancelled', 'error')} 
+                  onError={() => showToast('Google login cancelled', 'error')} 
                   useOneTap={false} 
                 />
               </div>
