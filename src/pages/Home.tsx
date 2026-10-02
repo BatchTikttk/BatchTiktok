@@ -18,8 +18,11 @@ const Toast = ({ message, isVisible, type = 'success' }: any) => (
   </div>
 );
 
-const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => {
+const CreatorCard = ({ data, onOpenPreview, uploaderCount }: any) => {
+  // Hanya ambil lencana webp jika user BUKAN admin
   const getAchievementBadge = (count: number) => {
+    if (data.uploader_is_admin) return null; // Admin tidak pakai lencana webp
+    
     if (count >= 50) return { title: 'Emerald Master', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp' };
     if (count >= 30) return { title: 'Emerald Pro', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp' };
     if (count >= 10) return { title: 'Emerald Rookie', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Low%20Tier.webp' };
@@ -39,14 +42,17 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => 
             Uploaded by <span className="font-semibold text-emerald-600 not-italic">{data.uploaded_by}</span>
           </span>
           
-          {badge && (
+          {/* Render Badge Admin ATAU Webp */}
+          {data.uploader_is_admin ? (
+            <CheckCircle2 size={14} className="text-blue-500 ml-0.5 fill-blue-50" title="Admin Verified" />
+          ) : badge ? (
             <img 
               src={badge.url} 
               alt={badge.title} 
               title={`${badge.title} (${uploaderCount} Uploads)`}
               className="w-5 h-5 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform ml-0.5"
             />
-          )}
+          ) : null}
         </div>
         
         {data.is_edited && (
@@ -90,7 +96,6 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => 
 
 export default function Home() {
   const [batches, setBatches] = useState<any[]>([]);
-  const [adminList, setAdminList] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState('Home');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -110,7 +115,6 @@ export default function Home() {
 
   useEffect(() => {
     fetchBatches();
-    fetchAdmins();
     checkUser();
 
     const channel = supabase
@@ -120,7 +124,6 @@ export default function Home() {
         { event: '*', schema: 'public', table: 'profiles' },
         () => {
           checkUser();
-          fetchAdmins();
           fetchBatches(); 
         }
       )
@@ -138,21 +141,11 @@ export default function Home() {
     };
   }, []);
 
-  const fetchAdmins = async () => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('username')
-      .eq('is_admin', true);
-
-    if (data) {
-      setAdminList(data.map((p: any) => (p.username || '').toLowerCase()));
-    }
-  };
-
   const fetchBatches = async () => {
+    // Tambahkan is_admin di list select
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, role');
+      .select('id, username, avatar_url, is_admin');
     
     const { data: batchesData, error } = await supabase
       .from('batches')
@@ -174,8 +167,7 @@ export default function Home() {
           uploaded_by: uploaderProfile?.username || batch.uploaded_by,
           avatar_url: uploaderProfile?.avatar_url || null,
           uploader_avatar: uploaderProfile?.avatar_url || null,
-          uploader_role: uploaderProfile?.role || null,
-          role: uploaderProfile?.role || null
+          uploader_is_admin: uploaderProfile?.is_admin || false // Ambil true/false
         };
       });
 
@@ -215,7 +207,6 @@ export default function Home() {
     showToast("You have been logged out.", "info");
   };
 
-  // PEMBARUAN: Eksekusi RPC increment_download_count ke Supabase
   const handleDownloadInitiate = async (providerName: string, url: string, batchId?: string) => {
     if (!url) return showToast('Download link is not available', 'error');
 
@@ -323,7 +314,6 @@ export default function Home() {
                     data={batch} 
                     onOpenPreview={setPreviewItem} 
                     uploaderCount={uploaderCounts[batch.uploaded_by] || 0} 
-                    adminList={adminList}
                   />
                 ))
               ) : (
@@ -389,7 +379,6 @@ export default function Home() {
           onClose={() => setPreviewItem(null)} 
           onDownload={handleDownloadInitiate}
           uploaderCount={uploaderCounts[previewItem.uploaded_by] || 0} 
-          adminList={adminList}
         />
       )}
 

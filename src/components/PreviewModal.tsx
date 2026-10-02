@@ -1,23 +1,23 @@
 import { useState, useEffect } from 'react';
-import { X, Cloud, Box, Download, User, Volume2, VolumeX } from 'lucide-react';
+import { X, Cloud, Box, Download, User, Volume2, VolumeX, CheckCircle2 } from 'lucide-react'; // Tambah CheckCircle2
 import { EmeraldFolderIcon } from './SharedIcons'; 
 import { supabase } from '../supabase';
 
 const MOCK_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
 const BANNED_LOGO_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/BannedLogo.webp";
 
-const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: any) => {
+const PreviewModal = ({ item, onClose, onDownload, uploaderCount }: any) => {
   const [isMuted, setIsMuted] = useState(true);
   
   const [uploaderAvatar, setUploaderAvatar] = useState<string | null>(
     item?.uploader_avatar || item?.avatar_url || null
   );
-  
-  const [uploaderIsAdmin, setUploaderIsAdmin] = useState<boolean>(
-    Boolean(item?.is_admin)
-  );
+  // Simpan state is_admin untuk PreviewModal
+  const [uploaderIsAdmin, setUploaderIsAdmin] = useState<boolean>(item?.uploader_is_admin || false);
 
   const getAchievementBadge = (count: number) => {
+    if (uploaderIsAdmin) return null; // Jika admin, tidak pakai lencana webp
+    
     if (count >= 50) return { title: 'Emerald Master', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp' };
     if (count >= 30) return { title: 'Emerald Pro', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp' };
     if (count >= 10) return { title: 'Emerald Rookie', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Low%20Tier.webp' };
@@ -32,8 +32,8 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
     if (item?.uploader_avatar || item?.avatar_url) {
       setUploaderAvatar(item.uploader_avatar || item.avatar_url);
     }
-    if (typeof item?.is_admin === 'boolean') {
-      setUploaderIsAdmin(item.is_admin);
+    if (item?.uploader_is_admin !== undefined) {
+      setUploaderIsAdmin(item.uploader_is_admin);
     }
 
     const fetchUploaderProfile = async () => {
@@ -41,6 +41,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
 
       let profileData: any = null;
 
+      // Ambil is_admin sekalian
       if (item.user_id) {
         const { data } = await supabase
           .from('profiles')
@@ -63,12 +64,8 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
       }
 
       if (profileData) {
-        if (profileData.avatar_url) {
-          setUploaderAvatar(profileData.avatar_url);
-        }
-        if (typeof profileData.is_admin === 'boolean') {
-          setUploaderIsAdmin(profileData.is_admin);
-        }
+        if (profileData.avatar_url !== undefined) setUploaderAvatar(profileData.avatar_url);
+        if (profileData.is_admin !== undefined) setUploaderIsAdmin(profileData.is_admin);
 
         channel = supabase
           .channel(`public:profiles:uploader_${profileData.id}`)
@@ -85,7 +82,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
                 if (payload.new.avatar_url !== undefined) {
                   setUploaderAvatar(payload.new.avatar_url);
                 }
-                if (typeof payload.new.is_admin === 'boolean') {
+                if (payload.new.is_admin !== undefined) {
                   setUploaderIsAdmin(payload.new.is_admin);
                 }
               }
@@ -102,7 +99,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
         supabase.removeChannel(channel);
       }
     };
-  }, [item?.id, item?.user_id, item?.uploaded_by, item?.uploader_avatar, item?.avatar_url, item?.is_admin]);
+  }, [item?.id, item?.user_id, item?.uploaded_by, item?.uploader_avatar, item?.avatar_url, item?.uploader_is_admin]);
 
   if (!item) return null;
 
@@ -220,14 +217,17 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
 
                   <span className="font-bold text-slate-700 not-italic">{item.uploaded_by}</span>
                   
-                  {badge && (
+                  {/* Tampilkan Lencana di Modal Preview */}
+                  {uploaderIsAdmin ? (
+                    <CheckCircle2 size={16} className="text-blue-500 ml-0.5 fill-blue-50" title="Admin Verified" />
+                  ) : badge ? (
                     <img 
                       src={badge.url} 
                       alt={badge.title} 
                       title={`${badge.title} (${uploaderCount} Uploads)`}
                       className="w-5 h-5 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform ml-0.5"
                     />
-                  )}
+                  ) : null}
                 </span>
               </div>
             </div>
