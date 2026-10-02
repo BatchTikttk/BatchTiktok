@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase';
-import { Send, MessageSquare, X, User, Loader2, LogIn, Smile, CheckCircle2 } from 'lucide-react';
+import { Send, MessageSquare, X, User, Loader2, LogIn, Smile, ShieldCheck } from 'lucide-react';
 
 interface ChatGroupProps {
   currentUser: string | null;
@@ -338,9 +338,11 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                         <span className="text-[11px] font-bold text-slate-600">
                           {isMe ? 'You' : senderProfile?.username || msg.username}
                         </span>
+                        
+                        {/* Admin Badge */}
                         {senderProfile?.is_admin && (
-                          <span title="Admin Verified" className="inline-flex items-center">
-                            <CheckCircle2 size={12} className="text-emerald-500 fill-emerald-50" />
+                          <span title="Admin Verified" className="inline-flex items-center ml-0.5">
+                            <ShieldCheck size={14} className="text-[#fbbf24] drop-shadow-sm" />
                           </span>
                         )}
                         

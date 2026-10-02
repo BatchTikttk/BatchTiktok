@@ -1,6 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabase';
-import { Search, CheckCircle2, Play, XCircle, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { 
+  Search, CheckCircle2, Play, XCircle, ChevronLeft, ChevronRight, Check, ShieldCheck,
+  Folder, Film, HardDrive, Users
+} from 'lucide-react';
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -41,12 +44,13 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: any) => {
             Uploaded by <span className="font-semibold text-emerald-600 not-italic">{data.uploaded_by}</span>
           </span>
           
-          {/* Perbaikan: title dipindah ke span */}
           {data.uploader_is_admin ? (
-  <span title="Admin Verified" className="inline-flex items-center cursor-help">
-    <CheckCircle2 size={14} className="text-emerald-500 ml-0.5 fill-emerald-50" />
-  </span>
-) : badge ? (
+            <ShieldCheck 
+              size={15} 
+              className="text-[#fbbf24] ml-0.5 cursor-help drop-shadow-sm hover:scale-110 transition-transform" 
+              title="Admin Verified" 
+            />
+          ) : badge ? (
             <img 
               src={badge.url} 
               alt={badge.title} 
@@ -235,6 +239,42 @@ export default function Home() {
     return counts;
   }, [batches]);
 
+  // Real-time Platform Stats Calculation dengan parsing GB & MB yang benar
+  const stats = useMemo(() => {
+    const totalBatches = batches.length;
+    
+    const uniqueCreators = new Set(
+      batches.map(b => b.uploaded_by || b.username).filter(Boolean)
+    ).size;
+
+    const totalVideos = batches.reduce((sum, batch) => {
+      const count = parseInt(batch.video_count, 10);
+      return sum + (isNaN(count) ? 0 : count);
+    }, 0);
+
+    const totalSize = batches.reduce((sum, batch) => {
+      let sizeInGB = 0;
+      // Mengambil data dari size_file atau size_gb dan mengubah ke huruf besar untuk pengecekan
+      const sizeStr = (batch.size_file || `${batch.size_gb} GB` || '').toString().toUpperCase();
+      
+      // Mengambil hanya angkanya saja (contoh "183 MB" -> 183, "2.4 GB" -> 2.4)
+      const numericValue = parseFloat(sizeStr.replace(/[^\d.]/g, ''));
+
+      if (!isNaN(numericValue)) {
+        if (sizeStr.includes('MB')) {
+          sizeInGB = numericValue / 1024; // Konversi MB ke GB
+        } else if (sizeStr.includes('KB')) {
+          sizeInGB = numericValue / (1024 * 1024); // Konversi KB ke GB
+        } else {
+          sizeInGB = numericValue; // Default dianggap GB jika tidak ada MB/KB atau ada teks GB
+        }
+      }
+      return sum + sizeInGB;
+    }, 0);
+
+    return { totalBatches, uniqueCreators, totalVideos, totalSize };
+  }, [batches]);
+
   const filteredBatches = batches.filter(batch => {
     const matchesCategory = activeCategory === 'Home' || batch.country === activeCategory;
     const searchLower = searchQuery.toLowerCase();
@@ -301,6 +341,81 @@ export default function Home() {
               </div>
 
             </div>
+          </div>
+        </div>
+
+        {/* Live Stats & Platform Counter - Emerald Gradient Theme */}
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            
+            {/* Card 1: Total Folders (Emerald 700) */}
+            <div className="bg-emerald-700 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
+              <div className="flex justify-between items-start mb-6">
+                <span className="font-medium text-[13px] tracking-wide text-emerald-50">Total Folders</span>
+                <div className="p-2 bg-white/20 rounded-[0.75rem]">
+                  <Folder size={18} className="text-white" strokeWidth={2.5} />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-[2rem] leading-none font-bold mb-2 text-white">{stats.totalBatches}</h3>
+                <p className="text-[11px] text-emerald-100 flex items-center gap-1.5 opacity-90 font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white/80"></span>
+                  Active Regions
+                </p>
+              </div>
+            </div>
+
+            {/* Card 2: Total Videos (Emerald 600) */}
+            <div className="bg-emerald-600 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
+              <div className="flex justify-between items-start mb-6">
+                <span className="font-medium text-[13px] tracking-wide text-emerald-50">Total Videos</span>
+                <div className="p-2 bg-white/20 rounded-[0.75rem]">
+                  <Film size={18} className="text-white" strokeWidth={2.5} />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-[2rem] leading-none font-bold mb-2 text-white">{stats.totalVideos}</h3>
+                <p className="text-[11px] text-emerald-100 flex items-center gap-1 opacity-90 font-medium">
+                  <CheckCircle2 size={12} strokeWidth={2.5} />
+                  Successfully Archived
+                </p>
+              </div>
+            </div>
+
+            {/* Card 3: Total Size (Emerald 500) */}
+            <div className="bg-emerald-500 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
+              <div className="flex justify-between items-start mb-6">
+                <span className="font-medium text-[13px] tracking-wide text-emerald-50">Total Size</span>
+                <div className="p-2 bg-white/20 rounded-[0.75rem]">
+                  <HardDrive size={18} className="text-white" strokeWidth={2.5} />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-[2rem] leading-none font-bold mb-2 text-white">
+                  {stats.totalSize.toFixed(2)} GB
+                </h3>
+                <p className="text-[11px] text-emerald-100 flex items-center gap-1.5 font-medium">
+                  Total Uploaded
+                </p>
+              </div>
+            </div>
+
+            {/* Card 4: Total Creators (Emerald 400) */}
+            <div className="bg-emerald-400 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
+              <div className="flex justify-between items-start mb-6">
+                <span className="font-medium text-[13px] tracking-wide text-emerald-50">Total Creators</span>
+                <div className="p-2 bg-white/20 rounded-[0.75rem]">
+                  <Users size={18} className="text-white" strokeWidth={2.5} />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-[2rem] leading-none font-bold mb-2 text-white">{stats.uniqueCreators}</h3>
+                <p className="text-[11px] text-emerald-50 flex items-center gap-1.5 font-medium">
+                  Joined Contributors
+                </p>
+              </div>
+            </div>
+
           </div>
         </div>
 

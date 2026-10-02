@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Cloud, Box, Download, User, Volume2, VolumeX, CheckCircle2 } from 'lucide-react';
+import { X, Cloud, Box, Download, User, Volume2, VolumeX, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { EmeraldFolderIcon } from './SharedIcons'; 
 import { supabase } from '../supabase';
 
@@ -215,11 +215,13 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount }: any) => {
 
                   <span className="font-bold text-slate-700 not-italic">{item.uploaded_by}</span>
                   
-                  {/* Perbaikan: title dipindah ke span */}
+                  {/* Perbaikan badge admin: hanya ikon tameng yang simpel */}
                   {uploaderIsAdmin ? (
-                    <span title="Admin Verified" className="inline-flex items-center cursor-help">
-                      <CheckCircle2 size={16} className="text-blue-500 ml-0.5 fill-blue-50" />
-                    </span>
+                    <ShieldCheck 
+                      size={18} 
+                      className="text-[#fbbf24] ml-0.5 cursor-help drop-shadow-sm hover:scale-110 transition-transform" 
+                      title="Admin Verified" 
+                    />
                   ) : badge ? (
                     <img 
                       src={badge.url} 
