@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import Profile from './pages/Profile';
 import RulesPage from './pages/RulesPage';
 import LegalPage from './pages/LegalPage';
+import TopContributors from './pages/TopContributors'; // 1. IMPORT DITAMBAHKAN
 import ChatGroup from './components/ChatGroup';
 import LoginModal from './components/LoginModal';
 import { supabase } from './supabase';
@@ -51,6 +52,9 @@ export default function App() {
     } else if (window.location.hash === '#legal') {
       window.history.replaceState({}, '', '/legal');
       setCurrentPath('/legal');
+    } else if (window.location.hash === '#top-contributors') { // 2. ROUTING DITAMBAHKAN
+      window.history.replaceState({}, '', '/top-contributors');
+      setCurrentPath('/top-contributors');
     } else if (window.location.hash === '#') {
       window.history.replaceState({}, '', '/');
       setCurrentPath('/');
@@ -86,6 +90,10 @@ export default function App() {
 
     if (currentPath === '/legal') {
       return <LegalPage />;
+    }
+
+    if (currentPath === '/top-contributors') { // 3. RENDER HALAMAN DITAMBAHKAN
+      return <TopContributors />;
     }
 
     return <Home />;
