@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  ArrowLeft, User, HardDrive, FolderOpen, Video, 
+  Home, User, HardDrive, FolderOpen, Video, 
   MousePointerClick, Play, ShieldCheck, Check 
 } from 'lucide-react';
 import { supabase } from "../supabase";
@@ -9,7 +9,6 @@ import { supabase } from "../supabase";
 import PreviewModal from "../components/PreviewModal";
 import { EmeraldFolderIcon } from "../components/SharedIcons";
 
-// 1. Definisikan Interface TypeScript untuk mencegah error TS2322
 interface BatchItem {
   id: string;
   username: string;
@@ -20,27 +19,50 @@ interface BatchItem {
   uploaded_by?: string;
   uploader_is_admin?: boolean;
   is_edited?: boolean;
-  [key: string]: any; // Fallback untuk kolom tambahan dari Supabase
+  status?: string;
+  [key: string]: any; 
 }
+
+interface BadgeItem {
+  id: string;
+  title: string;
+  iconUrl: string;
+  colorClass: string;
+  isUnlocked: (stats: any) => boolean;
+}
+
+const BADGES: BadgeItem[] = [
+  {
+    id: 'low_tier',
+    title: 'Emerald Rookie',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Low%20Tier.webp',
+    colorClass: 'text-emerald-500', // Warna menyesuaikan tier
+    isUnlocked: (stats: any) => stats.totalUploads >= 10,
+  },
+  {
+    id: 'medium_tier',
+    title: 'Emerald Pro',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp',
+    colorClass: 'text-emerald-600',
+    isUnlocked: (stats: any) => stats.totalApproved >= 30,
+  },
+  {
+    id: 'advance_tier',
+    title: 'Emerald Master',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp',
+    colorClass: 'text-emerald-700',
+    isUnlocked: (stats: any) => stats.totalApproved >= 50,
+  },
+];
 
 interface CreatorCardProps {
   data: BatchItem;
   onOpenPreview: (item: BatchItem) => void;
-  uploaderCount: number;
+  creatorBadge: BadgeItem | null;
+  isAdmin: boolean;
 }
 
-// 2. Komponen CreatorCard (diambil persis dari Home_2.tsx dengan tipe yang benar)
-const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, uploaderCount }) => {
-  const getAchievementBadge = (count: number) => {
-    if (data.uploader_is_admin) return null; 
-    if (count >= 50) return { title: 'Emerald Master', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp' };
-    if (count >= 30) return { title: 'Emerald Pro', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp' };
-    if (count >= 10) return { title: 'Emerald Rookie', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Low%20Tier.webp' };
-    return null;
-  };
-
-  const badge = getAchievementBadge(uploaderCount);
-
+const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorBadge, isAdmin }) => {
   return (
     <div 
       onClick={() => onOpenPreview(data)} 
@@ -52,16 +74,16 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, uploader
             Uploaded by <span className="font-semibold text-emerald-600 not-italic">{data.uploaded_by || data.username}</span>
           </span>
           
-          {data.uploader_is_admin ? (
+          {isAdmin ? (
             <span title="Admin Verified">
-              <ShieldCheck size={15} className="text-[#fbbf24] ml-0.5 cursor-help drop-shadow-sm hover:scale-110 transition-transform" />
+              <ShieldCheck size={16} className="text-[#fbbf24] ml-0.5 cursor-help drop-shadow-sm hover:scale-110 transition-transform" />
             </span>
-          ) : badge ? (
+          ) : creatorBadge ? (
             <img 
-              src={badge.url} 
-              alt={badge.title} 
-              title={`${badge.title} (${uploaderCount} Uploads)`}
-              className="w-5 h-5 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform ml-0.5"
+              src={creatorBadge.iconUrl} 
+              alt={creatorBadge.title} 
+              title={creatorBadge.title}
+              className="w-6 h-6 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform ml-0.5"
             />
           ) : null}
         </div>
@@ -109,7 +131,6 @@ export default function CreatorPage({ username }: { username: string }) {
   const [creatorProfile, setCreatorProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
-  // State untuk modal preview
   const [previewItem, setPreviewItem] = useState<BatchItem | null>(null);
 
   const handleGoBack = () => {
@@ -136,10 +157,9 @@ export default function CreatorPage({ username }: { username: string }) {
             .order('created_at', { ascending: false });
 
           if (batchData) {
-            // Memetakan data agar cocok dengan ekspektasi CreatorCard
             const mappedBatches = batchData.map(b => ({
               ...b,
-              uploaded_by: profileData.username,
+              uploaded_by: profileData.username, 
               uploader_is_admin: profileData.is_admin
             }));
             setBatches(mappedBatches);
@@ -170,7 +190,6 @@ export default function CreatorPage({ username }: { username: string }) {
     if (username) fetchCreatorData();
   }, [username]);
 
-  // Fungsi saat tombol download di dalam modal ditekan
   const handleDownloadInitiate = async (_providerName: string, url: string, batchId?: string) => {
     if (!url) {
       alert("Download link is not available");
@@ -180,7 +199,6 @@ export default function CreatorPage({ username }: { username: string }) {
       const { error } = await supabase.rpc('increment_download_count', { batch_id: batchId });
       if (error) console.error('Failed to update download count:', error);
     }
-    // Redirect ke link
     setTimeout(() => {
       window.open(url, '_blank');
       setPreviewItem(null);
@@ -188,7 +206,8 @@ export default function CreatorPage({ username }: { username: string }) {
   };
 
   const stats = useMemo(() => {
-    const totalFolders = batches.length;
+    const totalUploads = batches.length;
+    const totalApproved = batches.filter(b => b.status === 'approved').length;
     const totalVideos = batches.reduce((acc, b) => acc + (Number(b.video_count) || 0), 0);
     const totalClicks = batches.reduce((acc, b) => {
       const clickVal = b.clicks ?? b.click_count ?? b.total_clicks ?? b.click ?? b.views ?? 0;
@@ -212,33 +231,71 @@ export default function CreatorPage({ username }: { username: string }) {
       totalSizeDisplay = totalGB < 1 ? (totalGB * 1024).toFixed(1) + ' MB' : totalGB.toFixed(1) + ' GB';
     }
 
-    return { totalFolders, totalVideos, totalClicks, totalSizeDisplay };
+    return { totalFolders: totalUploads, totalUploads, totalApproved, totalVideos, totalClicks, totalSizeDisplay };
   }, [batches]);
 
+  const unlockedBadges = useMemo(() => {
+    return BADGES.filter(b => b.isUnlocked(stats));
+  }, [stats]);
+  const highestBadge = unlockedBadges.length > 0 ? unlockedBadges[unlockedBadges.length - 1] : null;
+
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pt-28 pb-16 px-6 sm:px-8 font-sans flex flex-col selection:bg-emerald-100 selection:text-emerald-900">
+    <div className="min-h-screen bg-[#F8FAFC] pt-8 pb-16 px-6 sm:px-8 font-sans flex flex-col selection:bg-emerald-100 selection:text-emerald-900">
       <main className="max-w-7xl mx-auto w-full flex-grow animate-in fade-in slide-in-from-bottom-4 duration-500">
         
         <button 
           onClick={handleGoBack} 
           className="flex items-center gap-2 px-6 py-3 mb-8 rounded-2xl font-bold text-slate-700 bg-white hover:bg-slate-50 transition-all shadow-sm hover:shadow-md border border-slate-100 w-max cursor-pointer"
         >
-          <ArrowLeft size={20} /> Back
+          <Home size={20} /> Home
         </button>
 
-        {/* Profil Kreator */}
-        <div className="bg-white p-8 sm:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 mb-10 flex flex-col md:flex-row items-center md:items-start gap-8">
-          <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 border-4 border-white flex-shrink-0">
+        {/* Profil Kreator Header */}
+        <div className="relative bg-white p-8 sm:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 mb-10 flex flex-col md:flex-row items-center md:items-start gap-8">
+          
+          {/* Lencana Stempel Besar + Teks Detail Tier (Tanpa Kotak Container) */}
+          {!creatorProfile?.is_admin && highestBadge && (
+            <div className="absolute top-6 right-6 sm:top-8 sm:right-10 flex flex-col items-center justify-center hover:scale-105 transition-transform duration-300 z-0">
+              <img 
+                src={highestBadge.iconUrl} 
+                alt={highestBadge.title} 
+                title={highestBadge.title}
+                className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain drop-shadow-md"
+              />
+              <span className={`mt-1.5 text-[10px] sm:text-xs font-extrabold tracking-wide text-center whitespace-nowrap drop-shadow-sm ${highestBadge.colorClass}`}>
+                {highestBadge.title}
+              </span>
+            </div>
+          )}
+
+          {/* Untuk Admin Badge Stempel + Teks (Tanpa Kotak Container) */}
+          {creatorProfile?.is_admin && (
+            <div className="absolute top-6 right-6 sm:top-8 sm:right-10 flex flex-col items-center justify-center z-0 hover:scale-105 transition-transform duration-300">
+              <span className="inline-flex items-center justify-center text-white bg-gradient-to-tr from-amber-400 to-amber-500 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full shadow-md border-4 border-amber-100 mb-1.5">
+                <ShieldCheck size={40} className="sm:w-12 sm:h-12" />
+              </span>
+              <span className="text-[10px] sm:text-xs font-extrabold tracking-wide text-amber-500 text-center whitespace-nowrap drop-shadow-sm">
+                Verified Staff
+              </span>
+            </div>
+          )}
+
+          <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 border-4 border-white flex-shrink-0 z-10">
             {creatorProfile?.avatar_url ? (
               <img src={creatorProfile.avatar_url} alt={username} className="w-full h-full object-cover" />
             ) : (
               <User size={48} className="sm:w-16 sm:h-16" />
             )}
           </div>
-          <div className="flex-1 text-center md:text-left">
-            <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-2">
-              {creatorProfile?.username || username}
-            </h1>
+          
+          <div className="flex-1 text-center md:text-left z-10">
+            
+            <div className="flex flex-col md:flex-row items-center gap-3 mb-2 justify-center md:justify-start">
+              <h1 className="text-3xl sm:text-4xl font-bold text-slate-800">
+                {creatorProfile?.username || username}
+              </h1>
+            </div>
+
             <p className="text-slate-500 font-medium mb-6">Creator Portfolio & Archives</p>
             
             <div className="flex flex-wrap justify-center md:justify-start gap-4 sm:gap-6">
@@ -266,7 +323,7 @@ export default function CreatorPage({ username }: { username: string }) {
           </h2>
         </div>
 
-        {/* Grid Card Menyamai Halaman Utama */}
+        {/* Grid Card */}
         {loading ? (
           <div className="flex justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
@@ -282,15 +339,15 @@ export default function CreatorPage({ username }: { username: string }) {
                 key={batch.id} 
                 data={batch} 
                 onOpenPreview={setPreviewItem}
-                // Karena ini halaman kreator spesifik, jumlah upload-nya adalah total batch yang dia punya
-                uploaderCount={batches.length} 
+                creatorBadge={highestBadge}
+                isAdmin={!!creatorProfile?.is_admin}
               />
             ))}
           </div>
         )}
       </main>
 
-      {/* Render Modal Preview jika ada item yang diklik */}
+      {/* Modal Preview */}
       {previewItem && (
         <PreviewModal 
           item={previewItem} 

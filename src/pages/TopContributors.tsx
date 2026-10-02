@@ -3,40 +3,60 @@ import { supabase } from '../supabase';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { EmeraldFolderIcon } from '../components/SharedIcons';
-import { Trophy, Users, Video, Folder, CheckCircle2, XCircle } from 'lucide-react';
+import { Trophy, Users, Video, CheckCircle2, XCircle } from 'lucide-react';
 import LoginModal from "../components/LoginModal";
 import PostModal from "../components/PostModal";
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
-const Toast = ({ message, isVisible, type = 'success' }: any) => (
+interface ToastProps {
+  message: string;
+  isVisible: boolean;
+  type?: 'success' | 'info' | 'error';
+}
+
+const Toast = ({ message, isVisible, type = 'success' }: ToastProps) => (
   <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-2 transition-all duration-300 z-[9999] ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'} ${type === 'success' ? 'bg-slate-900 text-white' : 'bg-red-500 text-white'}`}>
     {type === 'success' ? <CheckCircle2 size={18} className="text-emerald-400" /> : <XCircle size={18} className="text-red-400" />}
     <span className="text-sm font-medium">{message}</span>
   </div>
 );
 
-const BADGES = [
+interface Stats {
+  totalUploads: number;
+  totalApproved: number;
+  totalVideos: number;
+}
+
+interface BadgeItem {
+  id: string;
+  title: string;
+  tier: string;
+  iconUrl: string;
+  isUnlocked: (stats: Stats) => boolean;
+}
+
+const BADGES: BadgeItem[] = [
   {
     id: 'low_tier',
     title: 'Emerald Rookie',
     tier: 'Tier 1 Badge',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Low%20Tier.webp',
-    isUnlocked: (stats: any) => stats.totalUploads >= 10,
+    isUnlocked: (stats: Stats) => stats.totalUploads >= 10,
   },
   {
     id: 'medium_tier',
     title: 'Emerald Pro',
     tier: 'Tier 2 Badge',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp',
-    isUnlocked: (stats: any) => stats.totalApproved >= 30,
+    isUnlocked: (stats: Stats) => stats.totalApproved >= 30,
   },
   {
     id: 'advance_tier',
     title: 'Emerald Master',
     tier: 'Tier 3 Badge',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp',
-    isUnlocked: (stats: any) => stats.totalApproved >= 50,
+    isUnlocked: (stats: Stats) => stats.totalApproved >= 50,
   },
 ];
 
@@ -48,7 +68,7 @@ export default function TopContributors() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [toastConfig, setToastConfig] = useState({ message: '', isVisible: false, type: 'success' });
+  const [toastConfig, setToastConfig] = useState<{ message: string; isVisible: boolean; type: 'success' | 'info' | 'error' }>({ message: '', isVisible: false, type: 'success' });
 
   useEffect(() => {
     fetchTopContributors();
@@ -85,15 +105,21 @@ export default function TopContributors() {
     }
   };
 
-  const showToast = (message: string, type = 'success') => {
+  const showToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
     setToastConfig({ message, isVisible: true, type });
-    setTimeout(() => setToastConfig({ message: '', isVisible: false, type }), 3000);
+    setTimeout(() => setToastConfig({ message: '', isVisible: false, type: 'success' }), 3000);
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setCurrentUser(null);
     showToast("You have been logged out.", "info");
+  };
+
+  const handleNavigateToCreator = (username: string) => {
+    if (!username) return;
+    window.history.pushState({}, '', `/creator/${username}`);
+    window.dispatchEvent(new Event('popstate'));
   };
 
   const fetchTopContributors = async () => {
@@ -110,7 +136,7 @@ export default function TopContributors() {
         const totalApproved = userBatches.filter(b => b.status === 'approved').length;
         const totalVideos = userBatches.reduce((acc, b) => acc + (Number(b.video_count) || 0), 0);
         
-        const stats = { totalUploads, totalApproved, totalVideos };
+        const stats: Stats = { totalUploads, totalApproved, totalVideos };
         
         const unlockedBadges = BADGES.filter(badge => badge.isUnlocked(stats));
         const highestBadge = unlockedBadges.length > 0 ? unlockedBadges[unlockedBadges.length - 1] : null;
@@ -134,7 +160,6 @@ export default function TopContributors() {
       <div>
         <Navbar 
           activeCategory="Top Contributors"
-          // Tambahkan tipe : string di sini
           setActiveCategory={(category: string) => {
              window.location.href = category === 'Home' ? '/' : `/?category=${category}`;
           }}
@@ -179,7 +204,7 @@ export default function TopContributors() {
               {loading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[1, 2, 3, 4].map(i => (
-                    <div key={i} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 h-40 animate-pulse"></div>
+                    <div key={i} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 h-28 animate-pulse"></div>
                   ))}
                 </div>
               ) : contributors.length === 0 ? (
@@ -189,19 +214,12 @@ export default function TopContributors() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   {contributors.map((user) => (
-                    <div key={user.id} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 relative group transition-all hover:shadow-md">
-                      
-                      {user.highestBadge && (
-                        <div className="absolute top-4 right-4" title={user.highestBadge.title}>
-                          <img 
-                            src={user.highestBadge.iconUrl} 
-                            alt={user.highestBadge.title} 
-                            className="w-12 h-12 object-contain drop-shadow-md group-hover:scale-110 transition-transform"
-                          />
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-4 mb-5">
+                    <div 
+                      key={user.id} 
+                      onClick={() => handleNavigateToCreator(user.username)}
+                      className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 relative group transition-all hover:shadow-md cursor-pointer flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-4">
                         <div className="w-14 h-14 rounded-2xl bg-slate-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
                           {user.avatar_url ? (
                             <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
@@ -212,7 +230,7 @@ export default function TopContributors() {
                           )}
                         </div>
                         <div>
-                          <h3 className="text-base font-black text-slate-800">
+                          <h3 className="text-base font-black text-slate-800 group-hover:text-emerald-600 transition-colors">
                             @{user.username}
                           </h3>
                           <p className="text-[11px] text-slate-400 font-semibold mt-0.5">
@@ -221,26 +239,15 @@ export default function TopContributors() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-6 pt-4 border-t border-slate-50">
-                        <div>
-                          <span className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 tracking-wide mb-1">
-                            <Folder size={12} className="text-emerald-500" />
-                            Collections
-                          </span>
-                          <span className="text-base font-black text-slate-700">
-                            {user.stats.totalUploads}
-                          </span>
+                      {user.highestBadge && (
+                        <div title={user.highestBadge.title} className="flex-shrink-0">
+                          <img 
+                            src={user.highestBadge.iconUrl} 
+                            alt={user.highestBadge.title} 
+                            className="w-12 h-12 object-contain drop-shadow-md group-hover:scale-110 transition-transform"
+                          />
                         </div>
-                        <div>
-                          <span className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 tracking-wide mb-1">
-                            <Video size={12} className="text-emerald-500" />
-                            Total Videos
-                          </span>
-                          <span className="text-base font-black text-slate-700">
-                            {user.stats.totalVideos}
-                          </span>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -261,12 +268,16 @@ export default function TopContributors() {
 
                 <div className="space-y-4">
                   {contributors.slice(0, 5).map((user, index) => (
-                    <div key={user.id} className="flex items-center justify-between group">
+                    <div 
+                      key={user.id} 
+                      onClick={() => handleNavigateToCreator(user.username)}
+                      className="flex items-center justify-between group cursor-pointer hover:bg-slate-50 p-2 rounded-2xl transition-colors"
+                    >
                       <div className="flex items-center gap-3">
                         <span className={`w-6 text-center text-xs font-black ${index === 0 ? 'text-amber-500' : index === 1 ? 'text-slate-400' : index === 2 ? 'text-amber-700' : 'text-slate-300'}`}>
                           #{index + 1}
                         </span>
-                        <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden relative border border-slate-200">
+                        <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden relative border border-slate-200 flex-shrink-0">
                           {user.avatar_url ? (
                             <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                           ) : (
@@ -310,7 +321,6 @@ export default function TopContributors() {
         </main>
       </div>
       
-      {/* Tambahkan tipe : string di sini juga agar error tidak pindah */}
       <Footer onSelectCountry={(category: string) => {
          window.location.href = category === 'Home' ? '/' : `/?category=${category}`;
       }} />
