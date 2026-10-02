@@ -141,6 +141,10 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
   };
 
   const tikTokEmbedUrl = isTikTokLink ? getTikTokEmbedUrl(videoUrl) : null;
+  
+  // Smart logic untuk mengecek ketersediaan link
+  const hasGdrive = Boolean(item.gdrive_url && item.gdrive_url.trim() !== '');
+  const hasTerabox = Boolean(item.terabox_url && item.terabox_url.trim() !== '');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
@@ -316,37 +320,43 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
             <h3 className="text-sm font-bold text-slate-700 mb-3">Official Download Mirrors</h3>
             <div className="space-y-3">
               <button 
-                onClick={() => onDownload('Google Drive', item.gdrive_url, item.id)} 
-                className="w-full p-4 bg-white hover:bg-blue-50/50 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] hover:shadow-md transition-all flex items-center justify-between group border border-slate-100"
+                disabled={!hasGdrive}
+                onClick={() => hasGdrive && onDownload('Google Drive', item.gdrive_url, item.id)} 
+                className={`w-full p-4 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] transition-all flex items-center justify-between border border-slate-100 ${hasGdrive ? 'bg-white hover:bg-blue-50/50 hover:shadow-md group cursor-pointer' : 'bg-slate-50 opacity-60 cursor-not-allowed grayscale'}`}
               >
                 <div className="flex items-center gap-3.5">
-                  <div className="p-2.5 bg-blue-50 text-blue-500 rounded-xl group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                  <div className={`p-2.5 rounded-xl transition-colors ${hasGdrive ? 'bg-blue-50 text-blue-500 group-hover:bg-blue-500 group-hover:text-white' : 'bg-slate-200 text-slate-400'}`}>
                     <Cloud size={22} />
                   </div>
                   <div className="text-left">
-                    <div className="font-bold text-slate-800 group-hover:text-blue-600 transition-colors">Google Drive</div>
-                    <div className="text-xs text-slate-400 font-medium">High Speed • Single ZIP Archive</div>
+                    <div className={`font-bold transition-colors ${hasGdrive ? 'text-slate-800 group-hover:text-blue-600' : 'text-slate-500'}`}>Google Drive</div>
+                    <div className="text-xs text-slate-400 font-medium">
+                      {hasGdrive ? 'High Speed • Single ZIP Archive' : 'Link Unavailable'}
+                    </div>
                   </div>
                 </div>
-                <div className="p-2 rounded-xl bg-slate-50 text-slate-400 group-hover:bg-blue-500 group-hover:text-white transition-all">
+                <div className={`p-2 rounded-xl transition-all ${hasGdrive ? 'bg-slate-50 text-slate-400 group-hover:bg-blue-500 group-hover:text-white' : 'bg-slate-200 text-slate-400'}`}>
                   <Download size={18} />
                 </div>
               </button>
 
               <button 
-                onClick={() => onDownload('TeraBox', item.terabox_url, item.id)} 
-                className="w-full p-4 bg-white hover:bg-cyan-50/50 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] hover:shadow-md transition-all flex items-center justify-between group border border-slate-100"
+                disabled={!hasTerabox}
+                onClick={() => hasTerabox && onDownload('TeraBox', item.terabox_url, item.id)} 
+                className={`w-full p-4 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] transition-all flex items-center justify-between border border-slate-100 ${hasTerabox ? 'bg-white hover:bg-cyan-50/50 hover:shadow-md group cursor-pointer' : 'bg-slate-50 opacity-60 cursor-not-allowed grayscale'}`}
               >
                 <div className="flex items-center gap-3.5">
-                  <div className="p-2.5 bg-cyan-50 text-cyan-600 rounded-xl group-hover:bg-cyan-500 group-hover:text-white transition-colors">
+                  <div className={`p-2.5 rounded-xl transition-colors ${hasTerabox ? 'bg-cyan-50 text-cyan-600 group-hover:bg-cyan-500 group-hover:text-white' : 'bg-slate-200 text-slate-400'}`}>
                     <Box size={22} />
                   </div>
                   <div className="text-left">
-                    <div className="font-bold text-slate-800 group-hover:text-cyan-600 transition-colors">TeraBox Cloud</div>
-                    <div className="text-xs text-slate-400 font-medium">Unlimited Cloud Mirror • Free Download</div>
+                    <div className={`font-bold transition-colors ${hasTerabox ? 'text-slate-800 group-hover:text-cyan-600' : 'text-slate-500'}`}>TeraBox Cloud</div>
+                    <div className="text-xs text-slate-400 font-medium">
+                      {hasTerabox ? 'Unlimited Cloud Mirror • Free Download' : 'Link Unavailable'}
+                    </div>
                   </div>
                 </div>
-                <div className="p-2 rounded-xl bg-slate-50 text-slate-400 group-hover:bg-cyan-500 group-hover:text-white transition-all">
+                <div className={`p-2 rounded-xl transition-all ${hasTerabox ? 'bg-slate-50 text-slate-400 group-hover:bg-cyan-500 group-hover:text-white' : 'bg-slate-200 text-slate-400'}`}>
                   <Download size={18} />
                 </div>
               </button>
