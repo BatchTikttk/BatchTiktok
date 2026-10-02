@@ -19,9 +19,8 @@ const Toast = ({ message, isVisible, type = 'success' }: any) => (
 );
 
 const CreatorCard = ({ data, onOpenPreview, uploaderCount }: any) => {
-  // Hanya ambil lencana webp jika user BUKAN admin
   const getAchievementBadge = (count: number) => {
-    if (data.uploader_is_admin) return null; // Admin tidak pakai lencana webp
+    if (data.uploader_is_admin) return null; 
     
     if (count >= 50) return { title: 'Emerald Master', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp' };
     if (count >= 30) return { title: 'Emerald Pro', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp' };
@@ -42,9 +41,11 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: any) => {
             Uploaded by <span className="font-semibold text-emerald-600 not-italic">{data.uploaded_by}</span>
           </span>
           
-          {/* Render Badge Admin ATAU Webp */}
+          {/* Perbaikan: title dipindah ke span */}
           {data.uploader_is_admin ? (
-            <CheckCircle2 size={14} className="text-blue-500 ml-0.5 fill-blue-50" title="Admin Verified" />
+            <span title="Admin Verified" className="inline-flex items-center cursor-help">
+              <CheckCircle2 size={14} className="text-blue-500 ml-0.5 fill-blue-50" />
+            </span>
           ) : badge ? (
             <img 
               src={badge.url} 
@@ -142,7 +143,6 @@ export default function Home() {
   }, []);
 
   const fetchBatches = async () => {
-    // Tambahkan is_admin di list select
     const { data: profiles } = await supabase
       .from('profiles')
       .select('id, username, avatar_url, is_admin');
@@ -167,7 +167,7 @@ export default function Home() {
           uploaded_by: uploaderProfile?.username || batch.uploaded_by,
           avatar_url: uploaderProfile?.avatar_url || null,
           uploader_avatar: uploaderProfile?.avatar_url || null,
-          uploader_is_admin: uploaderProfile?.is_admin || false // Ambil true/false
+          uploader_is_admin: uploaderProfile?.is_admin || false 
         };
       });
 

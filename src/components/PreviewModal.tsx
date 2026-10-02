@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Cloud, Box, Download, User, Volume2, VolumeX, CheckCircle2 } from 'lucide-react'; // Tambah CheckCircle2
+import { X, Cloud, Box, Download, User, Volume2, VolumeX, CheckCircle2 } from 'lucide-react';
 import { EmeraldFolderIcon } from './SharedIcons'; 
 import { supabase } from '../supabase';
 
@@ -12,11 +12,10 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount }: any) => {
   const [uploaderAvatar, setUploaderAvatar] = useState<string | null>(
     item?.uploader_avatar || item?.avatar_url || null
   );
-  // Simpan state is_admin untuk PreviewModal
   const [uploaderIsAdmin, setUploaderIsAdmin] = useState<boolean>(item?.uploader_is_admin || false);
 
   const getAchievementBadge = (count: number) => {
-    if (uploaderIsAdmin) return null; // Jika admin, tidak pakai lencana webp
+    if (uploaderIsAdmin) return null; 
     
     if (count >= 50) return { title: 'Emerald Master', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp' };
     if (count >= 30) return { title: 'Emerald Pro', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp' };
@@ -41,7 +40,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount }: any) => {
 
       let profileData: any = null;
 
-      // Ambil is_admin sekalian
       if (item.user_id) {
         const { data } = await supabase
           .from('profiles')
@@ -217,9 +215,11 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount }: any) => {
 
                   <span className="font-bold text-slate-700 not-italic">{item.uploaded_by}</span>
                   
-                  {/* Tampilkan Lencana di Modal Preview */}
+                  {/* Perbaikan: title dipindah ke span */}
                   {uploaderIsAdmin ? (
-                    <CheckCircle2 size={16} className="text-blue-500 ml-0.5 fill-blue-50" title="Admin Verified" />
+                    <span title="Admin Verified" className="inline-flex items-center cursor-help">
+                      <CheckCircle2 size={16} className="text-blue-500 ml-0.5 fill-blue-50" />
+                    </span>
                   ) : badge ? (
                     <img 
                       src={badge.url} 
