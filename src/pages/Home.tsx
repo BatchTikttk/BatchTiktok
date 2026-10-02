@@ -43,10 +43,10 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: any) => {
           
           {/* Perbaikan: title dipindah ke span */}
           {data.uploader_is_admin ? (
-            <span title="Admin Verified" className="inline-flex items-center cursor-help">
-              <CheckCircle2 size={14} className="text-blue-500 ml-0.5 fill-blue-50" />
-            </span>
-          ) : badge ? (
+  <span title="Admin Verified" className="inline-flex items-center cursor-help">
+    <CheckCircle2 size={14} className="text-emerald-500 ml-0.5 fill-emerald-50" />
+  </span>
+) : badge ? (
             <img 
               src={badge.url} 
               alt={badge.title} 
