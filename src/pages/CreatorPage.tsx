@@ -171,7 +171,7 @@ export default function CreatorPage({ username }: { username: string }) {
   }, [username]);
 
   // Fungsi saat tombol download di dalam modal ditekan
-  const handleDownloadInitiate = async (providerName: string, url: string, batchId?: string) => {
+  const handleDownloadInitiate = async (_providerName: string, url: string, batchId?: string) => {
     if (!url) {
       alert("Download link is not available");
       return;
