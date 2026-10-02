@@ -30,14 +30,13 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
     setIsLoading(true);
     setIsSuccess(false);
     
-    // Pastikan CAPTCHA sudah diselesaikan baik untuk Sign Up maupun Sign In
-    if (!captchaToken) {
-      showToast('Please complete the CAPTCHA verification', 'error');
-      setIsLoading(false);
-      return;
-    }
-
     if (isRegistering) {
+      if (!captchaToken) {
+        showToast('Please complete the CAPTCHA verification', 'error');
+        setIsLoading(false);
+        return;
+      }
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: authEmail,
         password: authPassword,
@@ -86,19 +85,15 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
         return;
       }
     } else {
-      // Login dengan menyertakan token CAPTCHA agar lolos dari proteksi Supabase
+      // Login biasa tanpa perlu validasi captcha backend yang ketat
       const { error } = await supabase.auth.signInWithPassword({
         email: authEmail,
         password: authPassword,
-        options: {
-          captchaToken: captchaToken,
-        }
       });
 
       if (error) {
         showToast(error.message, 'error');
         setIsLoading(false);
-        setCaptchaToken(null);
         return;
       }
       
@@ -231,20 +226,21 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
               </button>
             </div>
 
-            {/* Komponen Turnstile CAPTCHA (Aktif untuk Sign In dan Sign Up) */}
-            <div className="flex justify-center mt-2 mb-2">
-              <Turnstile
-                key={isRegistering ? 'signup-mode' : 'signin-mode'}
-                siteKey={TURNSTILE_SITE_KEY}
-                onSuccess={(token) => setCaptchaToken(token)}
-                onError={() => setCaptchaToken(null)}
-                onExpire={() => setCaptchaToken(null)}
-              />
-            </div>
+            {/* Komponen Turnstile CAPTCHA (Hanya muncul dan wajib saat Sign Up) */}
+            {isRegistering && (
+              <div className="flex justify-center mt-2 mb-2">
+                <Turnstile
+                  siteKey={TURNSTILE_SITE_KEY}
+                  onSuccess={(token) => setCaptchaToken(token)}
+                  onError={() => setCaptchaToken(null)}
+                  onExpire={() => setCaptchaToken(null)}
+                />
+              </div>
+            )}
 
             <button 
               type="submit" 
-              disabled={isLoading || isSuccess || !captchaToken}
+              disabled={isLoading || isSuccess || (isRegistering && !captchaToken)}
               className={`w-full py-3.5 mt-2 rounded-2xl ${isSuccess ? 'bg-emerald-600' : 'bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700'} text-white font-bold shadow-[0_8px_20px_rgba(16,185,129,0.25)] hover:shadow-[0_10px_25px_rgba(16,185,129,0.35)] transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 border-none disabled:opacity-50 disabled:pointer-events-none cursor-pointer`}
             >
               {isLoading ? (
