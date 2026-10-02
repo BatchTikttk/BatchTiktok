@@ -3,9 +3,18 @@ import { supabase } from '../supabase';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { EmeraldFolderIcon } from '../components/SharedIcons';
-import { Trophy, Users, Video, Folder } from 'lucide-react';
+import { Trophy, Users, Video, Folder, CheckCircle2, XCircle } from 'lucide-react';
+import LoginModal from "../components/LoginModal";
+import PostModal from "../components/PostModal";
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
+
+const Toast = ({ message, isVisible, type = 'success' }: any) => (
+  <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-2 transition-all duration-300 z-[9999] ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'} ${type === 'success' ? 'bg-slate-900 text-white' : 'bg-red-500 text-white'}`}>
+    {type === 'success' ? <CheckCircle2 size={18} className="text-emerald-400" /> : <XCircle size={18} className="text-red-400" />}
+    <span className="text-sm font-medium">{message}</span>
+  </div>
+);
 
 const BADGES = [
   {
@@ -34,10 +43,58 @@ const BADGES = [
 export default function TopContributors() {
   const [loading, setLoading] = useState(true);
   const [contributors, setContributors] = useState<any[]>([]);
+  
+  // Sinkronisasi state dari logika homepage
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [toastConfig, setToastConfig] = useState({ message: '', isVisible: false, type: 'success' });
 
   useEffect(() => {
     fetchTopContributors();
+    checkUser();
+
+    // Subscribe ke perubahan auth/profile seperti di beranda
+    const channel = supabase
+      .channel('schema-db-changes-top')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        () => {
+          checkUser();
+          fetchTopContributors();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
+
+  const checkUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', session.user.id)
+        .single();
+        
+      if (data) setCurrentUser(data.username);
+    }
+  };
+
+  const showToast = (message: string, type = 'success') => {
+    setToastConfig({ message, isVisible: true, type });
+    setTimeout(() => setToastConfig({ message: '', isVisible: false, type }), 3000);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setCurrentUser(null);
+    showToast("You have been logged out.", "info");
+  };
 
   const fetchTopContributors = async () => {
     setLoading(true);
@@ -77,15 +134,21 @@ export default function TopContributors() {
       <div>
         <Navbar 
           activeCategory="Top Contributors"
-          setActiveCategory={() => {}}
+          setActiveCategory={(category) => {
+             // Mengarahkan kembali ke home jika user mengklik kategori regional di Navbar
+             window.location.href = category === 'Home' ? '/' : `/?category=${category}`;
+          }}
           resetSearch={() => {}}
           CATEGORIES={CATEGORIES}
           EmeraldFolderIcon={EmeraldFolderIcon}
-          currentUser={null}
-          handleLogout={() => {}}
-          setShowAddModal={() => {}}
-          setShowLoginModal={() => {}}
-          setShowRulesModal={() => {}}
+          currentUser={currentUser}
+          handleLogout={handleLogout}
+          setShowAddModal={() => setShowAddModal(true)}
+          setShowLoginModal={() => setShowLoginModal(true)}
+          setShowRulesModal={() => {
+            window.history.pushState({}, '', '/rules');
+            window.dispatchEvent(new Event('popstate'));
+          }}
         />
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
@@ -164,7 +227,6 @@ export default function TopContributors() {
 
                       <div className="flex items-center gap-6 pt-4 border-t border-slate-50">
                         <div>
-                          {/* Label dengan Ikon Folder */}
                           <span className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 tracking-wide mb-1">
                             <Folder size={12} className="text-emerald-500" />
                             Collections
@@ -174,7 +236,6 @@ export default function TopContributors() {
                           </span>
                         </div>
                         <div>
-                          {/* Label dengan Ikon Video */}
                           <span className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 tracking-wide mb-1">
                             <Video size={12} className="text-emerald-500" />
                             Total Videos
@@ -235,7 +296,6 @@ export default function TopContributors() {
                         </div>
                       </div>
                       
-                      {/* Tampilan Clean Tanpa Background Container */}
                       <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
                         <Video size={14} className="text-emerald-500" /> {user.stats.totalVideos}
                       </div>
@@ -255,6 +315,27 @@ export default function TopContributors() {
         </main>
       </div>
       <Footer onSelectCountry={() => {}} />
+
+      {/* Komponen Toast dan Modal agar interaksi login/logout di Navbar berfungsi */}
+      <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
+      
+      {showAddModal && (
+        <PostModal 
+          onClose={() => setShowAddModal(false)}
+          onSuccess={fetchTopContributors}
+          currentUser={currentUser}
+          showToast={showToast}
+          CATEGORIES={CATEGORIES}
+        />
+      )}
+
+      {showLoginModal && (
+        <LoginModal 
+          onClose={() => setShowLoginModal(false)}
+          onSuccess={checkUser}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 }
