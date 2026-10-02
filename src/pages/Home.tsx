@@ -7,7 +7,7 @@ import Footer from "../components/Footer";
 import LoginModal from "../components/LoginModal";
 import PostModal from "../components/PostModal";
 import PreviewModal from "../components/PreviewModal";
-import { EmeraldFolderIcon, UserBadge } from "../components/SharedIcons"; 
+import { EmeraldFolderIcon } from "../components/SharedIcons"; 
 
 export const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
@@ -47,15 +47,6 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, adminList }: any) => 
               className="w-5 h-5 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform ml-0.5"
             />
           )}
-
-          <div className="flex items-center justify-center">
-            <UserBadge 
-              username={data.uploaded_by} 
-              count={uploaderCount} 
-              adminList={adminList} 
-              isAdmin={data.uploader_role === 'admin' || data.role === 'admin'} 
-            />
-          </div>
         </div>
         
         {data.is_edited && (

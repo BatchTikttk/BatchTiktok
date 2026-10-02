@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Cloud, Box, Download, User, Volume2, VolumeX } from 'lucide-react';
-import { EmeraldFolderIcon, UserBadge } from './SharedIcons'; 
+import { EmeraldFolderIcon } from './SharedIcons'; 
 import { supabase } from '../supabase';
 
 const MOCK_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
@@ -16,6 +16,15 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
   const [uploaderIsAdmin, setUploaderIsAdmin] = useState<boolean>(
     Boolean(item?.is_admin)
   );
+
+  const getAchievementBadge = (count: number) => {
+    if (count >= 50) return { title: 'Emerald Master', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp' };
+    if (count >= 30) return { title: 'Emerald Pro', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp' };
+    if (count >= 10) return { title: 'Emerald Rookie', url: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Low%20Tier.webp' };
+    return null;
+  };
+
+  const badge = getAchievementBadge(uploaderCount);
 
   useEffect(() => {
     let channel: any;
@@ -211,12 +220,14 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
 
                   <span className="font-bold text-slate-700 not-italic">{item.uploaded_by}</span>
                   
-                  <UserBadge 
-                    username={item.uploaded_by} 
-                    count={uploaderCount} 
-                    adminList={adminList} 
-                    isAdmin={uploaderIsAdmin} 
-                  />
+                  {badge && (
+                    <img 
+                      src={badge.url} 
+                      alt={badge.title} 
+                      title={`${badge.title} (${uploaderCount} Uploads)`}
+                      className="w-5 h-5 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform ml-0.5"
+                    />
+                  )}
                 </span>
               </div>
             </div>
@@ -259,7 +270,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
           <div className="mt-auto">
             <h3 className="text-sm font-bold text-slate-700 mb-3">Official Download Mirrors</h3>
             <div className="space-y-3">
-              {/* Menambahkan item.id pada callback Google Drive */}
               <button 
                 onClick={() => onDownload('Google Drive', item.gdrive_url, item.id)} 
                 className="w-full p-4 bg-white hover:bg-blue-50/50 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] hover:shadow-md transition-all flex items-center justify-between group border border-slate-100"
@@ -278,7 +288,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount, adminList }: a
                 </div>
               </button>
 
-              {/* Menambahkan item.id pada callback TeraBox */}
               <button 
                 onClick={() => onDownload('TeraBox', item.terabox_url, item.id)} 
                 className="w-full p-4 bg-white hover:bg-cyan-50/50 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] hover:shadow-md transition-all flex items-center justify-between group border border-slate-100"
