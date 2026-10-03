@@ -27,28 +27,42 @@ interface UserStats {
   totalApproved: number;
 }
 
-// Badge Tier Definitions (Matches Profile.tsx)
+// Badge Tier Definitions (Matches Profile.tsx 5 Tiers)
 const BADGES = [
   {
-    id: 'low_tier',
-    title: 'Emerald Rookie',
+    id: 'bronze',
+    title: 'Bronze Tier',
     tier: 'Tier 1 Badge',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Low%20Tier.webp',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Bronze.webp',
     isUnlocked: (stats: UserStats) => stats.totalUploads >= 10,
   },
   {
-    id: 'medium_tier',
-    title: 'Emerald Pro',
+    id: 'silver',
+    title: 'Silver Tier',
     tier: 'Tier 2 Badge',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp',
-    isUnlocked: (stats: UserStats) => stats.totalApproved >= 30,
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Silver.webp',
+    isUnlocked: (stats: UserStats) => stats.totalUploads >= 30,
   },
   {
-    id: 'advance_tier',
-    title: 'Emerald Master',
+    id: 'gold',
+    title: 'Gold Tier',
     tier: 'Tier 3 Badge',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp',
-    isUnlocked: (stats: UserStats) => stats.totalApproved >= 50,
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Gold.webp',
+    isUnlocked: (stats: UserStats) => stats.totalUploads >= 50,
+  },
+  {
+    id: 'elite',
+    title: 'Elite Tier',
+    tier: 'Tier 4 Badge',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp',
+    isUnlocked: (stats: UserStats) => stats.totalUploads >= 100,
+  },
+  {
+    id: 'legend',
+    title: 'Legend Tier',
+    tier: 'Tier 5 Badge',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp',
+    isUnlocked: (stats: UserStats) => stats.totalUploads >= 200,
   },
 ];
 
