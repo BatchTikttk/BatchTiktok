@@ -160,6 +160,8 @@ export default function CreatorPage({ username }: { username: string }) {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchCreatorData = async () => {
       setLoading(true);
       try {
@@ -169,7 +171,7 @@ export default function CreatorPage({ username }: { username: string }) {
           .ilike('username', username)
           .maybeSingle();
 
-        if (profileData) {
+        if (profileData && isMounted) {
           setCreatorProfile(profileData);
           const { data: batchData } = await supabase
             .from('batches')
@@ -177,7 +179,7 @@ export default function CreatorPage({ username }: { username: string }) {
             .or(`user_id.eq.${profileData.id},username.ilike.${username}`)
             .order('created_at', { ascending: false });
 
-          if (batchData) {
+          if (batchData && isMounted) {
             const mappedBatches = batchData.map(b => ({
               ...b,
               uploaded_by: profileData.username, 
@@ -192,7 +194,7 @@ export default function CreatorPage({ username }: { username: string }) {
             .ilike('username', username)
             .order('created_at', { ascending: false });
 
-          if (batchData) {
+          if (batchData && isMounted) {
             const mappedBatches = batchData.map(b => ({
               ...b,
               uploaded_by: b.uploaded_by || username,
@@ -204,7 +206,7 @@ export default function CreatorPage({ username }: { username: string }) {
       } catch (err) {
         console.error("Error fetching creator data:", err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
@@ -213,6 +215,43 @@ export default function CreatorPage({ username }: { username: string }) {
     } else {
       setLoading(false); // Mencegah infinite loading jika username kosong
     }
+
+    // REALTIME SUBSCRIPTION: Mengamati perubahan pada tabel profiles 
+    // agar avatar ter-update otomatis ketika diubah di Profile.tsx
+    const profileSubscription = supabase
+      .channel(`creator-profile-updates-${username}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          // Jika username profile yang berubah cocok dengan creator yang sedang dibuka
+          if (
+            payload.new && 
+            payload.new.username && 
+            username && 
+            payload.new.username.toLowerCase() === username.toLowerCase()
+          ) {
+            if (isMounted) {
+              // Update state creatorProfile langsung secara realtime dengan data baru
+              setCreatorProfile((prev: any) => ({
+                ...prev,
+                ...payload.new
+              }));
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    // Membersihkan listener ketika komponen unmount
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(profileSubscription);
+    };
   }, [username]);
 
   const handleDownloadInitiate = async (_providerName: string, url: string, batchId?: string) => {
@@ -305,6 +344,7 @@ export default function CreatorPage({ username }: { username: string }) {
             </div>
           )}
 
+          {/* Avatar Rendering Menggunakan creatorProfile.avatar_url */}
           <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 border-4 border-white flex-shrink-0 z-10">
             {creatorProfile?.avatar_url ? (
               <img src={creatorProfile.avatar_url} alt={username} className="w-full h-full object-cover" />
