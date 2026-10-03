@@ -6,7 +6,7 @@ import { supabase } from '../supabase';
 const MOCK_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
 const BANNED_LOGO_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/BannedLogo.webp";
 
-// Interface TypeScript untuk mencegah error saat deployment / build
+// Interface TypeScript menggunakan any agar fleksibel dan tidak error saat build
 interface PreviewModalProps {
   item: any;
   onClose: () => void;
@@ -169,9 +169,23 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
 
   const tikTokEmbedUrl = isTikTokLink ? getTikTokEmbedUrl(videoUrl) : null;
   
-  // Smart logic untuk mengecek ketersediaan link
-  const hasGdrive = Boolean(item.gdrive_url && item.gdrive_url.trim() !== '');
-  const hasTerabox = Boolean(item.terabox_url && item.terabox_url.trim() !== '');
+  // Smart logic untuk sinkronisasi link exclusive_url & download_url tanpa merubah struktur UI
+  let finalGdriveLink = item.gdrive_url || '';
+  let finalTeraboxLink = item.terabox_url || '';
+
+  // Fallback map data exclusive_url atau download_url jika terisi dari database
+  if (item.is_exclusive && item.exclusive_url) {
+    if (item.exclusive_url.includes('drive.google')) finalGdriveLink = item.exclusive_url;
+    else if (item.exclusive_url.includes('tera')) finalTeraboxLink = item.exclusive_url;
+    else if (!finalGdriveLink) finalGdriveLink = item.exclusive_url;
+  } else if (!item.is_exclusive && item.download_url) {
+    if (item.download_url.includes('drive.google')) finalGdriveLink = item.download_url;
+    else if (item.download_url.includes('tera')) finalTeraboxLink = item.download_url;
+    else if (!finalGdriveLink) finalGdriveLink = item.download_url;
+  }
+
+  const hasGdrive = Boolean(finalGdriveLink && finalGdriveLink.trim() !== '');
+  const hasTerabox = Boolean(finalTeraboxLink && finalTeraboxLink.trim() !== '');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
@@ -241,7 +255,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
               className="flex-shrink-0 pt-1 relative drop-shadow-sm" 
               title={item.is_exclusive ? "TikTok Exclusive Collection" : ""}
             >
-              {/* Memastikan className default folder (w-12 h-12) tetap ada agar ukurannya tidak membesar */}
               <EmeraldFolderIcon className="w-12 h-12 drop-shadow-sm" country={item.country} isExclusive={item.is_exclusive} />
               
               {item.is_exclusive && (
@@ -364,7 +377,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
             <div className="space-y-3">
               <button 
                 disabled={!hasGdrive}
-                onClick={() => hasGdrive && handleDownloadClick('Google Drive', item.gdrive_url, item.id)} 
+                onClick={() => hasGdrive && handleDownloadClick('Google Drive', finalGdriveLink, item.id)} 
                 className={`w-full p-4 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] transition-all flex items-center justify-between border border-slate-100 ${hasGdrive ? 'bg-white hover:bg-blue-50/50 hover:shadow-md group cursor-pointer' : 'bg-slate-50 opacity-60 cursor-not-allowed grayscale'}`}
               >
                 <div className="flex items-center gap-3.5">
@@ -374,7 +387,9 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
                   <div className="text-left">
                     <div className={`font-bold transition-colors ${hasGdrive ? 'text-slate-800 group-hover:text-blue-600' : 'text-slate-500'}`}>Google Drive</div>
                     <div className="text-xs text-slate-400 font-medium">
-                      {hasGdrive ? 'High Speed • Single ZIP Archive' : 'Link Unavailable'}
+                      {hasGdrive 
+                        ? (item.is_exclusive ? 'Exclusive Direct Link • VIP Speed' : 'High Speed • Single ZIP Archive') 
+                        : 'Link Unavailable'}
                     </div>
                   </div>
                 </div>
@@ -385,7 +400,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
 
               <button 
                 disabled={!hasTerabox}
-                onClick={() => hasTerabox && handleDownloadClick('TeraBox', item.terabox_url, item.id)} 
+                onClick={() => hasTerabox && handleDownloadClick('TeraBox', finalTeraboxLink, item.id)} 
                 className={`w-full p-4 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] transition-all flex items-center justify-between border border-slate-100 ${hasTerabox ? 'bg-white hover:bg-cyan-50/50 hover:shadow-md group cursor-pointer' : 'bg-slate-50 opacity-60 cursor-not-allowed grayscale'}`}
               >
                 <div className="flex items-center gap-3.5">
@@ -395,7 +410,9 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
                   <div className="text-left">
                     <div className={`font-bold transition-colors ${hasTerabox ? 'text-slate-800 group-hover:text-cyan-600' : 'text-slate-500'}`}>TeraBox Cloud</div>
                     <div className="text-xs text-slate-400 font-medium">
-                      {hasTerabox ? 'Unlimited Cloud Mirror • Free Download' : 'Link Unavailable'}
+                      {hasTerabox 
+                        ? (item.is_exclusive ? 'Exclusive Direct Link • VIP Speed' : 'Unlimited Cloud Mirror • Free Download') 
+                        : 'Link Unavailable'}
                     </div>
                   </div>
                 </div>
