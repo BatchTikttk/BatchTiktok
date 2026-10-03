@@ -4,7 +4,7 @@ import Profile from './pages/Profile';
 import RulesPage from './pages/RulesPage';
 import LegalPage from './pages/LegalPage';
 import TopContributors from './pages/TopContributors';
-import CreatorPage from './pages/CreatorPage'; // 1. IMPORT HALAMAN CREATOR DITAMBAHKAN
+import CreatorPage from './pages/CreatorPage'; 
 import ChatGroup from './components/ChatGroup';
 import LoginModal from './components/LoginModal';
 import { supabase } from './supabase';
@@ -57,7 +57,7 @@ export default function App() {
     } else if (window.location.hash === '#top-contributors') {
       window.history.replaceState({}, '', '/top-contributors');
       setCurrentPath('/top-contributors');
-    } else if (window.location.hash.startsWith('#creator/')) { // Tangkap jika ada hash creator
+    } else if (window.location.hash.startsWith('#creator/')) { 
       const targetPath = window.location.hash.replace('#', '/');
       window.history.replaceState({}, '', targetPath);
       setCurrentPath(targetPath);
@@ -78,6 +78,19 @@ export default function App() {
     window.history.pushState({}, '', path);
     setCurrentPath(path);
     window.dispatchEvent(new Event('popstate'));
+  };
+
+  // ---------------------------------------------------------
+  // LOGIKA GLOBAL: Penjaga Akses untuk Konten Eksklusif
+  // ---------------------------------------------------------
+  const handleExclusiveAccess = (isExclusive: boolean, onSuccessCallback: () => void) => {
+    if (isExclusive && !currentUser) {
+      // Jika konten eksklusif dan user belum login, paksa buka modal login
+      setShowLoginModal(true); 
+    } else {
+      // Jika bukan eksklusif ATAU user sudah login, izinkan aksi berjalan
+      onSuccessCallback(); 
+    }
   };
 
   const renderPage = () => {
@@ -102,13 +115,21 @@ export default function App() {
       return <TopContributors />;
     }
 
-    // 2. ROUTING DINAMIS UNTUK CREATOR PAGE DITAMBAHKAN
     if (currentPath.startsWith('/creator/')) {
       const username = decodeURIComponent(currentPath.split('/creator/')[1] || '');
-      return <CreatorPage username={username} />;
+      return (
+        <CreatorPage 
+          username={username} 
+          onCheckAccess={handleExclusiveAccess} // <-- Lempar logika ke CreatorPage
+        />
+      );
     }
 
-    return <Home />;
+    return (
+      <Home 
+        onCheckAccess={handleExclusiveAccess} // <-- Lempar logika ke Home
+      />
+    );
   };
 
   return (

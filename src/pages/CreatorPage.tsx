@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import { supabase } from "../supabase";
 
-// Import komponen yang digunakan di Home_2.tsx / Home_3.tsx
 import PreviewModal from "../components/PreviewModal";
 import { EmeraldFolderIcon } from "../components/SharedIcons";
 
@@ -82,12 +81,14 @@ interface CreatorCardProps {
   onOpenPreview: (item: BatchItem) => void;
   creatorBadge: BadgeItem | null;
   isAdmin: boolean;
+  onCheckAccess: (isExclusive: boolean | undefined, action: () => void) => void;
 }
 
-const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorBadge, isAdmin }) => {
+const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorBadge, isAdmin, onCheckAccess }) => {
   return (
     <div 
-      onClick={() => onOpenPreview(data)} 
+      // IMPLEMENTASI LOGIKA AKSES EKSKLUSIF
+      onClick={() => onCheckAccess(data.is_exclusive, () => onOpenPreview(data))} 
       className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative"
     >
       <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
@@ -117,14 +118,12 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorB
         )}
       </div>
 
-      {/* Folder Container */}
       <div 
         className="mb-5 mt-2 relative transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
         title={data.is_exclusive ? "TikTok Exclusive Collection" : ""}
       >
         <EmeraldFolderIcon country={data.country} isExclusive={data.is_exclusive} />
         
-        {/* Ikon Mahkota Kuning Murni - Posisi sangat presisi di sudut kiri atas */}
         {data.is_exclusive && (
           <div 
             className="absolute -top-[14px] -left-[6px] z-20 -rotate-[15deg] group-hover:-rotate-[25deg] transition-transform duration-300 pointer-events-none filter drop-shadow-[0_2px_4px_rgba(217,119,6,0.5)]"
@@ -162,7 +161,8 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorB
   );
 };
 
-export default function CreatorPage({ username }: { username: string }) {
+// MENERIMA PROP onCheckAccess DARI APP.TSX
+export default function CreatorPage({ username, onCheckAccess }: { username: string, onCheckAccess: any }) {
   const [batches, setBatches] = useState<BatchItem[]>([]);
   const [creatorProfile, setCreatorProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -325,7 +325,6 @@ export default function CreatorPage({ username }: { username: string }) {
           <Home size={20} /> Home
         </button>
 
-        {/* Profil Kreator Header */}
         <div className="relative bg-white p-8 sm:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 mb-10 flex flex-col md:flex-row items-center md:items-start gap-8">
           
           {!creatorProfile?.is_admin && highestBadge && (
@@ -396,7 +395,6 @@ export default function CreatorPage({ username }: { username: string }) {
           </h2>
         </div>
 
-        {/* Grid Card */}
         {loading ? (
           <div className="flex justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
@@ -414,13 +412,13 @@ export default function CreatorPage({ username }: { username: string }) {
                 onOpenPreview={setPreviewItem}
                 creatorBadge={highestBadge}
                 isAdmin={!!creatorProfile?.is_admin}
+                onCheckAccess={onCheckAccess} // MENERUSKAN FUNGSI KE KARTU
               />
             ))}
           </div>
         )}
       </main>
 
-      {/* Modal Preview */}
       {previewItem && (
         <PreviewModal 
           item={previewItem} 

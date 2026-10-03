@@ -21,7 +21,8 @@ const Toast = ({ message, isVisible, type = 'success' }: any) => (
   </div>
 );
 
-const CreatorCard = ({ data, onOpenPreview, uploaderCount }: any) => {
+// Menerima prop onCheckAccess dari Home
+const CreatorCard = ({ data, onOpenPreview, uploaderCount, onCheckAccess }: any) => {
   const getAchievementBadge = (count: number) => {
     if (data.uploader_is_admin) return null; 
     
@@ -38,7 +39,8 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: any) => {
 
   return (
     <div 
-      onClick={() => onOpenPreview(data)} 
+      // IMPLEMENTASI LOGIKA AKSES EKSKLUSIF DI SINI
+      onClick={() => onCheckAccess(data.is_exclusive, () => onOpenPreview(data))} 
       className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative"
     >
       <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
@@ -115,7 +117,8 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: any) => {
   );
 };
 
-export default function Home() {
+// Menambahkan onCheckAccess ke props Home
+export default function Home({ onCheckAccess }: any) {
   const [batches, setBatches] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState('Home');
   const [searchQuery, setSearchQuery] = useState('');
@@ -128,7 +131,7 @@ export default function Home() {
   const [toastConfig, setToastConfig] = useState({ message: '', isVisible: false, type: 'success' });
 
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 12;
+  const ITEMS_PER_PAGE = 16;
 
   useEffect(() => {
     setCurrentPage(1);
@@ -436,6 +439,7 @@ export default function Home() {
                     data={batch} 
                     onOpenPreview={setPreviewItem} 
                     uploaderCount={uploaderCounts[batch.uploaded_by] || 0} 
+                    onCheckAccess={onCheckAccess} // Meneruskan fungsi ini ke dalam komponen card
                   />
                 ))
               ) : (
