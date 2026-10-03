@@ -691,7 +691,7 @@ export default function Profile({
 
                     {/* CSS Grid modified for 2x2 with center Legend */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      {BADGES.map((badge, index) => {
+                      {BADGES.map((badge) => {
                         const unlocked = badge.isUnlocked(stats);
                         const progress = badge.getCurrentProgress(stats);
                         const percent = Math.min(Math.round((progress / badge.target) * 100), 100);
