@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Upload, Info, ShieldAlert, CheckSquare, Square } from "lucide-react";
+import { X, Upload, Info } from "lucide-react";
 import { supabase } from "../supabase";
 
 const PostModal = ({ onClose, onSuccess, currentUser, showToast, CATEGORIES, onOpenRules }: any) => {
