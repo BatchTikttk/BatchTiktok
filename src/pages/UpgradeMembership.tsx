@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
   Crown, 
   CheckCircle2, 
@@ -108,7 +108,6 @@ export default function UpgradeMembership() {
   };
 
   const handleUpgradePayment = () => {
-    // Implementasi integrasi payment gateway / WhatsApp checkout di sini
     alert(lang === 'en' ? 'Redirecting to payment gateway...' : 'Mengarahkan ke halaman pembayaran...');
   };
 
