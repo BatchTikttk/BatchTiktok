@@ -15,7 +15,7 @@ interface NavbarProps {
   handleLogout: () => void;
   setShowAddModal: (show: boolean) => void;
   setShowLoginModal: (show: boolean) => void;
-  setShowRulesModal?: any; // <-- Ditambahkan untuk mengatasi error TS2322 di Home, Profile, TopContributors
+  setShowRulesModal?: any; 
   EmeraldFolderIcon: React.ElementType;
   onOpenProfile?: () => void;
   onOpenTopContributors?: () => void;
@@ -56,7 +56,6 @@ export default function Navbar({
   }
 
   useEffect(() => {
-    // Menghindari tipe 'any' menggunakan ReturnType
     let channel: ReturnType<typeof supabase.channel>;
 
     const fetchUserAvatar = async () => {
@@ -141,7 +140,6 @@ export default function Navbar({
     setIsMobileMenuOpen(false);
     setIsRegionOpen(false);
     
-    // Fallback cerdas: Jika parent mengirim modal function, pakai itu. Jika tidak, arahkan ke page /rules.
     if (typeof setShowRulesModal === 'function') {
       setShowRulesModal(true);
     } else {
@@ -150,13 +148,19 @@ export default function Navbar({
     }
   };
 
-  // Perbaikan bug: Menambahkan e.preventDefault() agar terhindar dari perilaku aneh saat diklik
+  // -----------------------------------------------------------------
+  // PERBAIKAN: Routing modal Upgrade VIP memanfaatkan Global Event
+  // -----------------------------------------------------------------
   const handleGoToUpgrade = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsDropdownOpen(false);
     setIsMobileMenuOpen(false);
+    
     if (onOpenUpgrade) {
       onOpenUpgrade();
+    } else {
+      // Panggil event global yang sudah kita daftarkan di App.tsx
+      window.dispatchEvent(new Event('openUpgradeModal'));
     }
   };
 
