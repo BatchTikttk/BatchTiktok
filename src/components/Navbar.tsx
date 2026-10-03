@@ -1,9 +1,28 @@
-import { useState, useEffect } from 'react';
-import { Menu, X, Plus, LogIn, LogOut, User, ChevronDown, Scale, BarChart2, Home, Globe, Trophy, MapPin, Crown } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  Menu, X, Plus, LogIn, LogOut, User, ChevronDown, 
+  Scale, BarChart2, Home, Globe, Trophy, MapPin, Crown 
+} from 'lucide-react';
 import { supabase } from '../supabase';
 
+// Mendefinisikan tipe data (TypeScript Interface) dengan benar agar Deploy tidak gagal
+interface NavbarProps {
+  activeCategory?: string;
+  setActiveCategory: (category: string) => void;
+  resetSearch?: () => void;
+  CATEGORIES?: string[];
+  currentUser?: Record<string, any> | string | null;
+  handleLogout: () => void;
+  setShowAddModal: (show: boolean) => void;
+  setShowLoginModal: (show: boolean) => void;
+  EmeraldFolderIcon: React.ElementType;
+  onOpenProfile?: () => void;
+  onOpenTopContributors?: () => void;
+  onOpenUpgrade?: () => void;
+}
+
 export default function Navbar({ 
-  activeCategory, 
+  activeCategory = 'Home', 
   setActiveCategory, 
   resetSearch,
   CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'], 
@@ -14,8 +33,8 @@ export default function Navbar({
   EmeraldFolderIcon,
   onOpenProfile,
   onOpenTopContributors,
-  onOpenUpgrade // <-- Ditambahkan untuk memicu modal Upgrade
-}: any) {
+  onOpenUpgrade
+}: NavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRegionOpen, setIsRegionOpen] = useState(false);
@@ -35,7 +54,8 @@ export default function Navbar({
   }
 
   useEffect(() => {
-    let channel: any;
+    // Menghindari tipe 'any' menggunakan ReturnType
+    let channel: ReturnType<typeof supabase.channel>;
 
     const fetchUserAvatar = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -67,8 +87,8 @@ export default function Navbar({
             filter: `id=eq.${userId}`,
           },
           (payload) => {
-            if (payload.new && payload.new.avatar_url) {
-              setAvatarUrl(payload.new.avatar_url);
+            if (payload.new && (payload.new as any).avatar_url) {
+              setAvatarUrl((payload.new as any).avatar_url);
             }
           }
         )
@@ -122,8 +142,9 @@ export default function Navbar({
     window.dispatchEvent(new Event('popstate'));
   };
 
-  // Membuka Modal Upgrade VIP alih-alih pindah halaman
-  const handleGoToUpgrade = () => {
+  // Perbaikan bug: Menambahkan e.preventDefault() agar terhindar dari perilaku aneh saat diklik
+  const handleGoToUpgrade = (e: React.MouseEvent) => {
+    e.preventDefault();
     setIsDropdownOpen(false);
     setIsMobileMenuOpen(false);
     if (onOpenUpgrade) {
