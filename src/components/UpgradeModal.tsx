@@ -41,12 +41,12 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
       {/* Wrapper untuk mengatur posisi tombol Close di luar kartu */}
       <div className="relative w-full max-w-xl">
         
-        {/* Tombol Close di Luar Container dengan Animasi Hover */}
+        {/* Tombol Close Polos Tanpa Bulatan Background */}
         <button 
           onClick={onClose}
-          className="absolute -top-12 right-0 md:-right-12 md:-top-2 z-[60] p-2.5 text-zinc-400 hover:text-white bg-zinc-900/80 hover:bg-red-500 border border-zinc-700/50 rounded-full backdrop-blur-sm transition-all duration-300 hover:rotate-90 hover:scale-110 cursor-pointer shadow-xl flex items-center justify-center"
+          className="absolute -top-10 right-0 md:-right-10 md:-top-2 z-[60] text-zinc-400 hover:text-white bg-transparent border-none p-1 transition-all duration-300 hover:rotate-90 hover:scale-110 cursor-pointer flex items-center justify-center"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
           </svg>
         </button>
