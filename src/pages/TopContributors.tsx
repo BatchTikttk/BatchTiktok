@@ -33,30 +33,51 @@ interface BadgeItem {
   title: string;
   tier: string;
   iconUrl: string;
+  colorClass: string;
   isUnlocked: (stats: Stats) => boolean;
 }
 
+// MENGGUNAKAN BADGE TERBARU YANG SINKRON
 const BADGES: BadgeItem[] = [
   {
-    id: 'low_tier',
-    title: 'Emerald Rookie',
+    id: 'bronze',
+    title: 'Bronze Tier',
     tier: 'Tier 1 Badge',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Low%20Tier.webp',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Bronze.webp',
+    colorClass: 'text-[#b08d6a]',
     isUnlocked: (stats: Stats) => stats.totalUploads >= 10,
   },
   {
-    id: 'medium_tier',
-    title: 'Emerald Pro',
+    id: 'silver',
+    title: 'Silver Tier',
     tier: 'Tier 2 Badge',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp',
-    isUnlocked: (stats: Stats) => stats.totalApproved >= 30,
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Silver.webp',
+    colorClass: 'text-slate-500',
+    isUnlocked: (stats: Stats) => stats.totalUploads >= 30,
   },
   {
-    id: 'advance_tier',
-    title: 'Emerald Master',
+    id: 'gold',
+    title: 'Gold Tier',
     tier: 'Tier 3 Badge',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp',
-    isUnlocked: (stats: Stats) => stats.totalApproved >= 50,
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Gold.webp',
+    colorClass: 'text-amber-500',
+    isUnlocked: (stats: Stats) => stats.totalUploads >= 50,
+  },
+  {
+    id: 'elite',
+    title: 'Elite Tier',
+    tier: 'Tier 4 Badge',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp',
+    colorClass: 'text-blue-500',
+    isUnlocked: (stats: Stats) => stats.totalUploads >= 100,
+  },
+  {
+    id: 'legend',
+    title: 'Legend Tier',
+    tier: 'Tier 5 Badge',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp',
+    colorClass: 'text-rose-600',
+    isUnlocked: (stats: Stats) => stats.totalUploads >= 200,
   },
 ];
 
@@ -136,7 +157,6 @@ export default function TopContributors() {
         
         const stats: Stats = { totalUploads, totalApproved, totalVideos };
         
-        // Menyamakan perhitungan level persis seperti di Profile_2.tsx
         const calculatedLevel = Math.floor(totalUploads / 3) + 1;
 
         const unlockedBadges = BADGES.filter(badge => badge.isUnlocked(stats));
@@ -146,7 +166,7 @@ export default function TopContributors() {
           ...profile,
           stats,
           highestBadge,
-          level: calculatedLevel // Menggunakan hasil perhitungan yang seragam
+          level: calculatedLevel 
         };
       })
       .filter(user => user.stats.totalUploads > 0 && user.role !== 'admin' && user.is_admin !== true)

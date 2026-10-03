@@ -26,32 +26,53 @@ interface BatchItem {
 interface BadgeItem {
   id: string;
   title: string;
+  tier: string;
   iconUrl: string;
   colorClass: string;
   isUnlocked: (stats: any) => boolean;
 }
 
+// MENGGUNAKAN BADGE TERBARU
 const BADGES: BadgeItem[] = [
   {
-    id: 'low_tier',
-    title: 'Emerald Rookie',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Low%20Tier.webp',
-    colorClass: 'text-emerald-500', // Warna menyesuaikan tier
+    id: 'bronze',
+    title: 'Bronze Tier',
+    tier: 'Tier 1 Badge',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Bronze.webp',
+    colorClass: 'text-[#b08d6a]', // Warna Perunggu
     isUnlocked: (stats: any) => stats.totalUploads >= 10,
   },
   {
-    id: 'medium_tier',
-    title: 'Emerald Pro',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp',
-    colorClass: 'text-emerald-600',
-    isUnlocked: (stats: any) => stats.totalApproved >= 30,
+    id: 'silver',
+    title: 'Silver Tier',
+    tier: 'Tier 2 Badge',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Silver.webp',
+    colorClass: 'text-slate-500', // Warna Perak
+    isUnlocked: (stats: any) => stats.totalUploads >= 30,
   },
   {
-    id: 'advance_tier',
-    title: 'Emerald Master',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp',
-    colorClass: 'text-emerald-700',
-    isUnlocked: (stats: any) => stats.totalApproved >= 50,
+    id: 'gold',
+    title: 'Gold Tier',
+    tier: 'Tier 3 Badge',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Gold.webp',
+    colorClass: 'text-amber-500', // Warna Emas
+    isUnlocked: (stats: any) => stats.totalUploads >= 50,
+  },
+  {
+    id: 'elite',
+    title: 'Elite Tier',
+    tier: 'Tier 4 Badge',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp',
+    colorClass: 'text-blue-500', // Warna Elite/Biru
+    isUnlocked: (stats: any) => stats.totalUploads >= 100,
+  },
+  {
+    id: 'legend',
+    title: 'Legend Tier',
+    tier: 'Tier 5 Badge',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp',
+    colorClass: 'text-rose-600', // Warna Legend/Merah
+    isUnlocked: (stats: any) => stats.totalUploads >= 200,
   },
 ];
 
@@ -134,8 +155,8 @@ export default function CreatorPage({ username }: { username: string }) {
   const [previewItem, setPreviewItem] = useState<BatchItem | null>(null);
 
   const handleGoBack = () => {
-    window.history.pushState({}, '', '/');
-    window.dispatchEvent(new Event('popstate'));
+    // Navigasi yang lebih aman jika ada masalah blank page
+    window.history.back();
   };
 
   useEffect(() => {
@@ -187,7 +208,11 @@ export default function CreatorPage({ username }: { username: string }) {
       }
     };
 
-    if (username) fetchCreatorData();
+    if (username) {
+      fetchCreatorData();
+    } else {
+      setLoading(false); // Mencegah infinite loading jika username kosong
+    }
   }, [username]);
 
   const handleDownloadInitiate = async (_providerName: string, url: string, batchId?: string) => {
