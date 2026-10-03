@@ -17,7 +17,8 @@ const PostModal = ({ onClose, onSuccess, currentUser, showToast, CATEGORIES, onO
     video_url: "", // Preview Video
     gdrive_url: "",
     terabox_url: "",
-    is_banned: false // Menambahkan state awal untuk status banned
+    is_banned: false, // Menambahkan state awal untuk status banned
+    is_exclusive: false // Menambahkan state awal untuk exclusive status
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -35,7 +36,7 @@ const PostModal = ({ onClose, onSuccess, currentUser, showToast, CATEGORIES, onO
     try {
       const { error } = await supabase.from('batches').insert([
         {
-          ...formData, // is_banned otomatis ikut terkirim dari formData
+          ...formData, // is_banned dan is_exclusive otomatis ikut terkirim dari formData
           uploaded_by: currentUser,
           video_count: parseInt(formData.video_count) || 0,
           status: 'pending' // Sistem moderasi aktif, status diset 'pending'
@@ -154,19 +155,39 @@ const PostModal = ({ onClose, onSuccess, currentUser, showToast, CATEGORIES, onO
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:opacity-60 disabled:bg-slate-100" 
               />
               
-              {/* Checkbox Penanda Banned */}
-              <div className="flex items-center gap-2 mt-3 p-3 bg-red-50/50 border border-red-100 rounded-xl">
-                <input 
-                  type="checkbox" 
-                  name="is_banned" 
-                  id="is_banned"
-                  checked={formData.is_banned} 
-                  onChange={handleChange} 
-                  className="w-4 h-4 rounded border-slate-300 text-red-500 focus:ring-red-500 cursor-pointer"
-                />
-                <label htmlFor="is_banned" className="text-sm font-semibold text-red-600 cursor-pointer select-none">
-                  Mark as Banned Account (Check this if the TikTok account is banned)
-                </label>
+              {/* Checkboxes Container (2 Columns) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                {/* Banned Checkbox */}
+                <div className="flex items-start gap-2 p-3 bg-red-50/50 border border-red-100 rounded-xl hover:bg-red-50 transition-colors">
+                  <input 
+                    type="checkbox" 
+                    name="is_banned" 
+                    id="is_banned"
+                    checked={formData.is_banned} 
+                    onChange={handleChange} 
+                    className="w-4 h-4 mt-0.5 rounded border-slate-300 text-red-500 focus:ring-red-500 cursor-pointer"
+                  />
+                  <label htmlFor="is_banned" className="text-sm font-semibold text-red-600 cursor-pointer select-none leading-tight">
+                    Banned Account
+                    <span className="block text-xs font-medium text-red-500/70 mt-0.5">Link not required</span>
+                  </label>
+                </div>
+
+                {/* Exclusive Checkbox */}
+                <div className="flex items-start gap-2 p-3 bg-purple-50/50 border border-purple-100 rounded-xl hover:bg-purple-50 transition-colors">
+                  <input 
+                    type="checkbox" 
+                    name="is_exclusive" 
+                    id="is_exclusive"
+                    checked={formData.is_exclusive} 
+                    onChange={handleChange} 
+                    className="w-4 h-4 mt-0.5 rounded border-slate-300 text-purple-500 focus:ring-purple-500 cursor-pointer"
+                  />
+                  <label htmlFor="is_exclusive" className="text-sm font-semibold text-purple-700 cursor-pointer select-none leading-tight">
+                    TikTok Exclusive
+                    <span className="block text-xs font-medium text-purple-600/70 mt-0.5">Content exclusive to TikTok</span>
+                  </label>
+                </div>
               </div>
             </div>
 
