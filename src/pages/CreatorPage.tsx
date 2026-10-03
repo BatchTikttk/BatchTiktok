@@ -11,6 +11,7 @@ import { EmeraldFolderIcon } from "../components/SharedIcons";
 
 interface BatchItem {
   id: string;
+  user_id?: string;
   username: string;
   country: string;
   video_count: number | string;
@@ -82,13 +83,27 @@ interface CreatorCardProps {
   creatorBadge: BadgeItem | null;
   isAdmin: boolean;
   onCheckAccess: (isExclusive: boolean | undefined, action: () => void) => void;
+  currentUser: any; // Menerima data user yang sedang login
 }
 
-const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorBadge, isAdmin, onCheckAccess }) => {
+const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorBadge, isAdmin, onCheckAccess, currentUser }) => {
+  
+  const handleCardClick = () => {
+    // Cek apakah user yang login adalah pemilik (uploader) dari postingan ini
+    const isOwner = currentUser && (currentUser.id === data.user_id);
+
+    if (isOwner) {
+      // Jika dia pemiliknya, BYPASS (langsung buka preview modal tanpa cek premium)
+      onOpenPreview(data);
+    } else {
+      // Jika dia bukan pemiliknya (pengunjung), lakukan pengecekan Premium
+      onCheckAccess(Boolean(data.is_exclusive), () => onOpenPreview(data));
+    }
+  };
+
   return (
     <div 
-      // IMPLEMENTASI LOGIKA AKSES EKSKLUSIF - Menggunakan Boolean konversi untuk menghindari undefined
-      onClick={() => onCheckAccess(Boolean(data.is_exclusive), () => onOpenPreview(data))} 
+      onClick={handleCardClick} 
       className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative"
     >
       <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
@@ -161,12 +176,11 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorB
   );
 };
 
-// MENERIMA PROP onCheckAccess DARI APP.TSX, ditambahkan type `any` agar fleksibel
 export default function CreatorPage({ username, onCheckAccess }: { username: string, onCheckAccess: any }) {
   const [batches, setBatches] = useState<BatchItem[]>([]);
   const [creatorProfile, setCreatorProfile] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null); // State untuk simpan user yang login
   const [loading, setLoading] = useState(true);
-  
   const [previewItem, setPreviewItem] = useState<BatchItem | null>(null);
 
   const handleGoBack = () => {
@@ -175,6 +189,12 @@ export default function CreatorPage({ username, onCheckAccess }: { username: str
 
   useEffect(() => {
     let isMounted = true;
+
+    // Fetch user yang sedang login saat ini
+    const fetchCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (isMounted) setCurrentUser(user);
+    };
 
     const fetchCreatorData = async () => {
       setLoading(true);
@@ -223,6 +243,8 @@ export default function CreatorPage({ username, onCheckAccess }: { username: str
         if (isMounted) setLoading(false);
       }
     };
+
+    fetchCurrentUser();
 
     if (username) {
       fetchCreatorData();
@@ -412,14 +434,14 @@ export default function CreatorPage({ username, onCheckAccess }: { username: str
                 onOpenPreview={setPreviewItem}
                 creatorBadge={highestBadge}
                 isAdmin={!!creatorProfile?.is_admin}
-                onCheckAccess={onCheckAccess} // PROP INI MENGGUNAKAN LOGIKA APP.TSX UNTUK CEK PREMIUM
+                onCheckAccess={onCheckAccess}
+                currentUser={currentUser} // Pass data user yang login ke Card
               />
             ))}
           </div>
         )}
       </main>
 
-      {/* Render PreviewModal HANYA JIKA previewItem terslot dari logika onCheckAccess (lulus cek akses) */}
       {previewItem && (
         <PreviewModal 
           item={previewItem} 
