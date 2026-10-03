@@ -5,6 +5,7 @@ import RulesPage from './pages/RulesPage';
 import LegalPage from './pages/LegalPage';
 import TopContributors from './pages/TopContributors';
 import CreatorPage from './pages/CreatorPage'; 
+import UpgradeMembership from './pages/UpgradeMembership'; // Added import for UpgradeMembership
 import ChatGroup from './components/ChatGroup';
 import LoginModal from './components/LoginModal';
 import { supabase } from './supabase';
@@ -57,6 +58,9 @@ export default function App() {
     } else if (window.location.hash === '#top-contributors') {
       window.history.replaceState({}, '', '/top-contributors');
       setCurrentPath('/top-contributors');
+    } else if (window.location.hash === '#upgrade') { // Added handler for #upgrade
+      window.history.replaceState({}, '', '/upgrade');
+      setCurrentPath('/upgrade');
     } else if (window.location.hash.startsWith('#creator/')) { 
       const targetPath = window.location.hash.replace('#', '/');
       window.history.replaceState({}, '', targetPath);
@@ -113,6 +117,10 @@ export default function App() {
 
     if (currentPath === '/top-contributors') {
       return <TopContributors />;
+    }
+
+    if (currentPath === '/upgrade') { // Added routing for UpgradeMembership
+      return <UpgradeMembership />;
     }
 
     if (currentPath.startsWith('/creator/')) {
