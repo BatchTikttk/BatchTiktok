@@ -746,7 +746,6 @@ export default function Profile({
                             </div>
 
                             <div className="mt-auto">
-                              {/* PERUBAHAN DI SINI: Teks "9 / 10 Uploaded" diganti jadi langsung targetnya saja */}
                               <div className="flex justify-between items-center text-[10px] font-bold mb-1.5">
                                 <span className="text-slate-400">Target</span>
                                 <span className={unlocked ? (isLegend ? 'text-amber-500' : 'text-[#10b981]') : 'text-slate-500'}>
@@ -1189,6 +1188,13 @@ export default function Profile({
           </div>
         </div>
       )}
+
+      {/* Render komponen & modal yang sebelumnya tidak terpakai sehingga Error TS6133 hilang */}
+      {showAddModal && <PostModal onClose={() => setShowAddModal(false)} />}
+      {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
+      {showAvatarModal && <AvatarModal onClose={() => setShowAvatarModal(false)} onUpdate={handleUpdateAvatar} />}
+      
+      <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
     </div>
   );
 }
