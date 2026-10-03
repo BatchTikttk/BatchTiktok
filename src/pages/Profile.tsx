@@ -694,7 +694,6 @@ export default function Profile({
                       </span>
                     </div>
 
-                    {/* Layout fixed: using grid with centered last item restraint */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       {BADGES.map((badge) => {
                         const unlocked = badge.isUnlocked(stats);
@@ -751,12 +750,14 @@ export default function Profile({
                             </div>
 
                             <div className="mt-auto">
+                              {/* PERUBAHAN DI SINI: Teks "9 / 10 Uploaded" diganti jadi langsung targetnya saja */}
                               <div className="flex justify-between items-center text-[10px] font-bold mb-1.5">
-                                <span className="text-slate-400">Progress</span>
+                                <span className="text-slate-400">Target</span>
                                 <span className={unlocked ? (isLegend ? 'text-amber-500' : 'text-[#10b981]') : 'text-slate-500'}>
-                                  {progress} / {badge.target} {badge.unit}
+                                  {badge.target} {badge.unit}
                                 </span>
                               </div>
+                              
                               <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                                 <div 
                                   className={`h-full transition-all duration-500 rounded-full ${unlocked ? (isLegend ? 'bg-amber-500' : 'bg-[#10b981]') : 'bg-slate-300'}`}
