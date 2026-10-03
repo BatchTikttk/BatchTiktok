@@ -95,14 +95,14 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
 
           <div className="w-full border-t border-slate-100 my-2"></div>
 
-          {/* Features Section (Fully Centered Layout with Aligned Text) */}
+          {/* Features Section (Strictly Centered Content Wrapper) */}
           <div className="w-full flex flex-col items-center mt-6">
             <h3 className="text-slate-900 font-bold text-lg mb-6">
               {CONTENT.featuresHeader}
             </h3>
-            <ul className="w-full max-w-md space-y-4 flex flex-col items-center">
+            <ul className="w-full max-w-md space-y-4 flex flex-col items-start mx-auto pl-4 md:pl-8">
               {CONTENT.features.map((feature, idx) => (
-                <li key={idx} className="flex items-start gap-3.5 w-full text-left">
+                <li key={idx} className="flex items-start gap-3.5 text-left w-full">
                   <Crown 
                     size={20} 
                     className="text-amber-500 fill-amber-400 shrink-0 mt-0.5 drop-shadow-sm" 
