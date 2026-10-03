@@ -37,14 +37,14 @@ import AvatarModal from '../components/Avatar';
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
-// Badge Tier Definitions & Logic (New 5 Tiers)
+// Badge Tier Definitions & Logic (New 5 Tiers) - Strictly using Uploaded count
 const BADGES = [
   {
     id: 'bronze',
     title: 'Bronze Tier',
     tier: 'Tier 1 Badge',
     description: 'Unlocks automatically after uploading at least 10 video batches.',
-    reqText: '10 Uploaded Batches',
+    reqText: '10 Uploaded',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Bronze.webp',
     isUnlocked: (stats: any) => stats.totalUploads >= 10,
     getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 10),
@@ -55,49 +55,49 @@ const BADGES = [
     id: 'silver',
     title: 'Silver Tier',
     tier: 'Tier 2 Badge',
-    description: 'Unlocks automatically after reaching 30 approved video batches.',
-    reqText: '30 Approved Batches',
+    description: 'Unlocks automatically after uploading at least 30 video batches.',
+    reqText: '30 Uploaded',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Silver.webp',
-    isUnlocked: (stats: any) => stats.totalApproved >= 30,
-    getCurrentProgress: (stats: any) => Math.min(stats.totalApproved, 30),
+    isUnlocked: (stats: any) => stats.totalUploads >= 30,
+    getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 30),
     target: 30,
-    unit: 'Approved'
+    unit: 'Uploaded'
   },
   {
     id: 'gold',
     title: 'Gold Tier',
     tier: 'Tier 3 Badge',
-    description: 'Unlocks automatically after reaching 50 approved video batches.',
-    reqText: '50 Approved Batches',
+    description: 'Unlocks automatically after uploading at least 50 video batches.',
+    reqText: '50 Uploaded',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Gold.webp',
-    isUnlocked: (stats: any) => stats.totalApproved >= 50,
-    getCurrentProgress: (stats: any) => Math.min(stats.totalApproved, 50),
+    isUnlocked: (stats: any) => stats.totalUploads >= 50,
+    getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 50),
     target: 50,
-    unit: 'Approved'
+    unit: 'Uploaded'
   },
   {
     id: 'elite',
     title: 'Elite Tier',
     tier: 'Tier 4 Badge',
-    description: 'Unlocks automatically after reaching 100 approved video batches.',
-    reqText: '100 Approved Batches',
+    description: 'Unlocks automatically after uploading at least 100 video batches.',
+    reqText: '100 Uploaded',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp',
-    isUnlocked: (stats: any) => stats.totalApproved >= 100,
-    getCurrentProgress: (stats: any) => Math.min(stats.totalApproved, 100),
+    isUnlocked: (stats: any) => stats.totalUploads >= 100,
+    getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 100),
     target: 100,
-    unit: 'Approved'
+    unit: 'Uploaded'
   },
   {
     id: 'legend',
     title: 'Legend Tier',
     tier: 'Tier 5 Badge',
-    description: 'Highest Achievement! Unlocks after reaching 200 approved video batches.',
-    reqText: '200 Approved Batches',
+    description: 'Highest Achievement! Unlocks after uploading at least 200 video batches.',
+    reqText: '200 Uploaded',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp',
-    isUnlocked: (stats: any) => stats.totalApproved >= 200,
-    getCurrentProgress: (stats: any) => Math.min(stats.totalApproved, 200),
+    isUnlocked: (stats: any) => stats.totalUploads >= 200,
+    getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 200),
     target: 200,
-    unit: 'Approved'
+    unit: 'Uploaded'
   },
 ];
 
