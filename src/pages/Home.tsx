@@ -14,15 +14,31 @@ import { EmeraldFolderIcon } from "../components/SharedIcons";
 
 export const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
-const Toast = ({ message, isVisible, type = 'success' }: any) => (
-  <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-2 transition-all duration-300 z-[9999] ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'} ${type === 'success' ? 'bg-slate-900 text-white' : 'bg-red-500 text-white'}`}>
+interface ToastProps {
+  message: string;
+  isVisible: boolean;
+  type?: 'success' | 'error' | 'info';
+}
+
+interface CreatorCardProps {
+  data: any;
+  onOpenPreview: (item: any) => void;
+  uploaderCount: number;
+  onCheckAccess: (isExclusive: boolean, uploadedBy: string, onSuccess: () => void) => void;
+}
+
+interface HomeProps {
+  onCheckAccess: (isExclusive: boolean, uploadedBy: string, onSuccess: () => void) => void;
+}
+
+const Toast = ({ message, isVisible, type = 'success' }: ToastProps) => (
+  <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-2 transition-all duration-300 z-[9999] ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'} ${type === 'success' ? 'bg-slate-900 text-white' : type === 'error' ? 'bg-red-500 text-white' : 'bg-slate-800 text-white'}`}>
     {type === 'success' ? <CheckCircle2 size={18} className="text-emerald-400" /> : <XCircle size={18} className="text-red-400" />}
     <span className="text-sm font-medium">{message}</span>
   </div>
 );
 
-// Menerima prop onCheckAccess dari Home
-const CreatorCard = ({ data, onOpenPreview, uploaderCount, onCheckAccess }: any) => {
+const CreatorCard = ({ data, onOpenPreview, uploaderCount, onCheckAccess }: CreatorCardProps) => {
   const getAchievementBadge = (count: number) => {
     if (data.uploader_is_admin) return null; 
     
@@ -39,8 +55,7 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, onCheckAccess }: any)
 
   return (
     <div 
-      // IMPLEMENTASI LOGIKA AKSES EKSKLUSIF DI SINI
-      onClick={() => onCheckAccess(data.is_exclusive, () => onOpenPreview(data))} 
+      onClick={() => onCheckAccess(data.is_exclusive, data.uploaded_by, () => onOpenPreview(data))} 
       className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative"
     >
       <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
@@ -117,8 +132,7 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, onCheckAccess }: any)
   );
 };
 
-// Menambahkan onCheckAccess ke props Home
-export default function Home({ onCheckAccess }: any) {
+export default function Home({ onCheckAccess }: HomeProps) {
   const [batches, setBatches] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState('Home');
   const [searchQuery, setSearchQuery] = useState('');
@@ -128,7 +142,11 @@ export default function Home({ onCheckAccess }: any) {
   const [showAddModal, setShowAddModal] = useState(false);
   
   const [previewItem, setPreviewItem] = useState<any>(null);
-  const [toastConfig, setToastConfig] = useState({ message: '', isVisible: false, type: 'success' });
+  const [toastConfig, setToastConfig] = useState<{ message: string; isVisible: boolean; type: 'success' | 'error' | 'info' }>({ 
+    message: '', 
+    isVisible: false, 
+    type: 'success' 
+  });
 
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 16;
@@ -179,9 +197,9 @@ export default function Home({ onCheckAccess }: any) {
     if (error) {
       showToast('Failed to load data from database', 'error');
     } else {
-      const realtimeBatches = (batchesData || []).map(batch => {
+      const realtimeBatches = (batchesData || []).map((batch: any) => {
         const uploaderProfile = profiles?.find(
-          p => (batch.user_id && p.id === batch.user_id) ||
+          (p: any) => (batch.user_id && p.id === batch.user_id) ||
                (p.username && batch.uploaded_by && p.username.toLowerCase() === batch.uploaded_by.toLowerCase())
         );
         
@@ -219,9 +237,9 @@ export default function Home({ onCheckAccess }: any) {
     }
   };
 
-  const showToast = (message: string, type = 'success') => {
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToastConfig({ message, isVisible: true, type });
-    setTimeout(() => setToastConfig({ message: '', isVisible: false, type }), 3000);
+    setTimeout(() => setToastConfig({ message: '', isVisible: false, type: 'success' }), 3000);
   };
 
   const handleLogout = async () => {
@@ -249,7 +267,7 @@ export default function Home({ onCheckAccess }: any) {
 
   const uploaderCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    batches.forEach(batch => {
+    batches.forEach((batch: any) => {
       const user = batch.uploaded_by;
       if (user) {
         counts[user] = (counts[user] || 0) + 1;
@@ -262,15 +280,15 @@ export default function Home({ onCheckAccess }: any) {
     const totalBatches = batches.length;
     
     const uniqueCreators = new Set(
-      batches.map(b => b.uploaded_by || b.username).filter(Boolean)
+      batches.map((b: any) => b.uploaded_by || b.username).filter(Boolean)
     ).size;
 
-    const totalVideos = batches.reduce((sum, batch) => {
+    const totalVideos = batches.reduce((sum: number, batch: any) => {
       const count = parseInt(batch.video_count, 10);
       return sum + (isNaN(count) ? 0 : count);
     }, 0);
 
-    const totalSize = batches.reduce((sum, batch) => {
+    const totalSize = batches.reduce((sum: number, batch: any) => {
       let sizeInGB = 0;
       const sizeStr = (batch.size_file || `${batch.size_gb} GB` || '').toString().toUpperCase();
       const numericValue = parseFloat(sizeStr.replace(/[^\d.]/g, ''));
@@ -290,7 +308,7 @@ export default function Home({ onCheckAccess }: any) {
     return { totalBatches, uniqueCreators, totalVideos, totalSize };
   }, [batches]);
 
-  const filteredBatches = batches.filter(batch => {
+  const filteredBatches = batches.filter((batch: any) => {
     const matchesCategory = activeCategory === 'Home' || batch.country === activeCategory;
     const searchLower = searchQuery.toLowerCase();
     const matchesSearch = 
@@ -433,13 +451,13 @@ export default function Home({ onCheckAccess }: any) {
           <div className="animate-in fade-in duration-500">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {paginatedBatches.length > 0 ? (
-                paginatedBatches.map(batch => (
+                paginatedBatches.map((batch: any) => (
                   <CreatorCard 
                     key={batch.id} 
                     data={batch} 
                     onOpenPreview={setPreviewItem} 
                     uploaderCount={uploaderCounts[batch.uploaded_by] || 0} 
-                    onCheckAccess={onCheckAccess} // Meneruskan fungsi ini ke dalam komponen card
+                    onCheckAccess={onCheckAccess}
                   />
                 ))
               ) : (
@@ -492,7 +510,7 @@ export default function Home({ onCheckAccess }: any) {
         </main>
       </div>
 
-      <Footer onSelectCountry={(category) => {
+      <Footer onSelectCountry={(category: string) => {
         setActiveCategory(category);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }} />
