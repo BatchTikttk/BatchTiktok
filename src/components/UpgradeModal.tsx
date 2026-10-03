@@ -1,4 +1,4 @@
-import { Crown, ShieldCheck } from 'lucide-react';
+import { Check, ShieldCheck } from 'lucide-react';
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -41,23 +41,23 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
       {/* Modal Container: Dark Mode Card */}
       <div className="bg-zinc-900 rounded-[2rem] w-full max-w-xl overflow-hidden shadow-2xl relative flex flex-col animate-in fade-in zoom-in-95 duration-200 border border-zinc-800/50">
         
-        {/* Header: Solid Gold Gradient */}
-        <div className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 px-8 py-8 md:py-10 text-center relative shadow-inner">
+        {/* Header: Solid Gold (Elegan & Soft) */}
+        <div className="bg-amber-600 px-8 py-8 md:py-10 text-center relative">
           
           {/* Close Button */}
           <button 
             onClick={onClose}
-            className="absolute top-4 right-4 md:top-6 md:right-6 text-zinc-900/70 hover:text-zinc-950 transition-colors bg-black/10 hover:bg-black/20 rounded-full cursor-pointer p-2 backdrop-blur-sm border-none"
+            className="absolute top-4 right-4 md:top-6 md:right-6 text-white/80 hover:text-white transition-colors bg-black/15 hover:bg-black/30 rounded-full cursor-pointer p-2 backdrop-blur-sm border-none"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
             </svg>
           </button>
 
-          <h2 className="text-3xl md:text-4xl font-extrabold text-zinc-950 mb-2 tracking-tight mt-2 drop-shadow-sm">
-            {CONTENT.title} <span className="text-white drop-shadow">{CONTENT.titleHighlight}</span>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-2 tracking-tight mt-2">
+            {CONTENT.title} <span className="text-amber-200">{CONTENT.titleHighlight}</span>
           </h2>
-          <p className="text-zinc-900/90 text-sm md:text-base max-w-md mx-auto font-semibold">
+          <p className="text-amber-100 text-sm md:text-base max-w-md mx-auto font-medium opacity-90">
             {CONTENT.subtitle}
           </p>
         </div>
@@ -65,7 +65,7 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
         {/* Content Body */}
         <div className="p-8 md:p-10 flex flex-col items-center w-full">
           
-          {/* Features Section (Benefit VIP di Atas & Center Aligned) */}
+          {/* Features Section (Ikon Ceklis Polos & Rata Tengah) */}
           <div className="w-full flex flex-col items-center mb-8">
             <h3 className="text-zinc-100 font-bold text-lg mb-6 text-center tracking-wide">
               {CONTENT.featuresHeader}
@@ -73,9 +73,9 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
             <ul className="w-full max-w-md space-y-4 flex flex-col items-center text-center mx-auto">
               {CONTENT.features.map((feature, idx) => (
                 <li key={idx} className="flex items-center justify-center gap-2.5 text-center w-full">
-                  <Crown 
+                  <Check 
                     size={18} 
-                    className="text-amber-400 fill-amber-400/20 shrink-0" 
+                    className="text-amber-500 shrink-0 stroke-[2.5]" 
                   />
                   <span className="text-zinc-300 text-sm font-medium leading-relaxed">
                     {feature}
@@ -87,11 +87,11 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
 
           <div className="w-full border-t border-zinc-800/80 mb-8"></div>
 
-          {/* Pricing Section (Nominal tanpa tulisan VIP Access) */}
+          {/* Pricing Section */}
           <div className="w-full flex flex-col items-center">
             <div className="mb-6 text-center">
               <div className="flex items-baseline justify-center gap-2">
-                <span className="text-4xl md:text-5xl font-black text-amber-400 tracking-tight">
+                <span className="text-4xl md:text-5xl font-black text-amber-500 tracking-tight">
                   {CONTENT.price}
                 </span>
               </div>
@@ -100,15 +100,15 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
               </p>
             </div>
 
-            {/* Tombol CTA Gold */}
+            {/* Tombol CTA Solid Gold */}
             <button
               onClick={handlePayment}
-              className="w-full max-w-md bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-zinc-950 font-bold py-4 rounded-xl transition-all shadow-lg shadow-amber-500/20 text-sm border-none cursor-pointer"
+              className="w-full max-w-md bg-amber-600 hover:bg-amber-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-amber-600/20 text-sm border-none cursor-pointer"
             >
               {CONTENT.ctaButton}
             </button>
             <p className="text-zinc-400 text-xs mt-4 font-medium flex items-center justify-center gap-1.5">
-              <ShieldCheck size={16} className="text-amber-400" />
+              <ShieldCheck size={16} className="text-amber-500" />
               {CONTENT.secureNotice}
             </p>
           </div>
