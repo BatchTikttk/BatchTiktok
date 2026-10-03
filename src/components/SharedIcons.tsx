@@ -42,7 +42,15 @@ export const UserBadge = ({
   return null;
 };
 
-export const EmeraldFolderIcon = ({ className = "w-24 h-24", country }: { className?: string, country?: string }) => {
+export const EmeraldFolderIcon = ({ 
+  className = "w-24 h-24", 
+  country,
+  isExclusive = false // Tambahan properti baru
+}: { 
+  className?: string, 
+  country?: string,
+  isExclusive?: boolean // Tambahan tipe data boolean
+}) => {
   const clipId = country ? `flag-clip-${country.toLowerCase()}` : '';
 
   const renderFlag = () => {
@@ -114,9 +122,12 @@ export const EmeraldFolderIcon = ({ className = "w-24 h-24", country }: { classN
     );
   };
 
+  // Mengganti warna bawaan jika folder isExclusive bernilai true (Warna Emas: #F59E0B)
+  const folderColor = isExclusive ? "#F59E0B" : "#10b981";
+
   return (
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <path d="M10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4Z" fill="#10b981" />
+      <path d="M10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4Z" fill={folderColor} />
       {renderFlag()}
     </svg>
   );

@@ -72,8 +72,11 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: any) => {
         )}
       </div>
 
-      <div className="mb-5 mt-2 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
-        <EmeraldFolderIcon country={data.country} />
+      <div 
+        className="mb-5 mt-2 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
+        title={data.is_exclusive ? "TikTok Exclusive Collection" : ""}
+      >
+        <EmeraldFolderIcon country={data.country} isExclusive={data.is_exclusive} />
       </div>
       
       <h3 className="text-lg font-bold text-slate-800 mb-1 tracking-tight">
@@ -243,7 +246,6 @@ export default function Home() {
     return counts;
   }, [batches]);
 
-  // Real-time Platform Stats Calculation dengan parsing GB & MB yang benar
   const stats = useMemo(() => {
     const totalBatches = batches.length;
     
@@ -258,19 +260,16 @@ export default function Home() {
 
     const totalSize = batches.reduce((sum, batch) => {
       let sizeInGB = 0;
-      // Mengambil data dari size_file atau size_gb dan mengubah ke huruf besar untuk pengecekan
       const sizeStr = (batch.size_file || `${batch.size_gb} GB` || '').toString().toUpperCase();
-      
-      // Mengambil hanya angkanya saja (contoh "183 MB" -> 183, "2.4 GB" -> 2.4)
       const numericValue = parseFloat(sizeStr.replace(/[^\d.]/g, ''));
 
       if (!isNaN(numericValue)) {
         if (sizeStr.includes('MB')) {
-          sizeInGB = numericValue / 1024; // Konversi MB ke GB
+          sizeInGB = numericValue / 1024;
         } else if (sizeStr.includes('KB')) {
-          sizeInGB = numericValue / (1024 * 1024); // Konversi KB ke GB
+          sizeInGB = numericValue / (1024 * 1024);
         } else {
-          sizeInGB = numericValue; // Default dianggap GB jika tidak ada MB/KB atau ada teks GB
+          sizeInGB = numericValue;
         }
       }
       return sum + sizeInGB;
@@ -348,11 +347,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Live Stats & Platform Counter - Emerald Gradient Theme */}
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-12">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             
-            {/* Card 1: Total Folders (Emerald 700) */}
             <div className="bg-emerald-700 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
               <div className="flex justify-between items-start mb-6">
                 <span className="font-medium text-[13px] tracking-wide text-emerald-50">Total Folders</span>
@@ -369,7 +366,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Card 2: Total Videos (Emerald 600) */}
             <div className="bg-emerald-600 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
               <div className="flex justify-between items-start mb-6">
                 <span className="font-medium text-[13px] tracking-wide text-emerald-50">Total Videos</span>
@@ -386,7 +382,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Card 3: Total Size (Emerald 500) */}
             <div className="bg-emerald-500 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
               <div className="flex justify-between items-start mb-6">
                 <span className="font-medium text-[13px] tracking-wide text-emerald-50">Total Size</span>
@@ -404,7 +399,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Card 4: Total Creators (Emerald 400) */}
             <div className="bg-emerald-400 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
               <div className="flex justify-between items-start mb-6">
                 <span className="font-medium text-[13px] tracking-wide text-emerald-50">Total Creators</span>
