@@ -13,15 +13,15 @@ const CONTENT = {
     subtitle: 'One-time payment for unlimited access to all folder collections.',
     planTitle: 'VIP Access',
     price: 'Rp 50,000',
-    guarantee: 'Instant activation after verification',
+    guarantee: 'Instant activation after payment verification',
     ctaButton: 'Get Premium Access',
     secureNotice: 'Secure & Verified Payment',
     featuresHeader: 'Member Benefits',
     features: [
       'Full access to all creator archive collections',
       'Direct download links (Google Drive & TeraBox) without ads',
-      'Priority queue for custom Batch Requests',
-      'VIP profile badge & Global Chat features',
+      'Priority queue for custom batch requests',
+      'Exclusive VIP profile badge & global chat access',
       'Daily archive synchronization updates'
     ]
   },
@@ -111,12 +111,7 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
           
           {/* Plan & Pricing Section */}
           <div className="w-full flex flex-col items-center mb-8">
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <h3 className="text-slate-900 font-extrabold text-xl">{t.planTitle}</h3>
-              <span className="bg-amber-50 text-amber-600 font-extrabold text-[11px] px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 border border-amber-200/50">
-                <Crown size={13} className="text-amber-500 fill-amber-500" /> VIP
-              </span>
-            </div>
+            <h3 className="text-slate-900 font-extrabold text-xl mb-3">{t.planTitle}</h3>
 
             <div className="mb-6">
               <div className="flex items-baseline justify-center gap-2">
@@ -143,15 +138,14 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
 
           <div className="w-full border-t border-slate-100 my-2"></div>
 
-          {/* Features Section */}
+          {/* Features Section (Centered & Aligned) */}
           <div className="w-full flex flex-col items-center mt-6">
             <h3 className="text-slate-900 font-bold text-lg mb-6">
               {t.featuresHeader}
             </h3>
-            <ul className="w-full max-w-md space-y-4 text-left">
+            <ul className="w-full max-w-md space-y-4">
               {t.features.map((feature, idx) => (
-                <li key={idx} className="flex items-start gap-3.5">
-                  {/* Crown Gold Icon Tanpa Background Container */}
+                <li key={idx} className="flex items-start gap-3.5 text-left">
                   <Crown 
                     size={20} 
                     className="text-amber-500 fill-amber-400 shrink-0 mt-0.5 drop-shadow-sm" 
