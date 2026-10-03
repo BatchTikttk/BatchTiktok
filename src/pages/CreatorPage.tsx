@@ -87,8 +87,8 @@ interface CreatorCardProps {
 const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorBadge, isAdmin, onCheckAccess }) => {
   return (
     <div 
-      // IMPLEMENTASI LOGIKA AKSES EKSKLUSIF
-      onClick={() => onCheckAccess(data.is_exclusive, () => onOpenPreview(data))} 
+      // IMPLEMENTASI LOGIKA AKSES EKSKLUSIF - Menggunakan Boolean konversi untuk menghindari undefined
+      onClick={() => onCheckAccess(Boolean(data.is_exclusive), () => onOpenPreview(data))} 
       className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative"
     >
       <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
@@ -161,7 +161,7 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorB
   );
 };
 
-// MENERIMA PROP onCheckAccess DARI APP.TSX
+// MENERIMA PROP onCheckAccess DARI APP.TSX, ditambahkan type `any` agar fleksibel
 export default function CreatorPage({ username, onCheckAccess }: { username: string, onCheckAccess: any }) {
   const [batches, setBatches] = useState<BatchItem[]>([]);
   const [creatorProfile, setCreatorProfile] = useState<any>(null);
@@ -412,13 +412,14 @@ export default function CreatorPage({ username, onCheckAccess }: { username: str
                 onOpenPreview={setPreviewItem}
                 creatorBadge={highestBadge}
                 isAdmin={!!creatorProfile?.is_admin}
-                onCheckAccess={onCheckAccess} // MENERUSKAN FUNGSI KE KARTU
+                onCheckAccess={onCheckAccess} // PROP INI MENGGUNAKAN LOGIKA APP.TSX UNTUK CEK PREMIUM
               />
             ))}
           </div>
         )}
       </main>
 
+      {/* Render PreviewModal HANYA JIKA previewItem terslot dari logika onCheckAccess (lulus cek akses) */}
       {previewItem && (
         <PreviewModal 
           item={previewItem} 
