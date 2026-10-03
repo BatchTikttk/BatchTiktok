@@ -21,7 +21,6 @@ export const AVATAR_LIST = [
   'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Avatar%20(18).webp',
   'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Avatar%20(19).webp',
   'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Avatar%20(20).webp',
-
 ];
 
 interface AvatarModalProps {
@@ -37,68 +36,72 @@ export default function AvatarModal({
 }: AvatarModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-5 relative">
+      {/* Changed to max-w-4xl to create a horizontal, widescreen (16:9) style layout */}
+      <div className="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 flex flex-col gap-6 relative">
         
         {/* Header Modal */}
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-bold text-slate-800">Select Character Avatar</h3>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">
-              Select the profile photo you want to use.
+            <h3 className="text-xl font-bold text-slate-800">Select Character Avatar</h3>
+            <p className="text-sm text-slate-400 font-medium mt-1">
+              Select the profile photo you want to use. Scroll down to see more options.
             </p>
           </div>
           <button
             onClick={onClose}
             className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all border-none bg-transparent cursor-pointer"
           >
-            <X size={20} />
+            <X size={24} />
           </button>
         </div>
 
-        {/* Grid Avatar */}
-        <div className="grid grid-cols-4 gap-3 my-1">
-          {AVATAR_LIST.map((url, index) => {
-            const isSelected = currentAvatar === url;
-            return (
-              <button
-                key={index}
-                onClick={() => {
-                  onSelectAvatar(url);
-                  onClose();
-                }}
-                className={`relative group aspect-square rounded-2xl overflow-hidden border-2 transition-all cursor-pointer p-0 bg-slate-50 ${
-                  isSelected
-                    ? 'border-emerald-500 ring-4 ring-emerald-500/20 scale-95'
-                    : 'border-slate-100 hover:border-emerald-400 hover:scale-105'
-                }`}
-              >
-                <img
-                  src={url}
-                  alt={`Avatar Karakter ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-                
-                {/* Indikator Terpilih */}
-                {isSelected && (
-                  <div className="absolute inset-0 bg-emerald-500/20 flex items-center justify-center">
-                    <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-md">
-                      <Check size={14} strokeWidth={3} />
+        {/* Scrollable Container for Avatars */}
+        <div className="overflow-y-auto max-h-[55vh] pr-2 custom-scrollbar">
+          {/* Expanded grid to 8 columns on medium screens for the horizontal look */}
+          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4 my-1">
+            {AVATAR_LIST.map((url, index) => {
+              const isSelected = currentAvatar === url;
+              return (
+                <button
+                  key={index}
+                  onClick={() => {
+                    onSelectAvatar(url);
+                    onClose();
+                  }}
+                  className={`relative group aspect-square rounded-2xl overflow-hidden border-2 transition-all cursor-pointer p-0 bg-slate-50 ${
+                    isSelected
+                      ? 'border-emerald-500 ring-4 ring-emerald-500/20 scale-95'
+                      : 'border-slate-100 hover:border-emerald-400 hover:scale-105'
+                  }`}
+                >
+                  <img
+                    src={url}
+                    alt={`Character Avatar ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                  
+                  {/* Selected Indicator */}
+                  {isSelected && (
+                    <div className="absolute inset-0 bg-emerald-500/20 flex items-center justify-center">
+                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg">
+                        <Check size={18} strokeWidth={3} />
+                      </div>
                     </div>
-                  </div>
-                )}
-              </button>
-            );
-          })}
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Footer Action */}
-        <div className="flex justify-end pt-2 border-t border-slate-100">
+        <div className="flex justify-end pt-4 border-t border-slate-100 mt-2">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-xl transition-all border-none cursor-pointer"
+            className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-xl transition-all border-none cursor-pointer"
           >
-            Cencel
+            Cancel
           </button>
         </div>
 
