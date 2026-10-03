@@ -7,48 +7,44 @@ interface UpgradeMembershipProps {
 const CONTENT = {
   en: {
     backHome: 'Back to Home',
-    badge: 'LIFETIME ACCESS',
-    title: 'Unlock Unlimited',
-    titleHighlight: 'Premium Access',
-    subtitle: 'Get lifetime access to all exclusive TikTok folder collections with just one single payment. No monthly fees forever.',
-    planTitle: 'Lifetime Access Pass',
-    planSubtitle: 'Pay once, enjoy forever',
+    title: 'Upgrade to',
+    titleHighlight: 'Premium',
+    subtitle: 'One-time payment for unlimited access to all folder collections.',
+    planTitle: 'VIP Access',
+    planSubtitle: 'Pay once, no subscription',
     price: 'Rp 50,000',
     pricePeriod: '/ ONE-TIME',
-    guarantee: 'Instant activation after payment verification',
-    ctaButton: 'Get Premium Access Now',
-    secureNotice: 'Encrypted & Verified Secure Payment',
-    featuresHeader: 'Premium Membership Benefits',
+    guarantee: 'Instant activation after payment',
+    ctaButton: 'Get Premium Access',
+    secureNotice: 'Secure & Verified Payment',
+    featuresHeader: 'Member Benefits',
     features: [
-      'Lifetime access to all Exclusive & VIP folders',
-      'High-speed batch downloading without limits',
-      'Early access to daily content updates & new creators',
-      'Ad-free experience with direct download links',
-      'Priority customer support via WhatsApp / Telegram',
-      'Zero recurring or hidden monthly charges'
+      'Access to all Exclusive & VIP folders',
+      'High-speed batch downloads without limits',
+      'Daily content and new creator updates',
+      'Ad-free experience with direct links',
+      'Priority support via WhatsApp / Telegram'
     ]
   },
   id: {
     backHome: 'Kembali ke Beranda',
-    badge: 'AKSES SEUMUR HIDUP',
-    title: 'Akses Semua Koleksi',
-    titleHighlight: 'Premium Tanpa Batas',
-    subtitle: 'Dapatkan akses seumur hidup ke seluruh folder eksklusif TikTok hanya dengan sekali bayar. Tanpa biaya bulanan selamanya.',
-    planTitle: 'Lifetime Access Pass',
-    planSubtitle: 'Bayar sekali, nikmati selamanya',
+    title: 'Akses',
+    titleHighlight: 'Premium',
+    subtitle: 'Satu kali bayar untuk akses seluruh koleksi folder tanpa batas.',
+    planTitle: 'Akses VIP',
+    planSubtitle: 'Sekali bayar, tanpa langganan',
     price: 'Rp 50.000',
     pricePeriod: '/ SEKALI BAYAR',
-    guarantee: 'Akses langsung aktif setelah verifikasi pembayaran',
-    ctaButton: 'Dapatkan Akses Premium Sekarang',
+    guarantee: 'Akses aktif setelah verifikasi pembayaran',
+    ctaButton: 'Beli Akses Premium',
     secureNotice: 'Pembayaran Aman & Terverifikasi',
-    featuresHeader: 'Keuntungan Membership Premium',
+    featuresHeader: 'Fasilitas Member',
     features: [
-      'Akses seumur hidup ke semua folder Eksklusif & VIP',
+      'Akses seluruh folder Eksklusif & VIP',
       'Unduh batch kecepatan tinggi tanpa batas',
-      'Akses lebih awal untuk pembaruan konten harian & kreator baru',
-      'Pengalaman bebas iklan dengan tautan unduhan langsung',
-      'Dukungan pelanggan prioritas via WhatsApp / Telegram',
-      'Tanpa biaya langganan bulanan atau biaya tersembunyi'
+      'Pembaruan konten harian & kreator baru',
+      'Bebas iklan dengan tautan langsung',
+      'Dukungan prioritas via WhatsApp / Telegram'
     ]
   }
 };
@@ -110,15 +106,12 @@ export default function UpgradeMembership({ onBack }: UpgradeMembershipProps) {
       {/* Main Container */}
       <div className="max-w-5xl mx-auto">
         
-        {/* Dark Hero Banner matching Main App Theme */}
-        <div className="bg-slate-900 rounded-3xl p-8 md:p-12 shadow-sm text-center mb-8 relative overflow-hidden">
-          <div className="inline-block bg-emerald-500/10 text-emerald-400 text-xs font-extrabold px-3.5 py-1 rounded-full mb-4 uppercase tracking-wider">
-            {t.badge}
-          </div>
-          <h1 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tight leading-tight">
+        {/* Clean Hero Banner */}
+        <div className="bg-slate-900 rounded-3xl p-8 md:p-10 text-center mb-8 relative overflow-hidden">
+          <h1 className="text-2xl md:text-4xl font-bold text-white mb-2 tracking-tight">
             {t.title} <span className="text-emerald-400">{t.titleHighlight}</span>
           </h1>
-          <p className="text-slate-400 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+          <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
             {t.subtitle}
           </p>
         </div>
@@ -135,7 +128,7 @@ export default function UpgradeMembership({ onBack }: UpgradeMembershipProps) {
                   <p className="text-slate-500 text-xs mt-1">{t.planSubtitle}</p>
                 </div>
                 <span className="bg-emerald-50 text-emerald-600 font-bold text-[11px] px-2.5 py-1 rounded-full">
-                  LIFETIME VIP
+                  VIP
                 </span>
               </div>
 
@@ -162,7 +155,7 @@ export default function UpgradeMembership({ onBack }: UpgradeMembershipProps) {
                 {t.ctaButton}
               </button>
               <p className="text-slate-400 text-[11px] text-center mt-3 font-medium">
-                🔒 {t.secureNotice}
+                {t.secureNotice}
               </p>
             </div>
           </div>
@@ -186,10 +179,6 @@ export default function UpgradeMembership({ onBack }: UpgradeMembershipProps) {
                   </li>
                 ))}
               </ul>
-            </div>
-
-            <div className="mt-8 pt-4 border-t border-slate-100 text-xs text-slate-400 font-medium">
-              Dukungan langsung via Telegram / WhatsApp untuk semua member VIP.
             </div>
           </div>
 
