@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Crown, ShieldCheck } from 'lucide-react';
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -11,10 +12,8 @@ const CONTENT = {
     titleHighlight: 'Premium',
     subtitle: 'One-time payment for unlimited access to all folder collections.',
     planTitle: 'VIP Access',
-    planSubtitle: 'Pay once, no subscription',
     price: 'Rp 50,000',
-    pricePeriod: '/ ONE-TIME',
-    guarantee: 'Instant activation after payment',
+    guarantee: 'Instant activation after verification',
     ctaButton: 'Get Premium Access',
     secureNotice: 'Secure & Verified Payment',
     featuresHeader: 'Member Benefits',
@@ -31,9 +30,7 @@ const CONTENT = {
     titleHighlight: 'Premium',
     subtitle: 'Satu kali bayar untuk akses seluruh koleksi folder tanpa batas.',
     planTitle: 'Akses VIP',
-    planSubtitle: 'Sekali bayar, tanpa langganan',
     price: 'Rp 50.000',
-    pricePeriod: '/ SEKALI BAYAR',
     guarantee: 'Akses aktif setelah verifikasi pembayaran',
     ctaButton: 'Beli Akses Premium',
     secureNotice: 'Pembayaran Aman & Terverifikasi',
@@ -109,18 +106,15 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
           </p>
         </div>
 
-        {/* Content Body (2 Columns, Clean no borders) */}
+        {/* Content Body (2 Columns) */}
         <div className="p-8 md:p-10 grid grid-cols-1 md:grid-cols-2 gap-10 items-center bg-white">
           
-          {/* Pricing Section */}
-          <div className="flex flex-col">
-            <div className="flex items-center gap-3 mb-6">
-              <div>
-                <h3 className="text-slate-900 font-extrabold text-xl">{t.planTitle}</h3>
-                <p className="text-slate-500 text-sm mt-0.5">{t.planSubtitle}</p>
-              </div>
-              <span className="bg-emerald-50 text-emerald-600 font-bold text-[11px] px-3 py-1 rounded-full uppercase tracking-wide">
-                VIP
+          {/* Pricing Section (Left) */}
+          <div className="flex flex-col justify-center">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-slate-900 font-extrabold text-xl">{t.planTitle}</h3>
+              <span className="bg-amber-50 text-amber-600 font-extrabold text-[11px] px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 border border-amber-200/50">
+                <Crown size={13} className="text-amber-500 fill-amber-500" /> VIP
               </span>
             </div>
 
@@ -128,9 +122,6 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
                   {t.price}
-                </span>
-                <span className="text-emerald-600 font-bold text-xs uppercase tracking-wider">
-                  {t.pricePeriod}
                 </span>
               </div>
               <p className="text-slate-400 text-xs mt-3 font-medium">
@@ -145,34 +136,24 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
               {t.ctaButton}
             </button>
             <p className="text-slate-400 text-xs text-center mt-4 font-medium flex items-center justify-center gap-1.5">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <ShieldCheck size={16} className="text-emerald-500" />
               {t.secureNotice}
             </p>
           </div>
 
-          {/* Features Section */}
+          {/* Features Section (Right) */}
           <div className="flex flex-col justify-center">
             <h3 className="text-slate-900 font-bold text-lg mb-6">
               {t.featuresHeader}
             </h3>
             <ul className="space-y-4">
               {t.features.map((feature, idx) => (
-                <li key={idx} className="flex items-start gap-4">
-                  {/* Clean Crown Icon (No Background) */}
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="20" 
-                    height="20" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2.5" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    className="text-emerald-500 shrink-0 mt-0.5"
-                  >
-                    <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/>
-                  </svg>
+                <li key={idx} className="flex items-start gap-3.5">
+                  {/* Crown Gold Icon Tanpa Background Container */}
+                  <Crown 
+                    size={20} 
+                    className="text-amber-500 fill-amber-400 shrink-0 mt-0.5 drop-shadow-sm" 
+                  />
                   <span className="text-slate-600 text-sm font-medium leading-relaxed">
                     {feature}
                   </span>
