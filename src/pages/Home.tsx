@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabase';
 import { 
   Search, CheckCircle2, Play, XCircle, ChevronLeft, ChevronRight, Check, ShieldCheck,
-  Folder, Film, HardDrive, Users
+  Folder, Film, HardDrive, Users, Crown
 } from 'lucide-react';
 
 import Navbar from "../components/Navbar";
@@ -73,10 +73,19 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: any) => {
       </div>
 
       <div 
-        className="mb-5 mt-2 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
+        className="relative mb-5 mt-2 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
         title={data.is_exclusive ? "TikTok Exclusive Collection" : ""}
       >
         <EmeraldFolderIcon country={data.country} isExclusive={data.is_exclusive} />
+        
+        {data.is_exclusive && (
+          <div 
+            className="absolute -top-[14px] -left-[6px] z-20 -rotate-[15deg] transition-transform duration-300 pointer-events-none filter drop-shadow-[0_2px_4px_rgba(217,119,6,0.5)]"
+            title="Exclusive Premium Collection"
+          >
+            <Crown size={24} className="text-amber-500 fill-amber-400" strokeWidth={1.5} />
+          </div>
+        )}
       </div>
       
       <h3 className="text-lg font-bold text-slate-800 mb-1 tracking-tight">

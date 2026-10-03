@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Cloud, Box, Download, User, Volume2, VolumeX, ShieldCheck } from 'lucide-react';
+import { X, Cloud, Box, Download, User, Volume2, VolumeX, ShieldCheck, Crown } from 'lucide-react';
 import { EmeraldFolderIcon } from './SharedIcons'; 
 import { supabase } from '../supabase';
 
@@ -235,9 +235,25 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
 
         <div className="flex-1 p-6 sm:p-8 flex flex-col bg-white overflow-y-auto">
           <div className="mb-6 flex items-start gap-4">
-            <div className="flex-shrink-0 pt-1">
-               <EmeraldFolderIcon className="w-12 h-12 drop-shadow-sm" country={item.country} />
+            
+            {/* Folder Container - Otomatis ganti warna & memakai mahkota jika is_exclusive */}
+            <div 
+              className="flex-shrink-0 pt-1 relative drop-shadow-sm" 
+              title={item.is_exclusive ? "TikTok Exclusive Collection" : ""}
+            >
+              {/* Memastikan className default folder (w-12 h-12) tetap ada agar ukurannya tidak membesar */}
+              <EmeraldFolderIcon className="w-12 h-12 drop-shadow-sm" country={item.country} isExclusive={item.is_exclusive} />
+              
+              {item.is_exclusive && (
+                <div 
+                  className="absolute -top-[14px] -left-[6px] z-20 -rotate-[15deg] transition-transform duration-300 pointer-events-none filter drop-shadow-[0_2px_4px_rgba(217,119,6,0.5)]"
+                  title="Exclusive Premium Collection"
+                >
+                  <Crown size={24} className="text-amber-500 fill-amber-400" strokeWidth={1.5} />
+                </div>
+              )}
             </div>
+
             <div className="flex-1">
               <h2 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
                 <span 

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Home, User, HardDrive, FolderOpen, Video, 
-  MousePointerClick, Play, ShieldCheck, Check 
+  MousePointerClick, Play, ShieldCheck, Check,
+  Crown 
 } from 'lucide-react';
 import { supabase } from "../supabase";
 
-// Import komponen yang digunakan di Home_2.tsx
+// Import komponen yang digunakan di Home_2.tsx / Home_3.tsx
 import PreviewModal from "../components/PreviewModal";
 import { EmeraldFolderIcon } from "../components/SharedIcons";
 
@@ -19,6 +20,7 @@ interface BatchItem {
   uploaded_by?: string;
   uploader_is_admin?: boolean;
   is_edited?: boolean;
+  is_exclusive?: boolean; 
   status?: string;
   [key: string]: any; 
 }
@@ -32,14 +34,13 @@ interface BadgeItem {
   isUnlocked: (stats: any) => boolean;
 }
 
-// MENGGUNAKAN BADGE TERBARU
 const BADGES: BadgeItem[] = [
   {
     id: 'bronze',
     title: 'Bronze Tier',
     tier: 'Tier 1 Badge',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Bronze.webp',
-    colorClass: 'text-[#b08d6a]', // Warna Perunggu
+    colorClass: 'text-[#b08d6a]',
     isUnlocked: (stats: any) => stats.totalUploads >= 10,
   },
   {
@@ -47,7 +48,7 @@ const BADGES: BadgeItem[] = [
     title: 'Silver Tier',
     tier: 'Tier 2 Badge',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Silver.webp',
-    colorClass: 'text-slate-500', // Warna Perak
+    colorClass: 'text-slate-500',
     isUnlocked: (stats: any) => stats.totalUploads >= 30,
   },
   {
@@ -55,7 +56,7 @@ const BADGES: BadgeItem[] = [
     title: 'Gold Tier',
     tier: 'Tier 3 Badge',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Gold.webp',
-    colorClass: 'text-amber-500', // Warna Emas
+    colorClass: 'text-amber-500',
     isUnlocked: (stats: any) => stats.totalUploads >= 50,
   },
   {
@@ -63,7 +64,7 @@ const BADGES: BadgeItem[] = [
     title: 'Elite Tier',
     tier: 'Tier 4 Badge',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp',
-    colorClass: 'text-blue-500', // Warna Elite/Biru
+    colorClass: 'text-blue-500',
     isUnlocked: (stats: any) => stats.totalUploads >= 100,
   },
   {
@@ -71,7 +72,7 @@ const BADGES: BadgeItem[] = [
     title: 'Legend Tier',
     tier: 'Tier 5 Badge',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp',
-    colorClass: 'text-rose-600', // Warna Legend/Merah
+    colorClass: 'text-rose-600',
     isUnlocked: (stats: any) => stats.totalUploads >= 200,
   },
 ];
@@ -116,8 +117,22 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorB
         )}
       </div>
 
-      <div className="mb-5 mt-2 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">
-        <EmeraldFolderIcon country={data.country} />
+      {/* Folder Container */}
+      <div 
+        className="mb-5 mt-2 relative transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
+        title={data.is_exclusive ? "TikTok Exclusive Collection" : ""}
+      >
+        <EmeraldFolderIcon country={data.country} isExclusive={data.is_exclusive} />
+        
+        {/* Ikon Mahkota Kuning Murni - Posisi sangat presisi di sudut kiri atas */}
+        {data.is_exclusive && (
+          <div 
+            className="absolute -top-[14px] -left-[6px] z-20 -rotate-[15deg] group-hover:-rotate-[25deg] transition-transform duration-300 pointer-events-none filter drop-shadow-[0_2px_4px_rgba(217,119,6,0.5)]"
+            title="Exclusive Premium Collection"
+          >
+            <Crown size={24} className="text-amber-500 fill-amber-400" strokeWidth={1.5} />
+          </div>
+        )}
       </div>
       
       <h3 className="text-lg font-bold text-slate-800 mb-1 tracking-tight">
@@ -155,7 +170,6 @@ export default function CreatorPage({ username }: { username: string }) {
   const [previewItem, setPreviewItem] = useState<BatchItem | null>(null);
 
   const handleGoBack = () => {
-    // Navigasi yang lebih aman jika ada masalah blank page
     window.history.back();
   };
 
@@ -213,11 +227,9 @@ export default function CreatorPage({ username }: { username: string }) {
     if (username) {
       fetchCreatorData();
     } else {
-      setLoading(false); // Mencegah infinite loading jika username kosong
+      setLoading(false);
     }
 
-    // REALTIME SUBSCRIPTION: Mengamati perubahan pada tabel profiles 
-    // agar avatar ter-update otomatis ketika diubah di Profile.tsx
     const profileSubscription = supabase
       .channel(`creator-profile-updates-${username}`)
       .on(
@@ -228,7 +240,6 @@ export default function CreatorPage({ username }: { username: string }) {
           table: 'profiles'
         },
         (payload) => {
-          // Jika username profile yang berubah cocok dengan creator yang sedang dibuka
           if (
             payload.new && 
             payload.new.username && 
@@ -236,7 +247,6 @@ export default function CreatorPage({ username }: { username: string }) {
             payload.new.username.toLowerCase() === username.toLowerCase()
           ) {
             if (isMounted) {
-              // Update state creatorProfile langsung secara realtime dengan data baru
               setCreatorProfile((prev: any) => ({
                 ...prev,
                 ...payload.new
@@ -247,7 +257,6 @@ export default function CreatorPage({ username }: { username: string }) {
       )
       .subscribe();
 
-    // Membersihkan listener ketika komponen unmount
     return () => {
       isMounted = false;
       supabase.removeChannel(profileSubscription);
@@ -274,7 +283,6 @@ export default function CreatorPage({ username }: { username: string }) {
     const totalApproved = batches.filter(b => b.status === 'approved').length;
     const totalVideos = batches.reduce((acc, b) => acc + (Number(b.video_count) || 0), 0);
     
-    // PERBAIKAN: Menyesuaikan logika Total Downloads agar selaras dengan Profile.tsx
     const totalDownloads = batches.reduce((acc, b) => {
       const downloadVal = b.download_count ?? b.downloads ?? b.clicks ?? b.click_count ?? b.total_clicks ?? b.click ?? b.views ?? 0;
       return acc + (Number(downloadVal) || 0);
@@ -320,7 +328,6 @@ export default function CreatorPage({ username }: { username: string }) {
         {/* Profil Kreator Header */}
         <div className="relative bg-white p-8 sm:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 mb-10 flex flex-col md:flex-row items-center md:items-start gap-8">
           
-          {/* Lencana Stempel Besar + Teks Detail Tier (Tanpa Kotak Container) */}
           {!creatorProfile?.is_admin && highestBadge && (
             <div className="absolute top-6 right-6 sm:top-8 sm:right-10 flex flex-col items-center justify-center hover:scale-105 transition-transform duration-300 z-0">
               <img 
@@ -335,7 +342,6 @@ export default function CreatorPage({ username }: { username: string }) {
             </div>
           )}
 
-          {/* Untuk Admin Badge Stempel + Teks (Tanpa Kotak Container) */}
           {creatorProfile?.is_admin && (
             <div className="absolute top-6 right-6 sm:top-8 sm:right-10 flex flex-col items-center justify-center z-0 hover:scale-105 transition-transform duration-300">
               <span className="inline-flex items-center justify-center text-white bg-gradient-to-tr from-amber-400 to-amber-500 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full shadow-md border-4 border-amber-100 mb-1.5">
@@ -347,7 +353,6 @@ export default function CreatorPage({ username }: { username: string }) {
             </div>
           )}
 
-          {/* Avatar Rendering Menggunakan creatorProfile.avatar_url */}
           <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 border-4 border-white flex-shrink-0 z-10">
             {creatorProfile?.avatar_url ? (
               <img src={creatorProfile.avatar_url} alt={username} className="w-full h-full object-cover" />
@@ -371,7 +376,6 @@ export default function CreatorPage({ username }: { username: string }) {
                 { icon: FolderOpen, label: "Total Batches", val: stats.totalFolders },
                 { icon: Video, label: "Total Videos", val: stats.totalVideos },
                 { icon: HardDrive, label: "Total Size", val: stats.totalSizeDisplay },
-                // PERBAIKAN: Memanggil properti totalDownloads
                 { icon: MousePointerClick, label: "Total Downloads", val: stats.totalDownloads }
               ].map((stat, idx) => (
                 <div key={idx} className="bg-[#F8FAFC] px-5 py-3 rounded-2xl flex items-center gap-3 border border-slate-50">
