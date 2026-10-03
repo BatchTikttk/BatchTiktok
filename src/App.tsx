@@ -5,7 +5,7 @@ import RulesPage from './pages/RulesPage';
 import LegalPage from './pages/LegalPage';
 import TopContributors from './pages/TopContributors';
 import CreatorPage from './pages/CreatorPage'; 
-import UpgradeModal from './components/UpgradeModal'; 
+import UpgradeModal from './components/UpgradeModal'; // <-- Tambahan Import
 import ChatGroup from './components/ChatGroup';
 import LoginModal from './components/LoginModal';
 import { supabase } from './supabase';
@@ -16,7 +16,7 @@ export default function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   
   // State untuk mengontrol Modal Upgrade
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false); // <-- Tambahan State
 
   // Fungsi untuk mengecek user yang sedang login di Supabase
   const checkUser = async () => {
@@ -47,62 +47,65 @@ export default function App() {
     };
   }, []);
 
-  // Memantau perubahan path URL secara aktif
+  // Manajemen Routing Utama
   useEffect(() => {
-    const syncRoute = () => {
-      const path = window.location.pathname;
-      const hash = window.location.hash;
+    // Normalisasi fallback URL berbasis hash (#) dan Upgrade routing
+    const hash = window.location.hash;
+    const path = window.location.pathname;
 
-      // Tangani kasus rute Upgrade
-      if (hash === '#upgrade' || path === '/upgrade') {
-        window.history.replaceState({}, '', '/');
-        setCurrentPath('/');
+    if (hash === '#upgrade' || path === '/upgrade') {
+      window.history.replaceState({}, '', '/');
+      setCurrentPath('/');
+      setIsUpgradeModalOpen(true);
+    } else if (hash === '#profile') {
+      window.history.replaceState({}, '', '/profile');
+      setCurrentPath('/profile');
+    } else if (hash === '#rules') {
+      window.history.replaceState({}, '', '/rules');
+      setCurrentPath('/rules');
+    } else if (hash === '#legal') {
+      window.history.replaceState({}, '', '/legal');
+      setCurrentPath('/legal');
+    } else if (hash === '#top-contributors') {
+      window.history.replaceState({}, '', '/top-contributors');
+      setCurrentPath('/top-contributors');
+    } else if (hash.startsWith('#creator/')) { 
+      const targetPath = hash.replace('#', '/');
+      window.history.replaceState({}, '', targetPath);
+      setCurrentPath(targetPath);
+    } else if (hash === '#') {
+      window.history.replaceState({}, '', '/');
+      setCurrentPath('/');
+    }
+
+    const handlePopState = () => {
+      const currentLoc = window.location.pathname;
+      if (currentLoc === '/upgrade' || window.location.hash === '#upgrade') {
         setIsUpgradeModalOpen(true);
-        return;
-      }
-
-      if (hash === '#profile') {
-        window.history.replaceState({}, '', '/profile');
-        setCurrentPath('/profile');
-      } else if (hash === '#rules') {
-        window.history.replaceState({}, '', '/rules');
-        setCurrentPath('/rules');
-      } else if (hash === '#legal') {
-        window.history.replaceState({}, '', '/legal');
-        setCurrentPath('/legal');
-      } else if (hash === '#top-contributors') {
-        window.history.replaceState({}, '', '/top-contributors');
-        setCurrentPath('/top-contributors');
-      } else if (hash.startsWith('#creator/')) { 
-        const targetPath = hash.replace('#', '/');
-        window.history.replaceState({}, '', targetPath);
-        setCurrentPath(targetPath);
-      } else if (hash === '#') {
         window.history.replaceState({}, '', '/');
         setCurrentPath('/');
       } else {
-        setCurrentPath(path);
+        setCurrentPath(currentLoc);
       }
-    };
-
-    // Jalankan sinkronisasi saat komponen pertama kali dimuat
-    syncRoute();
-
-    const handlePopState = () => {
-      syncRoute();
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // Tambahan: Global Event Listener agar modal bisa dipanggil dari komponen manapun dengan CustomEvent
+  useEffect(() => {
+    const handleOpenModal = () => setIsUpgradeModalOpen(true);
+    window.addEventListener('openUpgradeModal', handleOpenModal);
+    return () => window.removeEventListener('openUpgradeModal', handleOpenModal);
+  }, []);
+
   const navigateTo = (path: string) => {
-    // Intercept navigasi ke upgrade agar langsung membuka modal
+    // Intercept path upgrade agar memunculkan modal alih-alih berpindah halaman
     if (path === '/upgrade' || path === '#upgrade') {
       setIsUpgradeModalOpen(true);
       return;
     }
-
     window.history.pushState({}, '', path);
     setCurrentPath(path);
     window.dispatchEvent(new Event('popstate'));
@@ -121,18 +124,12 @@ export default function App() {
     }
   };
 
-  const handleOpenUpgrade = () => {
-    setIsUpgradeModalOpen(true);
-  };
-
   const renderPage = () => {
     if (currentPath === '/profile') {
       return (
-        // @ts-ignore: Memaksa TS mengabaikan pengecekan tipe props agar lolos build
         <Profile 
           currentUser={currentUser} 
           onBack={() => navigateTo('/')}
-          onOpenUpgrade={handleOpenUpgrade}
         />
       );
     }
@@ -146,12 +143,7 @@ export default function App() {
     }
 
     if (currentPath === '/top-contributors') {
-      return (
-        // @ts-ignore: Memaksa TS mengabaikan pengecekan tipe props agar lolos build
-        <TopContributors 
-          onOpenUpgrade={handleOpenUpgrade}
-        />
-      );
+      return <TopContributors />;
     }
 
     if (currentPath.startsWith('/creator/')) {
@@ -167,7 +159,6 @@ export default function App() {
     return (
       <Home 
         onCheckAccess={handleExclusiveAccess} 
-        onOpenUpgrade={handleOpenUpgrade}
       />
     );
   };
