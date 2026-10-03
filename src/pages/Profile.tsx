@@ -37,7 +37,7 @@ import AvatarModal from '../components/Avatar';
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
-// Badge Tier Definitions & Logic (New 5 Tiers) - Strictly using Uploaded count
+// Badge Tier Definitions & Logic (5 Tiers) - Strictly using Uploaded count
 const BADGES = [
   {
     id: 'bronze',
@@ -307,9 +307,10 @@ export default function Profile({
     const totalRejected = userBatches.filter(b => b.status === 'rejected').length;
     const totalVideos = userBatches.reduce((acc: number, b: any) => acc + (Number(b.video_count) || 0), 0);
     
+    // PERBAIKAN: Murni mengambil nilai dari kolom download_count
     const totalClicks = userBatches.reduce((acc: number, b: any) => {
-      const clickVal = b.download_count ?? b.clicks ?? b.click_count ?? b.total_clicks ?? b.click ?? b.views ?? 0;
-      return acc + (Number(clickVal) || 0);
+      const downloadVal = b.download_count ?? 0;
+      return acc + (Number(downloadVal) || 0);
     }, 0);
 
     const totalGB = userBatches.reduce((acc: number, b: any) => {
@@ -387,7 +388,7 @@ export default function Profile({
 
     setIsUpdatingBatch(true);
     try {
-      const clickVal = parseInt(editingBatch.download_count ?? editingBatch.clicks ?? editingBatch.click_count ?? editingBatch.total_clicks ?? editingBatch.click) || 0;
+      const downloadVal = parseInt(editingBatch.download_count) || 0;
       
       const updateData: any = {
         username: editingBatch.username,
@@ -399,8 +400,8 @@ export default function Profile({
         gdrive_url: editingBatch.gdrive_url,
         terabox_url: editingBatch.terabox_url,
         is_banned: editingBatch.is_banned,
-        is_edited: true,
-        download_count: clickVal
+        download_count: downloadVal,
+        is_edited: true
       };
 
       const { error } = await supabase
@@ -412,8 +413,8 @@ export default function Profile({
 
       handleShowToast("Batch successfully updated!", "success");
       
-      setUserBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...editingBatch, is_edited: true } : b));
-      setAllBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...editingBatch, is_edited: true } : b));
+      setUserBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...editingBatch, download_count: downloadVal, is_edited: true } : b));
+      setAllBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...editingBatch, download_count: downloadVal, is_edited: true } : b));
       setEditingBatch(null);
     } catch (error: any) {
       handleShowToast(error.message || "Failed to update batch", "error");
@@ -808,7 +809,7 @@ export default function Profile({
                                 <span>•</span>
                                 <span>{batch.size_file || `${batch.size_gb || 0} GB`}</span>
                                 <span>•</span>
-                                <span>{batch.download_count ?? batch.clicks ?? batch.click_count ?? batch.total_clicks ?? batch.click ?? 0} Downloads</span>
+                                <span>{batch.download_count ?? 0} Downloads</span>
                               </div>
                             </div>
                           </div>
@@ -1003,7 +1004,7 @@ export default function Profile({
                                   </span>
                                 </div>
                                 <p className="text-[11px] text-slate-500 font-medium mt-1">
-                                  {batch.video_count} Videos • {batch.size_file || `${batch.size_gb || 0} GB`} • {batch.download_count ?? batch.clicks ?? batch.click_count ?? batch.total_clicks ?? batch.click ?? 0} Downloads
+                                  {batch.video_count} Videos • {batch.size_file || `${batch.size_gb || 0} GB`} • {batch.download_count ?? 0} Downloads
                                 </p>
                               </div>
                             </div>
@@ -1155,7 +1156,7 @@ export default function Profile({
 
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Downloads</label>
-                  <input type="number" name="download_count" value={editingBatch.download_count ?? editingBatch.clicks ?? editingBatch.click_count ?? editingBatch.total_clicks ?? editingBatch.click ?? 0} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
+                  <input type="number" name="download_count" value={editingBatch.download_count ?? 0} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
@@ -1181,7 +1182,7 @@ export default function Profile({
                   Cancel
                 </button>
                 <button type="submit" disabled={isUpdatingBatch} className="px-6 py-3 rounded-full font-bold text-white bg-[#10b981] hover:bg-[#059669] transition-colors flex items-center gap-2 disabled:opacity-70 shadow-md shadow-emerald-500/20 text-xs">
-                  {isUpdatingBatch ? "Saving..." : <><Save /></>}
+                  {isUpdatingBatch ? "Saving..." : <><Save size={16} /> Save</>}
                 </button>
               </div>
             </form>
@@ -1189,11 +1190,39 @@ export default function Profile({
         </div>
       )}
 
-      {/* Render komponen & modal yang sebelumnya tidak terpakai sehingga Error TS6133 hilang */}
-      {showAddModal && <PostModal onClose={() => setShowAddModal(false)} />}
-      {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
-      {showAvatarModal && <AvatarModal onClose={() => setShowAvatarModal(false)} onUpdate={handleUpdateAvatar} />}
-      
+      {showAvatarModal && (
+        <AvatarModal 
+          currentAvatar={userProfile?.avatar_url} 
+          onClose={() => setShowAvatarModal(false)}
+          onSelectAvatar={handleUpdateAvatar} 
+        />
+      )}
+
+      {showAddModal && (
+        <PostModal 
+          onClose={() => setShowAddModal(false)}
+          onSuccess={() => {
+            fetchUserData(false);
+            if (userProfile?.is_admin) fetchAllBatches();
+            setShowAddModal(false);
+          }}
+          currentUser={activeUsername}
+          showToast={handleShowToast}
+          CATEGORIES={CATEGORIES}
+        />
+      )}
+
+      {showLoginModal && (
+        <LoginModal 
+          onClose={() => setShowLoginModal(false)}
+          onSuccess={() => {
+            fetchUserData(false);
+            setShowLoginModal(false);
+          }}
+          showToast={handleShowToast}
+        />
+      )}
+
       <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
     </div>
   );
