@@ -273,10 +273,13 @@ export default function CreatorPage({ username }: { username: string }) {
     const totalUploads = batches.length;
     const totalApproved = batches.filter(b => b.status === 'approved').length;
     const totalVideos = batches.reduce((acc, b) => acc + (Number(b.video_count) || 0), 0);
-    const totalClicks = batches.reduce((acc, b) => {
-      const clickVal = b.clicks ?? b.click_count ?? b.total_clicks ?? b.click ?? b.views ?? 0;
-      return acc + (Number(clickVal) || 0);
+    
+    // PERBAIKAN: Menyesuaikan logika Total Downloads agar selaras dengan Profile.tsx
+    const totalDownloads = batches.reduce((acc, b) => {
+      const downloadVal = b.download_count ?? b.downloads ?? b.clicks ?? b.click_count ?? b.total_clicks ?? b.click ?? b.views ?? 0;
+      return acc + (Number(downloadVal) || 0);
     }, 0);
+
     const totalGB = batches.reduce((acc, b) => {
       if (b.size_gb !== undefined && b.size_gb !== null && b.size_gb !== '') return acc + Number(b.size_gb);
       if (b.size_file) {
@@ -295,7 +298,7 @@ export default function CreatorPage({ username }: { username: string }) {
       totalSizeDisplay = totalGB < 1 ? (totalGB * 1024).toFixed(1) + ' MB' : totalGB.toFixed(1) + ' GB';
     }
 
-    return { totalFolders: totalUploads, totalUploads, totalApproved, totalVideos, totalClicks, totalSizeDisplay };
+    return { totalFolders: totalUploads, totalUploads, totalApproved, totalVideos, totalDownloads, totalSizeDisplay };
   }, [batches]);
 
   const unlockedBadges = useMemo(() => {
@@ -368,7 +371,8 @@ export default function CreatorPage({ username }: { username: string }) {
                 { icon: FolderOpen, label: "Total Batches", val: stats.totalFolders },
                 { icon: Video, label: "Total Videos", val: stats.totalVideos },
                 { icon: HardDrive, label: "Total Size", val: stats.totalSizeDisplay },
-                { icon: MousePointerClick, label: "Total Downloads", val: stats.totalClicks }
+                // PERBAIKAN: Memanggil properti totalDownloads
+                { icon: MousePointerClick, label: "Total Downloads", val: stats.totalDownloads }
               ].map((stat, idx) => (
                 <div key={idx} className="bg-[#F8FAFC] px-5 py-3 rounded-2xl flex items-center gap-3 border border-slate-50">
                   <stat.icon className="text-emerald-500" size={20} />
