@@ -64,10 +64,10 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
       }}
     >
       {/* Modal Container */}
-      <div className="bg-white rounded-[2rem] w-full max-w-4xl overflow-hidden shadow-2xl relative flex flex-col md:flex-col animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-[2rem] w-full max-w-xl overflow-hidden shadow-2xl relative flex flex-col animate-in fade-in zoom-in-95 duration-200">
         
         {/* Dark Hero Header */}
-        <div className="bg-slate-900 px-8 py-10 md:py-12 text-center relative">
+        <div className="bg-slate-900 px-8 py-8 md:py-10 text-center relative">
           
           {/* Top Bar inside Header (Language & Close) */}
           <div className="absolute top-4 left-4 md:top-6 md:left-6 bg-white/10 p-1 rounded-full flex items-center gap-1 backdrop-blur-md">
@@ -101,52 +101,54 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
           <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3 tracking-tight mt-6 md:mt-0">
             {t.title} <span className="text-emerald-400">{t.titleHighlight}</span>
           </h2>
-          <p className="text-slate-400 text-sm md:text-base max-w-lg mx-auto">
+          <p className="text-slate-400 text-sm md:text-base max-w-md mx-auto">
             {t.subtitle}
           </p>
         </div>
 
-        {/* Content Body (2 Columns) */}
-        <div className="p-8 md:p-10 grid grid-cols-1 md:grid-cols-2 gap-10 items-center bg-white">
+        {/* Content Body (Vertical Stack, Centered) */}
+        <div className="p-8 md:p-10 flex flex-col items-center text-center bg-white">
           
-          {/* Pricing Section (Left) */}
-          <div className="flex flex-col justify-center">
-            <div className="flex items-center justify-between mb-6">
+          {/* Plan & Pricing Section */}
+          <div className="w-full flex flex-col items-center mb-8">
+            <div className="flex items-center justify-center gap-2 mb-3">
               <h3 className="text-slate-900 font-extrabold text-xl">{t.planTitle}</h3>
               <span className="bg-amber-50 text-amber-600 font-extrabold text-[11px] px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 border border-amber-200/50">
                 <Crown size={13} className="text-amber-500 fill-amber-500" /> VIP
               </span>
             </div>
 
-            <div className="mb-8">
-              <div className="flex items-baseline gap-2">
+            <div className="mb-6">
+              <div className="flex items-baseline justify-center gap-2">
                 <span className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
                   {t.price}
                 </span>
               </div>
-              <p className="text-slate-400 text-xs mt-3 font-medium">
+              <p className="text-slate-400 text-xs mt-2 font-medium">
                 {t.guarantee}
               </p>
             </div>
 
             <button
               onClick={handlePayment}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-emerald-500/20 text-sm border-none cursor-pointer"
+              className="w-full max-w-md bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-emerald-500/20 text-sm border-none cursor-pointer"
             >
               {t.ctaButton}
             </button>
-            <p className="text-slate-400 text-xs text-center mt-4 font-medium flex items-center justify-center gap-1.5">
+            <p className="text-slate-400 text-xs mt-4 font-medium flex items-center justify-center gap-1.5">
               <ShieldCheck size={16} className="text-emerald-500" />
               {t.secureNotice}
             </p>
           </div>
 
-          {/* Features Section (Right) */}
-          <div className="flex flex-col justify-center">
+          <div className="w-full border-t border-slate-100 my-2"></div>
+
+          {/* Features Section */}
+          <div className="w-full flex flex-col items-center mt-6">
             <h3 className="text-slate-900 font-bold text-lg mb-6">
               {t.featuresHeader}
             </h3>
-            <ul className="space-y-4">
+            <ul className="w-full max-w-md space-y-4 text-left">
               {t.features.map((feature, idx) => (
                 <li key={idx} className="flex items-start gap-3.5">
                   {/* Crown Gold Icon Tanpa Background Container */}
