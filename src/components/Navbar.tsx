@@ -15,6 +15,7 @@ interface NavbarProps {
   handleLogout: () => void;
   setShowAddModal: (show: boolean) => void;
   setShowLoginModal: (show: boolean) => void;
+  setShowRulesModal?: any; // <-- Ditambahkan untuk mengatasi error TS2322 di Home, Profile, TopContributors
   EmeraldFolderIcon: React.ElementType;
   onOpenProfile?: () => void;
   onOpenTopContributors?: () => void;
@@ -30,6 +31,7 @@ export default function Navbar({
   handleLogout, 
   setShowAddModal, 
   setShowLoginModal,
+  setShowRulesModal,
   EmeraldFolderIcon,
   onOpenProfile,
   onOpenTopContributors,
@@ -138,8 +140,14 @@ export default function Navbar({
   const handleGoToRules = () => {
     setIsMobileMenuOpen(false);
     setIsRegionOpen(false);
-    window.history.pushState({}, '', '/rules');
-    window.dispatchEvent(new Event('popstate'));
+    
+    // Fallback cerdas: Jika parent mengirim modal function, pakai itu. Jika tidak, arahkan ke page /rules.
+    if (typeof setShowRulesModal === 'function') {
+      setShowRulesModal(true);
+    } else {
+      window.history.pushState({}, '', '/rules');
+      window.dispatchEvent(new Event('popstate'));
+    }
   };
 
   // Perbaikan bug: Menambahkan e.preventDefault() agar terhindar dari perilaku aneh saat diklik
