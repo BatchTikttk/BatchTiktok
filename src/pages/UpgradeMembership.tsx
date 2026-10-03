@@ -19,11 +19,11 @@ const CONTENT = {
     secureNotice: 'Secure & Verified Payment',
     featuresHeader: 'Member Benefits',
     features: [
-      'Access to all Exclusive & VIP folders',
-      'High-speed batch downloads without limits',
-      'Daily content and new creator updates',
-      'Ad-free experience with direct links',
-      'Priority support via WhatsApp / Telegram'
+      'Full access to all creator archive collections',
+      'Direct download links (Google Drive & TeraBox) without ads',
+      'Priority queue for custom Batch Requests',
+      'VIP profile badge & Global Chat features',
+      'Daily archive synchronization updates'
     ]
   },
   id: {
@@ -40,11 +40,11 @@ const CONTENT = {
     secureNotice: 'Pembayaran Aman & Terverifikasi',
     featuresHeader: 'Fasilitas Member',
     features: [
-      'Akses seluruh folder Eksklusif & VIP',
-      'Unduh batch kecepatan tinggi tanpa batas',
-      'Pembaruan konten harian & kreator baru',
-      'Bebas iklan dengan tautan langsung',
-      'Dukungan prioritas via WhatsApp / Telegram'
+      'Akses penuh ke seluruh arsip kreator',
+      'Tautan unduh langsung (Google Drive & TeraBox) tanpa iklan',
+      'Prioritas antrean untuk Request Batch kreator',
+      'Lencana profil VIP & akses fitur Global Chat',
+      'Pembaruan sinkronisasi arsip harian'
     ]
   }
 };
