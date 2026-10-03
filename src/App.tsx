@@ -47,36 +47,49 @@ export default function App() {
     };
   }, []);
 
+  // Memantau perubahan path URL secara aktif
   useEffect(() => {
-    // Normalisasi fallback URL berbasis hash (#)
-    if (window.location.hash === '#profile') {
-      window.history.replaceState({}, '', '/profile');
-      setCurrentPath('/profile');
-    } else if (window.location.hash === '#rules') {
-      window.history.replaceState({}, '', '/rules');
-      setCurrentPath('/rules');
-    } else if (window.location.hash === '#legal') {
-      window.history.replaceState({}, '', '/legal');
-      setCurrentPath('/legal');
-    } else if (window.location.hash === '#top-contributors') {
-      window.history.replaceState({}, '', '/top-contributors');
-      setCurrentPath('/top-contributors');
-    } else if (window.location.hash === '#upgrade' || window.location.pathname === '/upgrade') { 
-      // Jika mengakses URL upgrade, buka modal dan arahkan ke beranda
-      window.history.replaceState({}, '', '/');
-      setCurrentPath('/');
-      setIsUpgradeModalOpen(true);
-    } else if (window.location.hash.startsWith('#creator/')) { 
-      const targetPath = window.location.hash.replace('#', '/');
-      window.history.replaceState({}, '', targetPath);
-      setCurrentPath(targetPath);
-    } else if (window.location.hash === '#') {
-      window.history.replaceState({}, '', '/');
-      setCurrentPath('/');
-    }
+    const syncRoute = () => {
+      const path = window.location.pathname;
+      const hash = window.location.hash;
+
+      // Tangani kasus rute Upgrade
+      if (hash === '#upgrade' || path === '/upgrade') {
+        window.history.replaceState({}, '', '/');
+        setCurrentPath('/');
+        setIsUpgradeModalOpen(true);
+        return;
+      }
+
+      if (hash === '#profile') {
+        window.history.replaceState({}, '', '/profile');
+        setCurrentPath('/profile');
+      } else if (hash === '#rules') {
+        window.history.replaceState({}, '', '/rules');
+        setCurrentPath('/rules');
+      } else if (hash === '#legal') {
+        window.history.replaceState({}, '', '/legal');
+        setCurrentPath('/legal');
+      } else if (hash === '#top-contributors') {
+        window.history.replaceState({}, '', '/top-contributors');
+        setCurrentPath('/top-contributors');
+      } else if (hash.startsWith('#creator/')) { 
+        const targetPath = hash.replace('#', '/');
+        window.history.replaceState({}, '', targetPath);
+        setCurrentPath(targetPath);
+      } else if (hash === '#') {
+        window.history.replaceState({}, '', '/');
+        setCurrentPath('/');
+      } else {
+        setCurrentPath(path);
+      }
+    };
+
+    // Jalankan sinkronisasi saat komponen pertama kali dimuat
+    syncRoute();
 
     const handlePopState = () => {
-      setCurrentPath(window.location.pathname);
+      syncRoute();
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -84,7 +97,7 @@ export default function App() {
   }, []);
 
   const navigateTo = (path: string) => {
-    // Intercept navigasi ke upgrade agar membuka modal
+    // Intercept navigasi ke upgrade agar langsung membuka modal
     if (path === '/upgrade' || path === '#upgrade') {
       setIsUpgradeModalOpen(true);
       return;
@@ -108,12 +121,17 @@ export default function App() {
     }
   };
 
+  const handleOpenUpgrade = () => {
+    setIsUpgradeModalOpen(true);
+  };
+
   const renderPage = () => {
     if (currentPath === '/profile') {
       return (
         <Profile 
           currentUser={currentUser} 
           onBack={() => navigateTo('/')}
+          onOpenUpgrade={handleOpenUpgrade}
         />
       );
     }
@@ -127,7 +145,11 @@ export default function App() {
     }
 
     if (currentPath === '/top-contributors') {
-      return <TopContributors />;
+      return (
+        <TopContributors 
+          onOpenUpgrade={handleOpenUpgrade}
+        />
+      );
     }
 
     if (currentPath.startsWith('/creator/')) {
@@ -143,6 +165,7 @@ export default function App() {
     return (
       <Home 
         onCheckAccess={handleExclusiveAccess} 
+        onOpenUpgrade={handleOpenUpgrade}
       />
     );
   };
