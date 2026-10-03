@@ -43,56 +43,61 @@ const BADGES = [
     id: 'bronze',
     title: 'Bronze Tier',
     tier: 'Tier 1 Badge',
-    description: 'Terbuka otomatis setelah mengunggah minimal 10 batch video.',
+    description: 'Unlocks automatically after uploading at least 10 video batches.',
     reqText: '10 Uploaded Batches',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Bronze.webp',
     isUnlocked: (stats: any) => stats.totalUploads >= 10,
     getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 10),
     target: 10,
+    unit: 'Uploaded'
   },
   {
     id: 'silver',
     title: 'Silver Tier',
     tier: 'Tier 2 Badge',
-    description: 'Terbuka otomatis setelah mencapai 30 batch video yang disetujui (Approved).',
+    description: 'Unlocks automatically after reaching 30 approved video batches.',
     reqText: '30 Approved Batches',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Silver.webp',
     isUnlocked: (stats: any) => stats.totalApproved >= 30,
     getCurrentProgress: (stats: any) => Math.min(stats.totalApproved, 30),
     target: 30,
+    unit: 'Approved'
   },
   {
     id: 'gold',
     title: 'Gold Tier',
     tier: 'Tier 3 Badge',
-    description: 'Terbuka otomatis setelah mencapai 50 batch video yang disetujui (Approved).',
+    description: 'Unlocks automatically after reaching 50 approved video batches.',
     reqText: '50 Approved Batches',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Gold.webp',
     isUnlocked: (stats: any) => stats.totalApproved >= 50,
     getCurrentProgress: (stats: any) => Math.min(stats.totalApproved, 50),
     target: 50,
+    unit: 'Approved'
   },
   {
     id: 'elite',
     title: 'Elite Tier',
     tier: 'Tier 4 Badge',
-    description: 'Terbuka otomatis setelah mencapai 100 batch video yang disetujui (Approved).',
+    description: 'Unlocks automatically after reaching 100 approved video batches.',
     reqText: '100 Approved Batches',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp',
     isUnlocked: (stats: any) => stats.totalApproved >= 100,
     getCurrentProgress: (stats: any) => Math.min(stats.totalApproved, 100),
     target: 100,
+    unit: 'Approved'
   },
   {
     id: 'legend',
     title: 'Legend Tier',
     tier: 'Tier 5 Badge',
-    description: 'Pencapaian Tertinggi! Terbuka setelah mencapai 200 batch video disetujui.',
+    description: 'Highest Achievement! Unlocks after reaching 200 approved video batches.',
     reqText: '200 Approved Batches',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp',
     isUnlocked: (stats: any) => stats.totalApproved >= 200,
     getCurrentProgress: (stats: any) => Math.min(stats.totalApproved, 200),
     target: 200,
+    unit: 'Approved'
   },
 ];
 
@@ -689,7 +694,7 @@ export default function Profile({
                       </span>
                     </div>
 
-                    {/* CSS Grid modified for 2x2 with center Legend */}
+                    {/* Layout fixed: using grid with centered last item restraint */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       {BADGES.map((badge) => {
                         const unlocked = badge.isUnlocked(stats);
@@ -700,13 +705,13 @@ export default function Profile({
                         return (
                           <div 
                             key={badge.id}
-                            className={`relative p-5 rounded-[24px] transition-all duration-300 flex flex-col justify-between ${
+                            className={`relative p-5 rounded-[24px] transition-all duration-300 flex flex-col justify-between h-full ${
                               unlocked 
                                 ? (isLegend 
                                     ? 'bg-gradient-to-b from-yellow-50 to-amber-100/50 border border-amber-200 shadow-[0_8px_24px_-8px_rgba(251,191,36,0.4)] scale-[1.02] hover:-translate-y-1' 
                                     : 'bg-gradient-to-b from-white to-blue-50/30 border border-blue-100 shadow-[0_4px_16px_-8px_rgba(59,130,246,0.2)] hover:-translate-y-1') 
                                 : 'bg-slate-50 border border-slate-100 opacity-80'
-                            } ${isLegend ? 'md:col-span-2 md:mx-auto md:w-3/4' : ''}`}
+                            } ${isLegend ? 'md:col-span-2 max-w-[380px] mx-auto w-full' : 'w-full'}`}
                           >
                             <div className="flex items-center justify-between mb-4">
                               <span className={`text-[10px] font-bold px-3 py-1.5 rounded-full ${
@@ -749,7 +754,7 @@ export default function Profile({
                               <div className="flex justify-between items-center text-[10px] font-bold mb-1.5">
                                 <span className="text-slate-400">Progress</span>
                                 <span className={unlocked ? (isLegend ? 'text-amber-500' : 'text-[#10b981]') : 'text-slate-500'}>
-                                  {progress} / {badge.target}
+                                  {progress} / {badge.target} {badge.unit}
                                 </span>
                               </div>
                               <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
