@@ -5,7 +5,7 @@ import RulesPage from './pages/RulesPage';
 import LegalPage from './pages/LegalPage';
 import TopContributors from './pages/TopContributors';
 import CreatorPage from './pages/CreatorPage'; 
-import UpgradeMembership from './pages/UpgradeMembership'; // Added import for UpgradeMembership
+import UpgradeModal from './components/UpgradeModal'; 
 import ChatGroup from './components/ChatGroup';
 import LoginModal from './components/LoginModal';
 import { supabase } from './supabase';
