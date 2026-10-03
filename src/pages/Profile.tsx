@@ -308,7 +308,7 @@ export default function Profile({
     const totalVideos = userBatches.reduce((acc: number, b: any) => acc + (Number(b.video_count) || 0), 0);
     
     const totalClicks = userBatches.reduce((acc: number, b: any) => {
-      const clickVal = b.clicks ?? b.click_count ?? b.total_clicks ?? b.click ?? b.views ?? 0;
+      const clickVal = b.download_count ?? b.clicks ?? b.click_count ?? b.total_clicks ?? b.click ?? b.views ?? 0;
       return acc + (Number(clickVal) || 0);
     }, 0);
 
@@ -387,7 +387,7 @@ export default function Profile({
 
     setIsUpdatingBatch(true);
     try {
-      const clickVal = parseInt(editingBatch.clicks ?? editingBatch.click_count ?? editingBatch.total_clicks ?? editingBatch.click) || 0;
+      const clickVal = parseInt(editingBatch.download_count ?? editingBatch.clicks ?? editingBatch.click_count ?? editingBatch.total_clicks ?? editingBatch.click) || 0;
       
       const updateData: any = {
         username: editingBatch.username,
@@ -399,13 +399,9 @@ export default function Profile({
         gdrive_url: editingBatch.gdrive_url,
         terabox_url: editingBatch.terabox_url,
         is_banned: editingBatch.is_banned,
-        is_edited: true
+        is_edited: true,
+        download_count: clickVal
       };
-
-      if (editingBatch.clicks !== undefined) updateData.clicks = clickVal;
-      else if (editingBatch.click_count !== undefined) updateData.click_count = clickVal;
-      else if (editingBatch.total_clicks !== undefined) updateData.total_clicks = clickVal;
-      else updateData.clicks = clickVal;
 
       const { error } = await supabase
         .from('batches')
@@ -813,7 +809,7 @@ export default function Profile({
                                 <span>•</span>
                                 <span>{batch.size_file || `${batch.size_gb || 0} GB`}</span>
                                 <span>•</span>
-                                <span>{batch.clicks ?? batch.click_count ?? batch.total_clicks ?? batch.click ?? 0} Downloads</span>
+                                <span>{batch.download_count ?? batch.clicks ?? batch.click_count ?? batch.total_clicks ?? batch.click ?? 0} Downloads</span>
                               </div>
                             </div>
                           </div>
@@ -1008,7 +1004,7 @@ export default function Profile({
                                   </span>
                                 </div>
                                 <p className="text-[11px] text-slate-500 font-medium mt-1">
-                                  {batch.video_count} Videos • {batch.size_file || `${batch.size_gb || 0} GB`} • {batch.clicks ?? batch.click_count ?? batch.total_clicks ?? batch.click ?? 0} Downloads
+                                  {batch.video_count} Videos • {batch.size_file || `${batch.size_gb || 0} GB`} • {batch.download_count ?? batch.clicks ?? batch.click_count ?? batch.total_clicks ?? batch.click ?? 0} Downloads
                                 </p>
                               </div>
                             </div>
@@ -1160,7 +1156,7 @@ export default function Profile({
 
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Downloads</label>
-                  <input type="number" name="clicks" value={editingBatch.clicks ?? editingBatch.click_count ?? editingBatch.total_clicks ?? editingBatch.click ?? 0} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
+                  <input type="number" name="download_count" value={editingBatch.download_count ?? editingBatch.clicks ?? editingBatch.click_count ?? editingBatch.total_clicks ?? editingBatch.click ?? 0} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
@@ -1186,48 +1182,13 @@ export default function Profile({
                   Cancel
                 </button>
                 <button type="submit" disabled={isUpdatingBatch} className="px-6 py-3 rounded-full font-bold text-white bg-[#10b981] hover:bg-[#059669] transition-colors flex items-center gap-2 disabled:opacity-70 shadow-md shadow-emerald-500/20 text-xs">
-                  {isUpdatingBatch ? "Saving..." : <><Save size={16} /> Save</>}
+                  {isUpdatingBatch ? "Saving..." : <><Save /></>}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-
-      {showAvatarModal && (
-        <AvatarModal 
-          currentAvatar={userProfile?.avatar_url} 
-          onClose={() => setShowAvatarModal(false)}
-          onSelectAvatar={handleUpdateAvatar} 
-        />
-      )}
-
-      {showAddModal && (
-        <PostModal 
-          onClose={() => setShowAddModal(false)}
-          onSuccess={() => {
-            fetchUserData(false);
-            if (userProfile?.is_admin) fetchAllBatches();
-            setShowAddModal(false);
-          }}
-          currentUser={activeUsername}
-          showToast={handleShowToast}
-          CATEGORIES={CATEGORIES}
-        />
-      )}
-
-      {showLoginModal && (
-        <LoginModal 
-          onClose={() => setShowLoginModal(false)}
-          onSuccess={() => {
-            fetchUserData(false);
-            setShowLoginModal(false);
-          }}
-          showToast={handleShowToast}
-        />
-      )}
-
-      <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
     </div>
   );
 }

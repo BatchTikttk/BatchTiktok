@@ -52,6 +52,30 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
     }
   };
 
+  // Handler klik download untuk insert ke download_count
+  const handleDownloadClick = async (source: string, url: string, id: any) => {
+    onDownload(source, url, id);
+    
+    if (!id) return;
+    try {
+      const { data, error } = await supabase
+        .from('batches')
+        .select('download_count')
+        .eq('id', id)
+        .single();
+        
+      if (!error) {
+        const currentCount = data?.download_count || 0;
+        await supabase
+          .from('batches')
+          .update({ download_count: currentCount + 1 })
+          .eq('id', id);
+      }
+    } catch (err) {
+      console.error("Gagal menambahkan download count", err);
+    }
+  };
+
   useEffect(() => {
     let channel: any;
 
@@ -324,7 +348,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
             <div className="space-y-3">
               <button 
                 disabled={!hasGdrive}
-                onClick={() => hasGdrive && onDownload('Google Drive', item.gdrive_url, item.id)} 
+                onClick={() => hasGdrive && handleDownloadClick('Google Drive', item.gdrive_url, item.id)} 
                 className={`w-full p-4 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] transition-all flex items-center justify-between border border-slate-100 ${hasGdrive ? 'bg-white hover:bg-blue-50/50 hover:shadow-md group cursor-pointer' : 'bg-slate-50 opacity-60 cursor-not-allowed grayscale'}`}
               >
                 <div className="flex items-center gap-3.5">
@@ -345,7 +369,7 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
 
               <button 
                 disabled={!hasTerabox}
-                onClick={() => hasTerabox && onDownload('TeraBox', item.terabox_url, item.id)} 
+                onClick={() => hasTerabox && handleDownloadClick('TeraBox', item.terabox_url, item.id)} 
                 className={`w-full p-4 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] transition-all flex items-center justify-between border border-slate-100 ${hasTerabox ? 'bg-white hover:bg-cyan-50/50 hover:shadow-md group cursor-pointer' : 'bg-slate-50 opacity-60 cursor-not-allowed grayscale'}`}
               >
                 <div className="flex items-center gap-3.5">
