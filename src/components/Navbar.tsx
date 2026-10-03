@@ -13,7 +13,8 @@ export default function Navbar({
   setShowLoginModal,
   EmeraldFolderIcon,
   onOpenProfile,
-  onOpenTopContributors
+  onOpenTopContributors,
+  onOpenUpgrade // <-- Ditambahkan untuk memicu modal Upgrade
 }: any) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -121,12 +122,13 @@ export default function Navbar({
     window.dispatchEvent(new Event('popstate'));
   };
 
-  // Navigasi ke Halaman Upgrade Membership
+  // Membuka Modal Upgrade VIP alih-alih pindah halaman
   const handleGoToUpgrade = () => {
     setIsDropdownOpen(false);
     setIsMobileMenuOpen(false);
-    window.history.pushState({}, '', '/upgrade');
-    window.dispatchEvent(new Event('popstate'));
+    if (onOpenUpgrade) {
+      onOpenUpgrade();
+    }
   };
 
   const isTopContributorsActive = 
@@ -232,7 +234,6 @@ export default function Navbar({
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="px-4 py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold text-slate-600 flex items-center gap-2.5 transition-all border-none cursor-pointer"
                 >
-                  {/* Avatar Container Diperbesar dari w-6 h-6 menjadi w-7 h-7 */}
                   <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {avatarUrl ? (
                       <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
