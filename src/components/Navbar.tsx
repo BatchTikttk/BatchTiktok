@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, Plus, LogIn, LogOut, User, ChevronDown, Scale, BarChart2, Home, Globe, Trophy, MapPin } from 'lucide-react';
+import { Menu, X, Plus, LogIn, LogOut, User, ChevronDown, Scale, BarChart2, Home, Globe, Trophy, MapPin, Crown } from 'lucide-react';
 import { supabase } from '../supabase';
 
 export default function Navbar({ 
@@ -114,7 +114,6 @@ export default function Navbar({
     }
   };
 
-  // Navigasi ke Halaman Rules
   const handleGoToRules = () => {
     setIsMobileMenuOpen(false);
     setIsRegionOpen(false);
@@ -122,10 +121,17 @@ export default function Navbar({
     window.dispatchEvent(new Event('popstate'));
   };
 
+  // Navigasi ke Halaman Upgrade Membership
+  const handleGoToUpgrade = () => {
+    setIsDropdownOpen(false);
+    setIsMobileMenuOpen(false);
+    window.history.pushState({}, '', '/upgrade');
+    window.dispatchEvent(new Event('popstate'));
+  };
+
   const isTopContributorsActive = 
     activeCategory === 'Top Contributors' || window.location.pathname === '/top-contributors';
 
-  // State active untuk rules page
   const isRulesActive = window.location.pathname === '/rules';
 
   return (
@@ -226,13 +232,14 @@ export default function Navbar({
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="px-4 py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold text-slate-600 flex items-center gap-2.5 transition-all border-none cursor-pointer"
                 >
-                  <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  {/* Avatar Container Diperbesar dari w-6 h-6 menjadi w-7 h-7 */}
+                  <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {avatarUrl ? (
                       <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
                     ) : typeof currentUser === 'object' && currentUser?.user_metadata?.avatar_url ? (
                       <img src={currentUser.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
-                      <User size={16} />
+                      <User size={18} />
                     )}
                   </div>
                   <span>@{displayUser}</span>
@@ -252,6 +259,13 @@ export default function Navbar({
                       </button>
 
                       <button
+                        onClick={handleGoToUpgrade}
+                        className="w-full px-4 py-3.5 flex items-center gap-3 text-sm font-bold text-amber-500 hover:bg-amber-50 transition-colors text-left border-none bg-transparent cursor-pointer"
+                      >
+                        <Crown size={18} /> Upgrade VIP
+                      </button>
+
+                      <button
                         onClick={() => {
                           setShowAddModal(true);
                           setIsDropdownOpen(false);
@@ -261,6 +275,8 @@ export default function Navbar({
                         <Plus size={18} /> Add Collection
                       </button>
                       
+                      <div className="border-t border-slate-100 my-1"></div>
+
                       <button
                         onClick={() => {
                           handleLogout();
@@ -352,11 +368,11 @@ export default function Navbar({
             {currentUser ? (
               <>
                 <div className="px-4 py-2 mb-1 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {avatarUrl ? (
                       <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
-                      <User size={18} />
+                      <User size={20} />
                     )}
                   </div>
                   <div>
@@ -372,9 +388,19 @@ export default function Navbar({
                   <BarChart2 size={18} /> User Profile
                 </button>
 
+                <button 
+                  onClick={handleGoToUpgrade}
+                  className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-amber-500 hover:bg-amber-50 transition-colors rounded-2xl border-none bg-transparent cursor-pointer"
+                >
+                  <Crown size={18} /> Upgrade VIP
+                </button>
+
                 <button onClick={() => {setShowAddModal(true); setIsMobileMenuOpen(false);}} className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors rounded-2xl border-none cursor-pointer">
                   <Plus size={18} /> Add New Collection
                 </button>
+
+                <div className="border-t border-slate-100 my-1"></div>
+
                 <button onClick={() => {handleLogout(); setIsMobileMenuOpen(false);}} className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-red-500 hover:bg-red-50 transition-colors rounded-2xl border-none cursor-pointer">
                   <LogOut size={18} /> Logout
                 </button>
