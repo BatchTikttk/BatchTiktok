@@ -37,40 +37,62 @@ import AvatarModal from '../components/Avatar';
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
-// Badge Tier Definitions & Logic
+// Badge Tier Definitions & Logic (New 5 Tiers)
 const BADGES = [
   {
-    id: 'low_tier',
-    title: 'Emerald Rookie',
+    id: 'bronze',
+    title: 'Bronze Tier',
     tier: 'Tier 1 Badge',
-    description: 'Unlocked automatically after uploading at least 10 video batches.',
+    description: 'Terbuka otomatis setelah mengunggah minimal 10 batch video.',
     reqText: '10 Uploaded Batches',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Low%20Tier.webp',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Bronze.webp',
     isUnlocked: (stats: any) => stats.totalUploads >= 10,
     getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 10),
     target: 10,
   },
   {
-    id: 'medium_tier',
-    title: 'Emerald Pro',
+    id: 'silver',
+    title: 'Silver Tier',
     tier: 'Tier 2 Badge',
-    description: 'Unlocked automatically upon reaching 30 approved video batches.',
+    description: 'Terbuka otomatis setelah mencapai 30 batch video yang disetujui (Approved).',
     reqText: '30 Approved Batches',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Silver.webp',
     isUnlocked: (stats: any) => stats.totalApproved >= 30,
     getCurrentProgress: (stats: any) => Math.min(stats.totalApproved, 30),
     target: 30,
   },
   {
-    id: 'advance_tier',
-    title: 'Emerald Master',
+    id: 'gold',
+    title: 'Gold Tier',
     tier: 'Tier 3 Badge',
-    description: 'Unlocked automatically upon reaching 50 approved video batches.',
+    description: 'Terbuka otomatis setelah mencapai 50 batch video yang disetujui (Approved).',
     reqText: '50 Approved Batches',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Gold.webp',
     isUnlocked: (stats: any) => stats.totalApproved >= 50,
     getCurrentProgress: (stats: any) => Math.min(stats.totalApproved, 50),
     target: 50,
+  },
+  {
+    id: 'elite',
+    title: 'Elite Tier',
+    tier: 'Tier 4 Badge',
+    description: 'Terbuka otomatis setelah mencapai 100 batch video yang disetujui (Approved).',
+    reqText: '100 Approved Batches',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp',
+    isUnlocked: (stats: any) => stats.totalApproved >= 100,
+    getCurrentProgress: (stats: any) => Math.min(stats.totalApproved, 100),
+    target: 100,
+  },
+  {
+    id: 'legend',
+    title: 'Legend Tier',
+    tier: 'Tier 5 Badge',
+    description: 'Pencapaian Tertinggi! Terbuka setelah mencapai 200 batch video disetujui.',
+    reqText: '200 Approved Batches',
+    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp',
+    isUnlocked: (stats: any) => stats.totalApproved >= 200,
+    getCurrentProgress: (stats: any) => Math.min(stats.totalApproved, 200),
+    target: 200,
   },
 ];
 
@@ -466,10 +488,9 @@ export default function Profile({
         />
 
         <main className="max-w-7xl mx-auto px-6 lg:px-8 pt-8 pb-16">
-          {/* Main Unified Dashboard Container */}
           <div className="bg-white rounded-[40px] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)] p-6 md:p-8 lg:p-10 flex flex-col lg:flex-row gap-8 lg:gap-12 min-h-[75vh]">
             
-            {/* LEFT SIDEBAR - Soft UI Menu */}
+            {/* LEFT SIDEBAR */}
             <div className="w-full lg:w-[260px] shrink-0 space-y-8">
               <div className="flex flex-col items-center text-center">
                 <div 
@@ -519,7 +540,7 @@ export default function Profile({
                 </div>
               </div>
 
-              {/* Sidebar Navigation - Style matched with screenshot */}
+              {/* Sidebar Navigation */}
               <div className="space-y-2">
                 <div className="mb-4">
                   <button className="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl text-sm font-bold bg-[#10b981] text-white shadow-lg shadow-emerald-500/30 transition-all border-none cursor-default pointer-events-none">
@@ -595,9 +616,8 @@ export default function Profile({
               
               {activeTab === 'overview' && (
                 <div className="space-y-8 animate-in fade-in duration-300">
-                  {/* Dashboard Stat Cards - Colorful Soft UI */}
+                  {/* Dashboard Stat Cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-                    {/* Blue Card */}
                     <div className="bg-[#3b82f6] p-6 rounded-[32px] shadow-[0_12px_24px_-8px_rgba(59,130,246,0.4)] flex flex-col justify-between text-white relative overflow-hidden transition-transform hover:-translate-y-1">
                       <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
                       <div className="flex justify-between items-start mb-4 relative z-10">
@@ -614,7 +634,6 @@ export default function Profile({
                       </div>
                     </div>
 
-                    {/* Green Card */}
                     <div className="bg-[#84cc16] p-6 rounded-[32px] shadow-[0_12px_24px_-8px_rgba(132,204,22,0.4)] flex flex-col justify-between text-white relative overflow-hidden transition-transform hover:-translate-y-1">
                       <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
                       <div className="flex justify-between items-start mb-4 relative z-10">
@@ -631,7 +650,6 @@ export default function Profile({
                       </div>
                     </div>
 
-                    {/* White Card 1 */}
                     <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.06)] flex flex-col justify-between transition-transform hover:-translate-y-1">
                       <div className="flex justify-between items-start mb-4">
                         <span className="text-sm font-medium text-slate-500">Total Size</span>
@@ -645,7 +663,6 @@ export default function Profile({
                       </div>
                     </div>
 
-                    {/* White Card 2 */}
                     <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.06)] flex flex-col justify-between transition-transform hover:-translate-y-1">
                       <div className="flex justify-between items-start mb-4">
                         <span className="text-sm font-medium text-slate-500">Total Downloads</span>
@@ -672,22 +689,30 @@ export default function Profile({
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                      {BADGES.map((badge) => {
+                    {/* CSS Grid modified for 2x2 with center Legend */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      {BADGES.map((badge, index) => {
                         const unlocked = badge.isUnlocked(stats);
                         const progress = badge.getCurrentProgress(stats);
                         const percent = Math.min(Math.round((progress / badge.target) * 100), 100);
+                        const isLegend = badge.id === 'legend';
 
                         return (
                           <div 
                             key={badge.id}
                             className={`relative p-5 rounded-[24px] transition-all duration-300 flex flex-col justify-between ${
-                              unlocked ? 'bg-gradient-to-b from-white to-blue-50/30 border border-blue-100 shadow-[0_4px_16px_-8px_rgba(59,130,246,0.2)] hover:-translate-y-1' : 'bg-slate-50 border border-slate-100 opacity-80'
-                            }`}
+                              unlocked 
+                                ? (isLegend 
+                                    ? 'bg-gradient-to-b from-yellow-50 to-amber-100/50 border border-amber-200 shadow-[0_8px_24px_-8px_rgba(251,191,36,0.4)] scale-[1.02] hover:-translate-y-1' 
+                                    : 'bg-gradient-to-b from-white to-blue-50/30 border border-blue-100 shadow-[0_4px_16px_-8px_rgba(59,130,246,0.2)] hover:-translate-y-1') 
+                                : 'bg-slate-50 border border-slate-100 opacity-80'
+                            } ${isLegend ? 'md:col-span-2 md:mx-auto md:w-3/4' : ''}`}
                           >
                             <div className="flex items-center justify-between mb-4">
                               <span className={`text-[10px] font-bold px-3 py-1.5 rounded-full ${
-                                unlocked ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-500'
+                                unlocked 
+                                  ? (isLegend ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') 
+                                  : 'bg-slate-200 text-slate-500'
                               }`}>
                                 {badge.tier}
                               </span>
@@ -703,17 +728,19 @@ export default function Profile({
                             </div>
 
                             <div className="flex flex-col items-center mb-4 text-center">
-                              <div className="relative w-20 h-20 mb-3 flex items-center justify-center">
+                              <div className="relative w-24 h-24 mb-3 flex items-center justify-center">
                                 <img 
                                   src={badge.iconUrl} 
                                   alt={badge.title} 
-                                  className={`w-16 h-16 object-contain transition-all duration-300 ${
-                                    unlocked ? 'drop-shadow-lg hover:scale-110' : 'grayscale opacity-40'
+                                  className={`w-20 h-20 object-contain transition-all duration-300 ${
+                                    unlocked ? (isLegend ? 'drop-shadow-2xl scale-125 hover:scale-150' : 'drop-shadow-lg hover:scale-110') : 'grayscale opacity-40'
                                   }`}
                                 />
                               </div>
-                              <h3 className="text-sm font-bold text-slate-800">{badge.title}</h3>
-                              <p className="text-[10px] text-slate-500 font-medium leading-relaxed mt-1">
+                              <h3 className={`text-sm font-bold mt-2 ${isLegend && unlocked ? 'text-amber-600 text-base' : 'text-slate-800'}`}>
+                                {badge.title}
+                              </h3>
+                              <p className="text-[10px] text-slate-500 font-medium leading-relaxed mt-1 px-4">
                                 {badge.description}
                               </p>
                             </div>
@@ -721,13 +748,13 @@ export default function Profile({
                             <div className="mt-auto">
                               <div className="flex justify-between items-center text-[10px] font-bold mb-1.5">
                                 <span className="text-slate-400">Progress</span>
-                                <span className={unlocked ? 'text-[#10b981]' : 'text-slate-500'}>
+                                <span className={unlocked ? (isLegend ? 'text-amber-500' : 'text-[#10b981]') : 'text-slate-500'}>
                                   {progress} / {badge.target}
                                 </span>
                               </div>
                               <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                                 <div 
-                                  className={`h-full transition-all duration-500 rounded-full ${unlocked ? 'bg-[#10b981]' : 'bg-slate-300'}`}
+                                  className={`h-full transition-all duration-500 rounded-full ${unlocked ? (isLegend ? 'bg-amber-500' : 'bg-[#10b981]') : 'bg-slate-300'}`}
                                   style={{ width: `${percent}%` }}
                                 ></div>
                               </div>
@@ -909,7 +936,6 @@ export default function Profile({
                     </button>
                   </div>
 
-                  {/* Filter Tabs matching the soft UI style */}
                   <div className="flex overflow-x-auto gap-3 pb-2 mb-6 [&::-webkit-scrollbar]:hidden">
                     <button 
                       onClick={() => setAdminStatusFilter('pending')}
