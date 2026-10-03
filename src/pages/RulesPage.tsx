@@ -54,7 +54,7 @@ const RulesPage = () => {
 
           <button 
             onClick={handleGoBack} 
-            className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-bold text-slate-700 bg-white hover:bg-slate-50 transition-all shadow-sm hover:-translate-y-0.5 border-none"
+            className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-bold text-slate-700 bg-white hover:bg-slate-50 transition-all shadow-sm hover:-translate-y-0.5 border-none cursor-pointer"
           >
             <ArrowLeft size={18} />
             Return to Home
@@ -75,7 +75,7 @@ const RulesPage = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-colors whitespace-nowrap md:whitespace-normal text-left ${
+                    className={`flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-colors whitespace-nowrap md:whitespace-normal text-left cursor-pointer ${
                       isActive 
                         ? 'bg-emerald-500 text-white shadow-md' 
                         : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
@@ -206,7 +206,7 @@ const RulesPage = () => {
               </div>
             )}
 
-            {/* TAB: BADGES */}
+            {/* TAB: BADGES (Bagian yang diperbarui dengan 5 Tier Badge terbaru) */}
             {activeTab === 'badges' && (
               <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                 <div className="mb-8">
@@ -214,39 +214,84 @@ const RulesPage = () => {
                   <p className="text-slate-500 font-medium">Recognizing our top contributors. Badges are displayed automatically based on your total approved uploads.</p>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {/* Admin Badge */}
                   <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center">
                     <ShieldCheck size={48} className="text-[#fbbf24] mb-4 drop-shadow-sm" />
                     <h3 className="font-bold text-slate-800 text-lg">Admin Verified</h3>
-                    <p className="text-sm text-slate-500 mt-2 font-medium">
+                    <div className="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full mt-1.5 mb-2 border-none">Official Admin</div>
+                    <p className="text-sm text-slate-500 font-medium">
                       Exclusive badge for administrators and moderators who maintain the platform's integrity.
                     </p>
                   </div>
 
-                  <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center">
-                    <img src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Advance%20Tier.webp" alt="Master Badge" className="w-12 h-12 mb-4 object-contain" />
-                    <h3 className="font-bold text-slate-800 text-lg text-emerald-600">Emerald Master</h3>
-                    <div className="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full mt-1.5 mb-2 border-none">50+ Uploads</div>
+                  {/* Tier 1: Bronze */}
+                  <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center hover:bg-slate-100/50 transition-colors">
+                    <img 
+                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Bronze.webp" 
+                      alt="Bronze Tier" 
+                      className="w-16 h-16 mb-3 object-contain drop-shadow-sm" 
+                    />
+                    <h3 className="font-bold text-slate-800 text-lg">Bronze Tier</h3>
+                    <div className="bg-amber-100/80 text-amber-800 text-xs font-bold px-3 py-1 rounded-full mt-1.5 mb-2 border-none">10+ Uploads</div>
                     <p className="text-sm text-slate-500 font-medium">
-                      Awarded to legendary contributors with over 50 approved batch archives.
+                      Unlocked automatically after uploading at least 10 approved batch archives.
                     </p>
                   </div>
 
-                  <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center">
-                    <img src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Medium%20Tier.webp" alt="Pro Badge" className="w-12 h-12 mb-4 object-contain" />
-                    <h3 className="font-bold text-slate-800 text-lg text-emerald-500">Emerald Pro</h3>
-                    <div className="bg-emerald-50 text-emerald-600 text-xs font-bold px-3 py-1 rounded-full mt-1.5 mb-2 border-none">30+ Uploads</div>
+                  {/* Tier 2: Silver */}
+                  <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center hover:bg-slate-100/50 transition-colors">
+                    <img 
+                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Silver.webp" 
+                      alt="Silver Tier" 
+                      className="w-16 h-16 mb-3 object-contain drop-shadow-sm" 
+                    />
+                    <h3 className="font-bold text-slate-800 text-lg">Silver Tier</h3>
+                    <div className="bg-slate-200 text-slate-700 text-xs font-bold px-3 py-1 rounded-full mt-1.5 mb-2 border-none">30+ Uploads</div>
                     <p className="text-sm text-slate-500 font-medium">
-                      Awarded to dedicated contributors with over 30 approved batch archives.
+                      Unlocked automatically after uploading at least 30 approved batch archives.
                     </p>
                   </div>
 
-                  <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center">
-                    <img src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/Emerald%20TikTok%20Batch%20Badge%20Low%20Tier.webp" alt="Rookie Badge" className="w-12 h-12 mb-4 object-contain" />
-                    <h3 className="font-bold text-slate-800 text-lg text-emerald-400">Emerald Rookie</h3>
-                    <div className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full mt-1.5 mb-2 border-none">10+ Uploads</div>
+                  {/* Tier 3: Gold */}
+                  <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center hover:bg-slate-100/50 transition-colors">
+                    <img 
+                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Gold.webp" 
+                      alt="Gold Tier" 
+                      className="w-16 h-16 mb-3 object-contain drop-shadow-sm" 
+                    />
+                    <h3 className="font-bold text-amber-600 text-lg">Gold Tier</h3>
+                    <div className="bg-yellow-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full mt-1.5 mb-2 border-none">50+ Uploads</div>
                     <p className="text-sm text-slate-500 font-medium">
-                      Awarded to active members who have successfully uploaded at least 10 archives.
+                      Unlocked automatically after uploading at least 50 approved batch archives.
+                    </p>
+                  </div>
+
+                  {/* Tier 4: Elite */}
+                  <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center hover:bg-slate-100/50 transition-colors">
+                    <img 
+                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp" 
+                      alt="Elite Tier" 
+                      className="w-16 h-16 mb-3 object-contain drop-shadow-sm" 
+                    />
+                    <h3 className="font-bold text-emerald-600 text-lg">Elite Tier</h3>
+                    <div className="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full mt-1.5 mb-2 border-none">100+ Uploads</div>
+                    <p className="text-sm text-slate-500 font-medium">
+                      Unlocked automatically after uploading at least 100 approved batch archives.
+                    </p>
+                  </div>
+
+                  {/* Tier 5: Legend */}
+                  <div className="p-6 rounded-2xl bg-gradient-to-b from-amber-50 to-orange-50/40 border border-amber-200/60 flex flex-col items-center text-center hover:shadow-md transition-all">
+                    <img 
+                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp" 
+                      alt="Legend Tier" 
+                      className="w-16 h-16 mb-3 object-contain drop-shadow-md scale-105" 
+                    />
+                    <h3 className="font-black text-amber-700 text-lg">Legend Tier</h3>
+                    <div className="bg-gradient-to-r from-amber-400 to-orange-400 text-white text-xs font-black px-3.5 py-1 rounded-full mt-1.5 mb-2 shadow-xs">200+ Uploads</div>
+                    <p className="text-sm text-slate-600 font-medium">
+                      Highest Achievement! Unlocked after reaching 200 approved batch archives.
                     </p>
                   </div>
                 </div>
