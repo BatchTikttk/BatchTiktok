@@ -14,6 +14,9 @@ export default function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  
+  // State untuk mengontrol Modal Upgrade
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   // Fungsi untuk mengecek user yang sedang login di Supabase
   const checkUser = async () => {
@@ -58,9 +61,11 @@ export default function App() {
     } else if (window.location.hash === '#top-contributors') {
       window.history.replaceState({}, '', '/top-contributors');
       setCurrentPath('/top-contributors');
-    } else if (window.location.hash === '#upgrade') { // Added handler for #upgrade
-      window.history.replaceState({}, '', '/upgrade');
-      setCurrentPath('/upgrade');
+    } else if (window.location.hash === '#upgrade' || window.location.pathname === '/upgrade') { 
+      // Jika mengakses URL upgrade, buka modal dan arahkan ke beranda
+      window.history.replaceState({}, '', '/');
+      setCurrentPath('/');
+      setIsUpgradeModalOpen(true);
     } else if (window.location.hash.startsWith('#creator/')) { 
       const targetPath = window.location.hash.replace('#', '/');
       window.history.replaceState({}, '', targetPath);
@@ -79,6 +84,12 @@ export default function App() {
   }, []);
 
   const navigateTo = (path: string) => {
+    // Intercept navigasi ke upgrade agar membuka modal
+    if (path === '/upgrade' || path === '#upgrade') {
+      setIsUpgradeModalOpen(true);
+      return;
+    }
+
     window.history.pushState({}, '', path);
     setCurrentPath(path);
     window.dispatchEvent(new Event('popstate'));
@@ -119,23 +130,19 @@ export default function App() {
       return <TopContributors />;
     }
 
-    if (currentPath === '/upgrade') { // Added routing for UpgradeMembership
-      return <UpgradeMembership />;
-    }
-
     if (currentPath.startsWith('/creator/')) {
       const username = decodeURIComponent(currentPath.split('/creator/')[1] || '');
       return (
         <CreatorPage 
           username={username} 
-          onCheckAccess={handleExclusiveAccess} // <-- Lempar logika ke CreatorPage
+          onCheckAccess={handleExclusiveAccess} 
         />
       );
     }
 
     return (
       <Home 
-        onCheckAccess={handleExclusiveAccess} // <-- Lempar logika ke Home
+        onCheckAccess={handleExclusiveAccess} 
       />
     );
   };
@@ -159,6 +166,12 @@ export default function App() {
           showToast={(msg: string) => console.log(msg)}
         />
       )}
+
+      {/* Modal Upgrade Membership */}
+      <UpgradeModal 
+        isOpen={isUpgradeModalOpen} 
+        onClose={() => setIsUpgradeModalOpen(false)} 
+      />
     </div>
   );
 }
