@@ -14,7 +14,8 @@ import {
   Award,
   GitMerge,
   ShieldCheck,
-  History
+  History,
+  Crown
 } from 'lucide-react';
 
 const RulesPage = () => {
@@ -109,6 +110,20 @@ const RulesPage = () => {
                       <h3 className="font-bold text-amber-900 text-lg">Strict Moderation System</h3>
                       <p className="text-amber-800/90 mt-2 leading-relaxed font-medium">
                         Every submission will not appear immediately on the main page. The data will be marked as <strong>Pending</strong> and undergo admin moderation. We will verify the authenticity and completeness of the links before publishing.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Exclusive Folder Information Card */}
+                  <div className="flex gap-5 p-6 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 shadow-sm relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                      <Crown size={100} />
+                    </div>
+                    <Crown className="text-amber-500 shrink-0 mt-0.5 fill-amber-400 drop-shadow-sm z-10" size={26} />
+                    <div className="z-10">
+                      <h3 className="font-bold text-amber-900 text-lg">Exclusive Premium Collections</h3>
+                      <p className="text-amber-800/90 mt-2 leading-relaxed font-medium">
+                        Folders marked with a golden crown represent <strong>TikTok Exclusive Collections</strong>. These are highly curated, premium archives. To protect this exclusive content and ensure bandwidth sustainability, access is strictly restricted to registered members. You <strong>must be logged in</strong> to preview and download these exclusive archives.
                       </p>
                     </div>
                   </div>
