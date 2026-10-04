@@ -1,0 +1,110 @@
+{
+  "sharedIcons": {
+    "officialAdmin": "Official Admin",
+    "kingContributor": "King Contributor",
+    "activeContributor": "Active Contributor",
+    "uploads": "uploads"
+  },
+  "tiktokEmbed": {
+    "invalidLink": "Invalid TikTok link. Make sure the format is like:"
+  },
+  "upgradeModal": {
+    "title": "Upgrade to",
+    "titleHighlight": "Premium",
+    "subtitle": "One-time payment for unlimited access to all folder collections.",
+    "price": "Rp 50,000",
+    "guarantee": "Instant activation after payment verification",
+    "ctaButton": "Get Premium Access",
+    "secureNotice": "Secure & Verified Payment",
+    "featuresHeader": "Member Benefits",
+    "features": {
+      "f1": "Access to all Exclusive Content",
+      "f2": "Direct download links (Google Drive & TeraBox) without ads",
+      "f3": "Priority queue for custom batch requests",
+      "f4": "Exclusive Border Avatar VIP",
+      "f5": "Daily archive synchronization updates"
+    }
+  },
+  "chatGroup": {
+    "globalChat": "Global Chat",
+    "globalGroupChat": "Global Group Chat",
+    "realtimeSync": "Realtime Sync",
+    "loadingMessages": "Loading messages...",
+    "noMessages": "No messages yet",
+    "sendFirstMessage": "Send the first message to start the conversation.",
+    "you": "You",
+    "adminVerified": "Admin Verified",
+    "loginToChat": "Login with Google to chat",
+    "typeMessage": "Type a message..."
+  },
+  "customBatchRequest": {
+    "title": "Custom Batch Request",
+    "description": "Request the admin to archive your selected TikTok profile.",
+    "vipQueue": "VIP Queue Active",
+    "standardQueue": "Standard Queue",
+    "vipDesc": "Your request is prioritized and will be processed faster by the admin.",
+    "standardDesc": "Estimated processing 3-7 days.",
+    "upgradePrompt": "Upgrade to VIP for instant processing.",
+    "placeholderUrl": "Enter TikTok profile link...",
+    "processing": "Processing...",
+    "sendRequest": "Send Request",
+    "historyTitle": "Your Request History",
+    "submittedOn": "Submitted on",
+    "completed": "Completed",
+    "rejected": "Rejected",
+    "pending": "Pending",
+    "resultLink": "Result Link:",
+    "downloadView": "Download / View",
+    "errorProcessing": "This request could not be processed.",
+    "noRequests": "You haven't made any batch requests yet.",
+    "errorNotLoggedIn": "Error: You must be logged in to make a request.",
+    "successVip": "Success! Your priority request is at the top of the queue. ⚡",
+    "successStandard": "Success! Your request has entered the standard queue.",
+    "failedSend": "Failed to send request. Please try again."
+  },
+  "footer": {
+    "description": "A structured, clean, and distraction-free platform for archiving and sharing regional TikTok video collections.",
+    "copyright": "© {year} BatchTikTok. All rights reserved.",
+    "regionalCategories": "Regional Categories",
+    "resourcesInfo": "Resources & Info",
+    "rules": "Rules",
+    "legal": "Legal",
+    "verifiedLinks": "Verified Links",
+    "communityContribution": "Community Contribution"
+  },
+  "loginModal": {
+    "createAccount": "Create Account",
+    "welcomeBack": "Welcome Back",
+    "joinUs": "Join us to start sharing your collections.",
+    "enterCredentials": "Enter your credentials to access your account.",
+    "usernamePlaceholder": "Username (Max 15 characters)",
+    "emailPlaceholder": "Email Address",
+    "passwordPlaceholder": "Password (Min. 6 characters)",
+    "signUp": "Sign Up",
+    "signIn": "Sign In",
+    "processing": "Processing...",
+    "registrationSuccess": "Registration Successful!",
+    "signInGoogle": "Sign In With Google",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "toastCaptcha": "Please complete the CAPTCHA verification",
+    "toastRegSuccess": "Registration successful! Welcome.",
+    "toastLoginSuccess": "Successfully logged in",
+    "toastGoogleSuccess": "Successfully signed in with Google!",
+    "toastGoogleFailed": "Failed to process Google login:",
+    "toastGoogleCancelled": "Google login cancelled",
+    "or": "OR"
+  },
+  "navbar": {
+    "home": "Home",
+    "region": "Region",
+    "topContributors": "Top Contributors",
+    "rules": "Rules",
+    "postingRules": "Posting Rules",
+    "userProfile": "User Profile",
+    "vipUser": "VIP User",
+    "upgradeVip": "Upgrade VIP",
+    "addCollection": "Add Collection",
+    "logout": "Logout"
+  }
+}

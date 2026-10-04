@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Menu, X, Plus, LogIn, LogOut, User, ChevronDown, 
-  Scale, BarChart2, Home, Globe, Trophy, MapPin, Crown 
+  Scale, BarChart2, Home, Globe, Trophy, MapPin, Crown, Languages
 } from 'lucide-react';
 import { supabase } from '../supabase';
+import { useTranslation } from 'react-i18next';
 
-// Mendefinisikan tipe data (TypeScript Interface) dengan benar agar Deploy tidak gagal
 interface NavbarProps {
   activeCategory?: string;
   setActiveCategory: (category: string) => void;
@@ -37,13 +37,20 @@ export default function Navbar({
   onOpenTopContributors,
   onOpenUpgrade
 }: NavbarProps) {
+  const { t, i18n } = useTranslation(); 
+  
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRegionOpen, setIsRegionOpen] = useState(false);
+  const [isLanguageOpen, setIsLanguageOpen] = useState(false); // State untuk Dropdown Bahasa
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [isPremium, setIsPremium] = useState<boolean>(false); // State untuk status VIP
+  const [isPremium, setIsPremium] = useState<boolean>(false); 
 
   const regions = CATEGORIES.filter((c: string) => c !== 'Home');
+
+  // URL Gambar Bendera Asli untuk mengatasi isu emoji di OS Windows
+  const flagID = "https://flagcdn.com/w40/id.png";
+  const flagEN = "https://flagcdn.com/w40/gb.png";
 
   let displayUser = '';
   if (currentUser) {
@@ -115,6 +122,7 @@ export default function Navbar({
     setIsDropdownOpen(false);
     setIsMobileMenuOpen(false);
     setIsRegionOpen(false);
+    setIsLanguageOpen(false);
     if (onOpenProfile) {
       onOpenProfile();
     } else {
@@ -127,6 +135,7 @@ export default function Navbar({
     if (category) setActiveCategory(category);
     setIsMobileMenuOpen(false);
     setIsRegionOpen(false);
+    setIsLanguageOpen(false);
     resetSearch?.();
     window.history.pushState({}, '', '/');
     window.dispatchEvent(new Event('popstate'));
@@ -135,6 +144,7 @@ export default function Navbar({
   const handleGoToTopContributors = () => {
     setIsMobileMenuOpen(false);
     setIsRegionOpen(false);
+    setIsLanguageOpen(false);
     if (onOpenTopContributors) {
       onOpenTopContributors();
     } else {
@@ -147,6 +157,7 @@ export default function Navbar({
   const handleGoToRules = () => {
     setIsMobileMenuOpen(false);
     setIsRegionOpen(false);
+    setIsLanguageOpen(false);
     
     if (typeof setShowRulesModal === 'function') {
       setShowRulesModal(true);
@@ -161,7 +172,6 @@ export default function Navbar({
     setIsDropdownOpen(false);
     setIsMobileMenuOpen(false);
     
-    // Jika sudah premium, tombol bisa dibiarkan tidak melakukan apa-apa atau mengarah ke modal info VIP
     if (isPremium) return; 
 
     if (onOpenUpgrade) {
@@ -203,7 +213,7 @@ export default function Navbar({
               }`}
             >
               <Home size={16} />
-              Home
+              {t('navbar.home')}
             </button>
 
             <div className="relative">
@@ -216,7 +226,7 @@ export default function Navbar({
                 }`}
               >
                 <Globe size={16} />
-                Region
+                {t('navbar.region')}
                 <ChevronDown size={14} className={`transition-transform duration-200 ${isRegionOpen ? 'rotate-180' : ''}`} />
               </button>
 
@@ -252,20 +262,67 @@ export default function Navbar({
               }`}
             >
               <Trophy size={16} />
-              Top Contributors
+              {t('navbar.topContributors')}
             </button>
           </div>
 
           <div className="flex items-center gap-3">
+            
+            {/* --- Dropdown Switcher Bahasa Profesional (Desktop) --- */}
+            <div className="hidden sm:relative sm:block">
+              <button 
+                onClick={() => setIsLanguageOpen(!isLanguageOpen)}
+                className="px-3.5 py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold text-slate-600 flex items-center gap-2 transition-all border border-slate-100 cursor-pointer"
+                title="Switch Language"
+              >
+                <img 
+                  src={i18n.language === 'en' ? flagEN : flagID} 
+                  alt="Current Language" 
+                  className="w-5 h-auto rounded-[2px] shadow-sm"
+                />
+                <span>{i18n.language === 'en' ? 'EN' : 'ID'}</span>
+                <ChevronDown size={14} className={`text-slate-400 transition-transform duration-200 ${isLanguageOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isLanguageOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsLanguageOpen(false)}></div>
+                  <div className="absolute right-0 mt-3 w-40 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-2 duration-200 border-none py-1">
+                    
+                    <button
+                      onClick={() => { i18n.changeLanguage('id'); setIsLanguageOpen(false); }}
+                      className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-bold transition-colors text-left border-none bg-transparent cursor-pointer ${
+                        i18n.language === 'id' ? 'text-emerald-600 bg-emerald-50/50' : 'text-slate-600 hover:text-emerald-600 hover:bg-emerald-50'
+                      }`}
+                    >
+                      <img src={flagID} alt="Indonesia" className="w-5 h-auto rounded-[2px] shadow-sm" /> 
+                      Indonesia
+                    </button>
+
+                    <button
+                      onClick={() => { i18n.changeLanguage('en'); setIsLanguageOpen(false); }}
+                      className={`w-full px-4 py-3 flex items-center gap-3 text-sm font-bold transition-colors text-left border-none bg-transparent cursor-pointer ${
+                        i18n.language === 'en' ? 'text-emerald-600 bg-emerald-50/50' : 'text-slate-600 hover:text-emerald-600 hover:bg-emerald-50'
+                      }`}
+                    >
+                      <img src={flagEN} alt="English" className="w-5 h-auto rounded-[2px] shadow-sm" /> 
+                      English
+                    </button>
+
+                  </div>
+                </>
+              )}
+            </div>
+
             <button 
               onClick={handleGoToRules}
               className={`p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold flex items-center gap-2 transition-all border-none cursor-pointer ${
                 isRulesActive ? 'text-emerald-600 ring-2 ring-emerald-500/20' : 'text-slate-600'
               }`}
-              title="Posting Rules"
+              title={t('navbar.postingRules')}
             >
               <Scale size={16} className="text-emerald-500" />
-              <span className="hidden sm:inline">Rules</span>
+              <span className="hidden sm:inline">{t('navbar.rules')}</span>
             </button>
 
             {currentUser ? (
@@ -296,10 +353,9 @@ export default function Navbar({
                         onClick={handleGoToProfile}
                         className="w-full px-4 py-3.5 flex items-center gap-3 text-sm font-bold text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors text-left border-none bg-transparent cursor-pointer"
                       >
-                        <BarChart2 size={18} /> User Profile
+                        <BarChart2 size={18} /> {t('navbar.userProfile')}
                       </button>
 
-                      {/* PERUBAHAN: Menyesuaikan teks & tampilan jika is_premium bernilai true */}
                       <button
                         onClick={handleGoToUpgrade}
                         className={`w-full px-4 py-3.5 flex items-center gap-3 text-sm font-bold transition-colors text-left border-none bg-transparent cursor-pointer ${
@@ -308,7 +364,7 @@ export default function Navbar({
                             : 'text-amber-500 hover:bg-amber-50'
                         }`}
                       >
-                        <Crown size={18} /> {isPremium ? 'VIP User' : 'Upgrade VIP'}
+                        <Crown size={18} /> {isPremium ? t('navbar.vipUser') : t('navbar.upgradeVip')}
                       </button>
 
                       <button
@@ -318,7 +374,7 @@ export default function Navbar({
                         }}
                         className="w-full px-4 py-3.5 flex items-center gap-3 text-sm font-bold text-emerald-600 hover:bg-emerald-50 transition-colors text-left border-none bg-transparent cursor-pointer"
                       >
-                        <Plus size={18} /> Add Collection
+                        <Plus size={18} /> {t('navbar.addCollection')}
                       </button>
                       
                       <div className="border-t border-slate-100 my-1"></div>
@@ -330,7 +386,7 @@ export default function Navbar({
                         }}
                         className="w-full px-4 py-3.5 flex items-center gap-3 text-sm font-bold text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors text-left border-none bg-transparent cursor-pointer"
                       >
-                        <LogOut size={18} /> Logout
+                        <LogOut size={18} /> {t('navbar.logout')}
                       </button>
                     </div>
                   </>
@@ -342,7 +398,7 @@ export default function Navbar({
                 className="px-5 py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold text-slate-600 flex items-center gap-2 transition-all border-none cursor-pointer"
               >
                 <LogIn size={16} className="text-emerald-500" />
-                <span className="hidden sm:inline">Sign In</span>
+                <span className="hidden sm:inline">{t('loginModal.signIn') || 'Sign In'}</span>
               </button>
             )}
 
@@ -359,6 +415,33 @@ export default function Navbar({
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-20 left-0 right-0 bg-white mx-4 mt-2 p-4 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex flex-col gap-2 border-none z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           
+          {/* --- Switcher Bahasa yang Jelas di Menu Mobile --- */}
+          <div className="px-2 pt-1 pb-3 mb-2 border-b border-slate-100">
+            <span className="px-2 py-1 text-[11px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
+              <Languages size={12} /> Language / Bahasa
+            </span>
+            <div className="flex gap-2 px-1">
+              <button 
+                onClick={() => { i18n.changeLanguage('id'); setIsMobileMenuOpen(false); }}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all border-none cursor-pointer ${
+                  i18n.language === 'id' ? 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-500/20 shadow-sm' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                }`}
+              >
+                <img src={flagID} alt="Indonesia" className="w-5 h-auto rounded-[2px] shadow-sm" /> 
+                Indonesia
+              </button>
+              <button 
+                onClick={() => { i18n.changeLanguage('en'); setIsMobileMenuOpen(false); }}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all border-none cursor-pointer ${
+                  i18n.language === 'en' ? 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-500/20 shadow-sm' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                }`}
+              >
+                <img src={flagEN} alt="English" className="w-5 h-auto rounded-[2px] shadow-sm" /> 
+                English
+              </button>
+            </div>
+          </div>
+
           <button
             onClick={() => handleGoToHome('Home')}
             className={`px-4 py-3 rounded-2xl text-left text-sm font-bold transition-all border-none cursor-pointer flex items-center gap-2 ${
@@ -368,11 +451,11 @@ export default function Navbar({
             }`}
           >
             <Home size={18} />
-            Home
+            {t('navbar.home')}
           </button>
 
           <div className="flex flex-col gap-1 px-2 pt-1 pb-1">
-            <span className="px-2 py-1 text-[11px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><Globe size={12} /> Region</span>
+            <span className="px-2 py-1 text-[11px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><Globe size={12} /> {t('navbar.region')}</span>
             {regions.map((region: string) => (
               <button
                 key={region}
@@ -398,7 +481,7 @@ export default function Navbar({
             }`}
           >
             <Trophy size={18} />
-            Top Contributors
+            {t('navbar.topContributors')}
           </button>
 
           <div className="border-t border-slate-100 mt-2 pt-2 flex flex-col gap-2">
@@ -408,7 +491,7 @@ export default function Navbar({
                 isRulesActive ? 'text-emerald-600 bg-emerald-50' : 'text-slate-600'
               }`}
             >
-              <Scale size={18} className="text-emerald-500" /> Posting Rules
+              <Scale size={18} className="text-emerald-500" /> {t('navbar.postingRules')}
             </button>
 
             {currentUser ? (
@@ -431,32 +514,31 @@ export default function Navbar({
                   onClick={handleGoToProfile}
                   className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-colors rounded-2xl border-none bg-transparent cursor-pointer"
                 >
-                  <BarChart2 size={18} /> User Profile
+                  <BarChart2 size={18} /> {t('navbar.userProfile')}
                 </button>
 
-                {/* PERUBAHAN: Menyesuaikan teks untuk tampilan mobile menu */}
                 <button 
                   onClick={handleGoToUpgrade}
                   className={`px-4 py-3 flex items-center gap-2 text-left text-sm font-bold transition-colors rounded-2xl border-none bg-transparent cursor-pointer ${
                     isPremium ? 'text-amber-600 bg-amber-50/60' : 'text-amber-500 hover:bg-amber-50'
                   }`}
                 >
-                  <Crown size={18} /> {isPremium ? 'VIP User' : 'Upgrade VIP'}
+                  <Crown size={18} /> {isPremium ? t('navbar.vipUser') : t('navbar.upgradeVip')}
                 </button>
 
                 <button onClick={() => {setShowAddModal(true); setIsMobileMenuOpen(false);}} className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors rounded-2xl border-none cursor-pointer">
-                  <Plus size={18} /> Add New Collection
+                  <Plus size={18} /> {t('navbar.addCollection')}
                 </button>
 
                 <div className="border-t border-slate-100 my-1"></div>
 
                 <button onClick={() => {handleLogout(); setIsMobileMenuOpen(false);}} className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-red-500 hover:bg-red-50 transition-colors rounded-2xl border-none cursor-pointer">
-                  <LogOut size={18} /> Logout
+                  <LogOut size={18} /> {t('navbar.logout')}
                 </button>
               </>
             ) : (
               <button onClick={() => {setShowLoginModal(true); setIsMobileMenuOpen(false);}} className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-emerald-600 hover:bg-emerald-50 rounded-2xl transition-colors border-none cursor-pointer">
-                <LogIn size={18} /> Sign In
+                <LogIn size={18} /> {t('loginModal.signIn') || 'Sign In'}
               </button>
             )}
           </div>
