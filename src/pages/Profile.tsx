@@ -136,7 +136,7 @@ export default function Profile({
   // State for Custom Batch Requests in Admin Panel
   const [adminRequests, setAdminRequests] = useState<any[]>([]);
   const [adminTab, setAdminTab] = useState<'uploads' | 'requests'>('uploads');
-  const [requestResultUrls, setRequestResultUrls] = useState<{ [key: string]: string }>({});
+  const [requestResultUrls, setRequestResultUrls] = useState<Record<string, string>>({});
 
   const [, setAdminList] = useState<string[]>([]);
   const [deletingId, setDeletingId] = useState<string | number | null>(null);
@@ -271,7 +271,7 @@ export default function Profile({
   };
 
   const handleResultUrlChange = (id: string | number, value: string) => {
-    setRequestResultUrls(prev => ({ ...prev, [id]: value }));
+    setRequestResultUrls(prev => ({ ...prev, [String(id)]: value }));
   };
 
   const handleUpdateRequestStatus = async (reqId: string | number, newStatus: string, resultUrl?: string) => {
@@ -298,7 +298,7 @@ export default function Profile({
       if (newStatus === 'completed') {
         setRequestResultUrls(prev => {
           const newState = { ...prev };
-          delete newState[reqId];
+          delete newState[String(reqId)];
           return newState;
         });
       }
@@ -355,7 +355,7 @@ export default function Profile({
     }
   };
 
-  const activeUsername = userProfile?.username || currentUser;
+  const activeUsername = userProfile?.username || currentUser || '';
 
   const stats = useMemo(() => {
     const totalUploads = userBatches.length;
@@ -420,8 +420,8 @@ export default function Profile({
   };
 
   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const target = e.target;
-    const value = target.type === 'checkbox' ? (target as HTMLInputElement).checked : target.value;
+    const target = e.target as HTMLInputElement; 
+    const value = target.type === 'checkbox' ? target.checked : target.value;
     
     setEditingBatch((prev: any) => ({ ...prev, [target.name]: value }));
   };
@@ -461,7 +461,8 @@ export default function Profile({
       setAllBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...updateData } : b));
       setEditingBatch(null);
     } catch (error: any) {
-      handleShowToast(error.message || "Failed to update batch", "error");
+      const errorMsg = error?.message || "Failed to update batch";
+      handleShowToast(errorMsg, "error");
     } finally {
       setIsUpdatingBatch(false);
     }
@@ -1264,7 +1265,7 @@ export default function Profile({
                               <input 
                                 type="url"
                                 placeholder="Enter Result URL (required to Complete)"
-                                value={requestResultUrls[req.id] || ''}
+                                value={requestResultUrls[String(req.id)] || ''}
                                 onChange={(e) => handleResultUrlChange(req.id, e.target.value)}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981]"
                               />
@@ -1280,11 +1281,11 @@ export default function Profile({
                               </button>
                               <button
                                 onClick={() => {
-                                  if (!requestResultUrls[req.id] && !req.result_url) {
+                                  if (!requestResultUrls[String(req.id)] && !req.result_url) {
                                     handleShowToast("Please enter a result URL first", "error");
                                     return;
                                   }
-                                  handleUpdateRequestStatus(req.id, 'completed', requestResultUrls[req.id])
+                                  handleUpdateRequestStatus(req.id, 'completed', requestResultUrls[String(req.id)])
                                 }}
                                 disabled={actionLoadingId === `req_${req.id}` || req.status === 'completed'}
                                 className="px-4 py-2 bg-[#84cc16] hover:bg-[#65a30d] disabled:opacity-50 text-white text-[11px] font-bold rounded-full transition-all shadow-sm flex items-center gap-1.5"
@@ -1417,7 +1418,7 @@ export default function Profile({
             if (userProfile?.is_admin) fetchAllBatches();
             setShowAddModal(false);
           }}
-          currentUser={activeUsername}
+          currentUser={activeUsername || ''}
           showToast={handleShowToast}
           CATEGORIES={CATEGORIES}
         />
