@@ -41,6 +41,7 @@ export default function Navbar({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRegionOpen, setIsRegionOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isPremium, setIsPremium] = useState<boolean>(false); // State untuk status VIP
 
   const regions = CATEGORIES.filter((c: string) => c !== 'Home');
 
@@ -58,10 +59,11 @@ export default function Navbar({
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel>;
 
-    const fetchUserAvatar = async () => {
+    const fetchUserData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         setAvatarUrl(null);
+        setIsPremium(false);
         return;
       }
 
@@ -69,12 +71,13 @@ export default function Navbar({
 
       const { data } = await supabase
         .from('profiles')
-        .select('avatar_url')
+        .select('avatar_url, is_premium')
         .eq('id', userId)
         .single();
 
-      if (data?.avatar_url) {
-        setAvatarUrl(data.avatar_url);
+      if (data) {
+        if (data.avatar_url) setAvatarUrl(data.avatar_url);
+        if (data.is_premium !== undefined) setIsPremium(data.is_premium);
       }
 
       channel = supabase
@@ -88,15 +91,20 @@ export default function Navbar({
             filter: `id=eq.${userId}`,
           },
           (payload) => {
-            if (payload.new && (payload.new as any).avatar_url) {
-              setAvatarUrl((payload.new as any).avatar_url);
+            if (payload.new) {
+              if ((payload.new as any).avatar_url) {
+                setAvatarUrl((payload.new as any).avatar_url);
+              }
+              if ((payload.new as any).is_premium !== undefined) {
+                setIsPremium((payload.new as any).is_premium);
+              }
             }
           }
         )
         .subscribe();
     };
 
-    fetchUserAvatar();
+    fetchUserData();
 
     return () => {
       if (channel) supabase.removeChannel(channel);
@@ -148,18 +156,17 @@ export default function Navbar({
     }
   };
 
-  // -----------------------------------------------------------------
-  // PERBAIKAN: Routing modal Upgrade VIP memanfaatkan Global Event
-  // -----------------------------------------------------------------
   const handleGoToUpgrade = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsDropdownOpen(false);
     setIsMobileMenuOpen(false);
     
+    // Jika sudah premium, tombol bisa dibiarkan tidak melakukan apa-apa atau mengarah ke modal info VIP
+    if (isPremium) return; 
+
     if (onOpenUpgrade) {
       onOpenUpgrade();
     } else {
-      // Panggil event global yang sudah kita daftarkan di App.tsx
       window.dispatchEvent(new Event('openUpgradeModal'));
     }
   };
@@ -292,11 +299,16 @@ export default function Navbar({
                         <BarChart2 size={18} /> User Profile
                       </button>
 
+                      {/* PERUBAHAN: Menyesuaikan teks & tampilan jika is_premium bernilai true */}
                       <button
                         onClick={handleGoToUpgrade}
-                        className="w-full px-4 py-3.5 flex items-center gap-3 text-sm font-bold text-amber-500 hover:bg-amber-50 transition-colors text-left border-none bg-transparent cursor-pointer"
+                        className={`w-full px-4 py-3.5 flex items-center gap-3 text-sm font-bold transition-colors text-left border-none bg-transparent cursor-pointer ${
+                          isPremium 
+                            ? 'text-amber-600 bg-amber-50/60 cursor-default' 
+                            : 'text-amber-500 hover:bg-amber-50'
+                        }`}
                       >
-                        <Crown size={18} /> Upgrade VIP
+                        <Crown size={18} /> {isPremium ? 'VIP User' : 'Upgrade VIP'}
                       </button>
 
                       <button
@@ -422,11 +434,14 @@ export default function Navbar({
                   <BarChart2 size={18} /> User Profile
                 </button>
 
+                {/* PERUBAHAN: Menyesuaikan teks untuk tampilan mobile menu */}
                 <button 
                   onClick={handleGoToUpgrade}
-                  className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-amber-500 hover:bg-amber-50 transition-colors rounded-2xl border-none bg-transparent cursor-pointer"
+                  className={`px-4 py-3 flex items-center gap-2 text-left text-sm font-bold transition-colors rounded-2xl border-none bg-transparent cursor-pointer ${
+                    isPremium ? 'text-amber-600 bg-amber-50/60' : 'text-amber-500 hover:bg-amber-50'
+                  }`}
                 >
-                  <Crown size={18} /> Upgrade VIP
+                  <Crown size={18} /> {isPremium ? 'VIP User' : 'Upgrade VIP'}
                 </button>
 
                 <button onClick={() => {setShowAddModal(true); setIsMobileMenuOpen(false);}} className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors rounded-2xl border-none cursor-pointer">
