@@ -133,7 +133,6 @@ export default function Profile({
   const [userBatches, setUserBatches] = useState<any[]>([]);
   const [allBatches, setAllBatches] = useState<any[]>([]); 
   
-  // State for Custom Batch Requests in Admin Panel
   const [adminRequests, setAdminRequests] = useState<any[]>([]);
   const [adminTab, setAdminTab] = useState<'uploads' | 'requests'>('uploads');
   const [requestResultUrls, setRequestResultUrls] = useState<{ [key: string]: string }>({});
@@ -274,7 +273,6 @@ export default function Profile({
     setRequestResultUrls(prev => ({ ...prev, [id]: value }));
   };
 
-  // Function to update Custom Batch Request status with optional result_url
   const handleUpdateRequestStatus = async (reqId: string | number, newStatus: string, resultUrl?: string) => {
     setActionLoadingId(`req_${reqId}`);
     
@@ -296,7 +294,6 @@ export default function Profile({
       handleShowToast(`Request status successfully changed to ${newStatus}`, "success");
       setAdminRequests(prev => prev.map(req => req.id === reqId ? { ...req, ...updateData } : req));
       
-      // Clear input after successfully marking as complete
       if (newStatus === 'completed') {
         setRequestResultUrls(prev => {
           const newState = { ...prev };
@@ -542,31 +539,37 @@ export default function Profile({
             <div className="w-full lg:w-[260px] shrink-0 space-y-8">
               <div className="flex flex-col items-center text-center">
                 
-                {/* --- AVATAR UI BARU DENGAN VIP BORDER --- */}
-                <div 
-                  className="relative group cursor-pointer mb-4 p-2"
-                  onClick={() => setShowAvatarModal(true)}
-                  title="Click to change avatar"
-                >
-                  {userProfile?.is_premium && (
-                    <img 
-                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp" 
-                      alt="VIP Avatar Border"
-                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[124px] h-[124px] max-w-none z-20 pointer-events-none transition-transform duration-300 group-hover:scale-105 drop-shadow-xl"
-                    />
-                  )}
-
-                  <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 border-4 border-white transition-all duration-300 group-hover:scale-105 z-10">
-                    {userProfile?.avatar_url ? (
-                      <img src={userProfile.avatar_url} alt="Profile Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <User size={40} strokeWidth={2.2} />
+                {/* --- AVATAR & VIP BORDER YANG DIPERBESAR + IKON KAMERA TERPISAH --- */}
+                <div className="flex flex-col items-center mb-4">
+                  <div 
+                    className="relative group cursor-pointer p-4"
+                    onClick={() => setShowAvatarModal(true)}
+                    title="Click to change avatar"
+                  >
+                    {userProfile?.is_premium && (
+                      <img 
+                        src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp" 
+                        alt="VIP Avatar Border"
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140px] h-[140px] max-w-none z-20 pointer-events-none transition-transform duration-300 group-hover:scale-105 drop-shadow-xl"
+                      />
                     )}
+
+                    <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 border-4 border-white transition-all duration-300 group-hover:scale-105 z-10">
+                      {userProfile?.avatar_url ? (
+                        <img src={userProfile.avatar_url} alt="Profile Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <User size={40} strokeWidth={2.2} />
+                      )}
+                    </div>
                   </div>
-                  
-                  <div className="absolute bottom-1 right-1 p-2 bg-white text-slate-600 rounded-full shadow-md transition-all border border-slate-100 flex items-center justify-center hover:text-emerald-600 z-30">
-                    <Camera size={14} />
-                  </div>
+
+                  {/* Tombol Kamera Terpisah di Bawah Avatar */}
+                  <button
+                    onClick={() => setShowAvatarModal(true)}
+                    className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 rounded-full text-[11px] font-bold transition-all shadow-sm border border-slate-200/60"
+                  >
+                    <Camera size={13} /> Change Avatar
+                  </button>
                 </div>
                 {/* --- AKHIR AVATAR UI --- */}
 
@@ -950,13 +953,13 @@ export default function Profile({
 
                   <div className="p-6 bg-slate-50 rounded-[32px] flex flex-col sm:flex-row items-center gap-6 mb-6">
                     
-                    {/* --- KONSISTENSI BINGKAI VIP DI TAB SETTINGS JUGA --- */}
-                    <div className="relative w-24 h-24 flex-shrink-0">
+                    {/* --- KONSISTENSI BINGKAI VIP DI TAB SETTINGS --- */}
+                    <div className="relative w-24 h-24 flex-shrink-0 flex items-center justify-center">
                       {userProfile?.is_premium && (
                         <img 
                           src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp" 
                           alt="VIP Avatar Border"
-                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[124px] h-[124px] max-w-none z-20 pointer-events-none drop-shadow-xl"
+                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140px] h-[140px] max-w-none z-20 pointer-events-none drop-shadow-xl"
                         />
                       )}
                       <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-md relative z-10 border-4 border-white">
@@ -1028,7 +1031,6 @@ export default function Profile({
                     </button>
                   </div>
 
-                  {/* Toggle Between Uploads and Requests */}
                   <div className="flex gap-3 mb-6 p-1 bg-slate-100 rounded-xl w-fit">
                     <button
                       onClick={() => setAdminTab('uploads')}
@@ -1048,7 +1050,6 @@ export default function Profile({
                     </button>
                   </div>
 
-                  {/* ===== TAB: CREATOR UPLOADS ===== */}
                   {adminTab === 'uploads' && (
                     <>
                       <div className="flex overflow-x-auto gap-3 pb-2 mb-6 [&::-webkit-scrollbar]:hidden">
@@ -1215,7 +1216,6 @@ export default function Profile({
                     </>
                   )}
 
-                  {/* ===== TAB: USER REQUESTS ===== */}
                   {adminTab === 'requests' && (
                     <div className="space-y-4">
                       {adminRequests.length > 0 ? adminRequests.map((req: any) => (
@@ -1244,7 +1244,6 @@ export default function Profile({
                               </div>
                             </div>
                             
-                            {/* Status Label */}
                             <div className="flex flex-col items-end gap-1">
                               {req.status === 'completed' && (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#84cc16]/10 text-[#84cc16]">
@@ -1264,16 +1263,13 @@ export default function Profile({
                             </div>
                           </div>
                           
-                          {/* Admin Action Buttons with Result URL Input */}
                           <div className="flex flex-col gap-3 pt-3 border-t border-slate-50">
-                            {/* Show Result URL if available */}
                             {req.result_url && (
                               <a href={req.result_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-[#10b981] hover:underline flex items-center gap-1 w-fit bg-emerald-50 px-2 py-1 rounded">
                                 <ExternalLink size={12} /> Result: {req.result_url}
                               </a>
                             )}
                             
-                            {/* Input for new Result URL when not completed/rejected */}
                             {req.status !== 'completed' && req.status !== 'rejected' && (
                               <input 
                                 type="url"
@@ -1337,7 +1333,6 @@ export default function Profile({
         onBack();
       }} />
 
-      {/* Modal Edit Batch */}
       {editingBatch && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setEditingBatch(null)}></div>
