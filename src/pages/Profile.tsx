@@ -274,7 +274,6 @@ export default function Profile({
     setRequestResultUrls(prev => ({ ...prev, [id]: value }));
   };
 
-  // Function to update Custom Batch Request status with optional result_url
   const handleUpdateRequestStatus = async (reqId: string | number, newStatus: string, resultUrl?: string) => {
     setActionLoadingId(`req_${reqId}`);
     
@@ -296,7 +295,6 @@ export default function Profile({
       handleShowToast(`Request status successfully changed to ${newStatus}`, "success");
       setAdminRequests(prev => prev.map(req => req.id === reqId ? { ...req, ...updateData } : req));
       
-      // Clear input after successfully marking as complete
       if (newStatus === 'completed') {
         setRequestResultUrls(prev => {
           const newState = { ...prev };
@@ -548,7 +546,7 @@ export default function Profile({
                   =======================================================
                 */}
                 <div 
-                  className="relative group cursor-pointer mb-4 w-[88px] h-[88px]"
+                  className="relative group cursor-pointer mb-6 w-[88px] h-[88px]"
                   onClick={() => setShowAvatarModal(true)}
                   title="Click to change avatar"
                 >
@@ -564,7 +562,8 @@ export default function Profile({
                     <img 
                       src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp"
                       alt="VIP Border"
-                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[116px] h-[116px] max-w-none object-contain z-20 pointer-events-none transition-all duration-300 group-hover:scale-105"
+                      // Perubahan pada posisi: menggunakan anchor top-[-18px] sebagai patokan atas
+                      className="absolute top-[-18px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none transition-all duration-300 group-hover:scale-105"
                     />
                   )}
 
@@ -574,7 +573,7 @@ export default function Profile({
                 </div>
                 {/* ======================================================= */}
 
-                <div className="flex flex-col items-center w-full">
+                <div className="flex flex-col items-center w-full mt-2">
                   <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
                     {activeUsername || 'User'}
                     {unlockedBadges.length > 0 && (
@@ -972,7 +971,8 @@ export default function Profile({
                         <img 
                           src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp"
                           alt="VIP Border"
-                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[116px] h-[116px] max-w-none object-contain z-20 pointer-events-none"
+                          // Perubahan pada posisi: menggunakan anchor top-[-18px] sebagai patokan atas
+                          className="absolute top-[-18px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none"
                         />
                       )}
                     </div>
