@@ -15,7 +15,8 @@ export const VIP_BORDERS = [
 export default function AvatarBorderVip({ 
   isPremium, 
   borderUrl, 
-  className = "absolute top-[-28px] left-1/2 -translate-x-1/2 ml-[2px] w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none" 
+  // Posisi top diubah dari top-[-28px] menjadi top-[-18px] agar lingkaran bingkai pas di tengah avatar
+  className = "absolute top-[-18px] left-1/2 -translate-x-1/2 ml-[2px] w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none" 
 }: AvatarBorderVipProps) {
   
   if (!isPremium || !borderUrl) return null;
