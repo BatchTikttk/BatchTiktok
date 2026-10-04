@@ -106,8 +106,8 @@
     "upgradeVip": "Tingkatkan VIP",
     "addCollection": "Tambah Koleksi",
     "logout": "Keluar"
-  }
-"profile": {
+  },
+  "profile": {
     "loadingProfile": "Memuat Profil...",
     "clickToChangeAvatar": "Klik untuk mengubah avatar",
     "user": "Pengguna",
