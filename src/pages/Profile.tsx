@@ -133,7 +133,7 @@ export default function Profile({
   const [userBatches, setUserBatches] = useState<any[]>([]);
   const [allBatches, setAllBatches] = useState<any[]>([]); 
   
-  // State untuk Custom Batch Requests di Admin Panel
+  // State for Custom Batch Requests in Admin Panel
   const [adminRequests, setAdminRequests] = useState<any[]>([]);
   const [adminTab, setAdminTab] = useState<'uploads' | 'requests'>('uploads');
 
@@ -238,7 +238,7 @@ export default function Profile({
     }
   };
 
-  // Fungsi khusus untuk menarik data dari tabel batch_requests beserta data profil user
+  // Special function to fetch data from batch_requests table along with user profile data
   const fetchAllRequests = async () => {
     const { data } = await supabase
       .from('batch_requests')
@@ -270,7 +270,7 @@ export default function Profile({
     }
   };
 
-  // Fungsi untuk update status Custom Batch Request
+  // Function to update Custom Batch Request status
   const handleUpdateRequestStatus = async (reqId: string | number, newStatus: string) => {
     setActionLoadingId(`req_${reqId}`);
     
@@ -282,9 +282,9 @@ export default function Profile({
     setActionLoadingId(null);
 
     if (error) {
-      handleShowToast(`Gagal update status request: ${error.message}`, "error");
+      handleShowToast(`Failed to update request status: ${error.message}`, "error");
     } else {
-      handleShowToast(`Status request berhasil diubah menjadi ${newStatus}`, "success");
+      handleShowToast(`Request status successfully changed to ${newStatus}`, "success");
       setAdminRequests(prev => prev.map(req => req.id === reqId ? { ...req, status: newStatus } : req));
     }
   };
@@ -1002,7 +1002,7 @@ export default function Profile({
                     </button>
                   </div>
 
-                  {/* Toggle Antara Uploads dan Requests */}
+                  {/* Toggle Between Uploads and Requests */}
                   <div className="flex gap-3 mb-6 p-1 bg-slate-100 rounded-xl w-fit">
                     <button
                       onClick={() => setAdminTab('uploads')}
@@ -1218,55 +1218,55 @@ export default function Profile({
                               </div>
                             </div>
                             
-                            {/* Label Status */}
+                            {/* Status Label */}
                             <div>
                               {req.status === 'completed' && (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#84cc16]/10 text-[#84cc16]">
-                                  <CheckCircle2 size={13} /> Selesai
+                                  <CheckCircle2 size={13} /> Completed
                                 </span>
                               )}
                               {req.status === 'rejected' && (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-red-50 text-red-500">
-                                  <XCircle size={13} /> Ditolak
+                                  <XCircle size={13} /> Rejected
                                 </span>
                               )}
                               {(req.status === 'pending' || req.status === 'processing') && (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-500">
-                                  <Clock size={13} /> {req.status === 'processing' ? 'Diproses' : 'Pending'}
+                                  <Clock size={13} /> {req.status === 'processing' ? 'Processing' : 'Pending'}
                                 </span>
                               )}
                             </div>
                           </div>
                           
-                          {/* Tombol Aksi Admin */}
+                          {/* Admin Action Buttons */}
                           <div className="flex items-center gap-2 pt-3 border-t border-slate-50">
                             <button
                               onClick={() => handleUpdateRequestStatus(req.id, 'processing')}
                               disabled={actionLoadingId === `req_${req.id}` || req.status === 'processing'}
                               className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-[11px] font-bold rounded-full transition-all shadow-sm flex items-center gap-1.5"
                             >
-                              Proses
+                              Process
                             </button>
                             <button
                               onClick={() => handleUpdateRequestStatus(req.id, 'completed')}
                               disabled={actionLoadingId === `req_${req.id}` || req.status === 'completed'}
                               className="px-4 py-2 bg-[#84cc16] hover:bg-[#65a30d] disabled:opacity-50 text-white text-[11px] font-bold rounded-full transition-all shadow-sm flex items-center gap-1.5"
                             >
-                              Selesai
+                              Complete
                             </button>
                             <button
                               onClick={() => handleUpdateRequestStatus(req.id, 'rejected')}
                               disabled={actionLoadingId === `req_${req.id}` || req.status === 'rejected'}
                               className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-[11px] font-bold rounded-full transition-all shadow-sm flex items-center gap-1.5"
                             >
-                              Tolak
+                              Reject
                             </button>
                           </div>
                         </div>
                       )) : (
                         <div className="py-16 text-center bg-slate-50/50 rounded-[32px] border border-dashed border-slate-200">
                           <AlertCircle className="mx-auto text-slate-300 mb-3" size={32} />
-                          <p className="text-sm font-bold text-slate-600">Belum ada request masuk</p>
+                          <p className="text-sm font-bold text-slate-600">No incoming requests yet</p>
                         </div>
                       )}
                     </div>
