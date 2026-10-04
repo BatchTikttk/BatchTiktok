@@ -37,7 +37,7 @@ import PostModal from '../components/PostModal';
 import LoginModal from '../components/LoginModal';
 import AvatarModal from '../components/Avatar';
 import CustomBatchRequest from '../components/CustomBatchRequest'; 
-import AvatarBorderVip from '../components/AvatarBorderVip';
+import AvatarBorderVip, { VIP_BORDERS } from '../components/AvatarBorderVip';
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
@@ -324,6 +324,32 @@ export default function Profile({
     }
   };
 
+  // Fungsi Memilih / Melepas Avatar Border VIP
+  const handleSelectVipBorder = async (borderUrl: string) => {
+    if (!userProfile?.is_premium) {
+      handleShowToast("Fitur ini khusus untuk pengguna Premium VIP!", "error");
+      return;
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    // Klik ulang border yang sama untuk melepasnya (toggle)
+    const newBorderUrl = userProfile?.vip_border_url === borderUrl ? null : borderUrl;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ vip_border_url: newBorderUrl })
+      .eq('id', session.user.id);
+
+    if (error) {
+      handleShowToast("Gagal memperbarui bingkai avatar", "error");
+    } else {
+      setUserProfile((prev: any) => ({ ...prev, vip_border_url: newBorderUrl }));
+      handleShowToast(newBorderUrl ? "Bingkai VIP berhasil dipasang!" : "Bingkai VIP dilepas!", "success");
+    }
+  };
+
   const handleUpdateUsername = async () => {
     const trimmedUsername = usernameInput.trim();
     if (!trimmedUsername) {
@@ -554,11 +580,12 @@ export default function Profile({
                     )}
                   </div>
 
-                  {/* Panggilan AvatarBorderVip Component */}
+                  {/* Panggilan AvatarBorderVip dengan borderUrl pilihan user */}
                   {userProfile?.is_premium && (
-                    <div className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none transition-all duration-300 group-hover:scale-105">
-                      <AvatarBorderVip isPremium={userProfile?.is_premium} />
-                    </div>
+                    <AvatarBorderVip 
+                      isPremium={userProfile?.is_premium} 
+                      borderUrl={userProfile?.vip_border_url} 
+                    />
                   )}
                 </div>
 
@@ -950,11 +977,12 @@ export default function Profile({
                         )}
                       </div>
                       
-                      {/* Panggilan AvatarBorderVip Component */}
+                      {/* Avatar Border Preview */}
                       {userProfile?.is_premium && (
-                        <div className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none">
-                          <AvatarBorderVip isPremium={userProfile?.is_premium} />
-                        </div>
+                        <AvatarBorderVip 
+                          isPremium={userProfile?.is_premium} 
+                          borderUrl={userProfile?.vip_border_url} 
+                        />
                       )}
                     </div>
 
@@ -969,6 +997,73 @@ export default function Profile({
                       >
                         <Sparkles size={14} /> Change Avatar
                       </button>
+                    </div>
+                  </div>
+
+                  {/* ===== WADAH KUMPULAN AVATAR BORDER VIP (ARRAY MAP) ===== */}
+                  <div className="p-6 bg-slate-50 rounded-[32px] mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                          <Crown size={18} className="text-amber-500" /> VIP Avatar Border Selector
+                        </h3>
+                        <p className="text-[11px] text-slate-500 mt-1">
+                          Pilih bingkai avatar eksklusif untuk profil Anda (Khusus Akun Premium).
+                        </p>
+                      </div>
+                      {!userProfile?.is_premium && (
+                        <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full flex items-center gap-1">
+                          <Lock size={12} /> Requires Premium
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      {VIP_BORDERS.map((url, index) => {
+                        const isSelected = userProfile?.vip_border_url === url;
+                        const isPremium = !!userProfile?.is_premium;
+
+                        return (
+                          <div
+                            key={index}
+                            onClick={() => handleSelectVipBorder(url)}
+                            className={`relative p-4 rounded-2xl border-2 flex flex-col items-center justify-center transition-all cursor-pointer ${
+                              isSelected && isPremium
+                                ? 'bg-amber-50/60 border-amber-400 shadow-md scale-105'
+                                : 'bg-white border-slate-200 hover:border-amber-300'
+                            } ${!isPremium ? 'opacity-60 cursor-not-allowed' : ''}`}
+                          >
+                            <div className="relative w-16 h-16 mb-2 flex items-center justify-center">
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white relative z-10">
+                                {userProfile?.avatar_url ? (
+                                  <img src={userProfile.avatar_url} alt="User Avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                  <User size={24} />
+                                )}
+                              </div>
+                              <AvatarBorderVip 
+                                isPremium={true} 
+                                borderUrl={url} 
+                                className="absolute top-[-16px] left-1/2 -translate-x-1/2 ml-[1px] w-[80px] h-auto max-w-none object-contain z-20 pointer-events-none" 
+                              />
+                            </div>
+
+                            <span className="text-xs font-bold text-slate-700 mt-1">VIP Border {index + 1}</span>
+
+                            {isSelected && isPremium && (
+                              <span className="absolute top-2 right-2 bg-amber-500 text-white rounded-full p-0.5 shadow-sm">
+                                <Check size={12} />
+                              </span>
+                            )}
+
+                            {!isPremium && (
+                              <span className="absolute top-2 right-2 text-slate-400">
+                                <Lock size={12} />
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 

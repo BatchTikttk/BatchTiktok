@@ -1,33 +1,30 @@
 interface AvatarBorderVipProps {
   isPremium: boolean;
-  level?: 1 | 2 | 3 | 4; // You can specify which VIP border to use (1-4)
+  borderUrl?: string | null; // Menerima URL bingkai pilihan user
   className?: string;
 }
 
-// List of VIP border URLs provided from the Supabase bucket (Ditambahkan export)
-export const VIP_BORDERS = {
-  1: "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/VIP%20BORDER%20AVATAR%20NEW/VIP%201.webp",
-  2: "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/VIP%20BORDER%20AVATAR%20NEW/VIP%202.webp",
-  3: "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/VIP%20BORDER%20AVATAR%20NEW/VIP%203.webp",
-  4: "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/VIP%20BORDER%20AVATAR%20NEW/VIP%204.webp",
-};
+// Kumpulan URL Border VIP dalam bentuk Array (tanpa level)
+export const VIP_BORDERS = [
+  "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/VIP%20BORDER%20AVATAR%20NEW/VIP%201.webp",
+  "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/VIP%20BORDER%20AVATAR%20NEW/VIP%202.webp",
+  "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/VIP%20BORDER%20AVATAR%20NEW/VIP%203.webp",
+  "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/VIP%20BORDER%20AVATAR%20NEW/VIP%204.webp",
+];
 
 export default function AvatarBorderVip({ 
   isPremium, 
-  level = 1, // Default to VIP 1 if level is not provided
+  borderUrl, 
   className = "absolute top-[-28px] left-1/2 -translate-x-1/2 ml-[2px] w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none" 
 }: AvatarBorderVipProps) {
   
-  // If the user is not premium (FALSE), return null so the border is not rendered
-  if (!isPremium) return null;
-
-  // Get the image URL based on the provided level, fallback to level 1 if invalid
-  const borderUrl = VIP_BORDERS[level] || VIP_BORDERS[1];
+  // Jangan render apapun jika user bukan premium atau belum memilih border
+  if (!isPremium || !borderUrl) return null;
 
   return (
     <img 
       src={borderUrl}
-      alt={`VIP Border Level ${level}`}
+      alt="VIP Avatar Border"
       className={className}
     />
   );
