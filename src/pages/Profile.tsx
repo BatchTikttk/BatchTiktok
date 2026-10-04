@@ -541,22 +541,34 @@ export default function Profile({
             {/* LEFT SIDEBAR */}
             <div className="w-full lg:w-[260px] shrink-0 space-y-8">
               <div className="flex flex-col items-center text-center">
+                
+                {/* --- AVATAR UI BARU DENGAN VIP BORDER --- */}
                 <div 
-                  className="relative group cursor-pointer mb-4"
+                  className="relative group cursor-pointer mb-4 p-2"
                   onClick={() => setShowAvatarModal(true)}
                   title="Click to change avatar"
                 >
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 border-4 border-white transition-all duration-300 group-hover:scale-105">
+                  {userProfile?.is_premium && (
+                    <img 
+                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp" 
+                      alt="VIP Avatar Border"
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[124px] h-[124px] max-w-none z-20 pointer-events-none transition-transform duration-300 group-hover:scale-105 drop-shadow-xl"
+                    />
+                  )}
+
+                  <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 border-4 border-white transition-all duration-300 group-hover:scale-105 z-10">
                     {userProfile?.avatar_url ? (
                       <img src={userProfile.avatar_url} alt="Profile Avatar" className="w-full h-full object-cover" />
                     ) : (
                       <User size={40} strokeWidth={2.2} />
                     )}
                   </div>
-                  <div className="absolute bottom-0 right-0 p-2 bg-white text-slate-600 rounded-full shadow-md transition-all border border-slate-100 flex items-center justify-center hover:text-emerald-600">
+                  
+                  <div className="absolute bottom-1 right-1 p-2 bg-white text-slate-600 rounded-full shadow-md transition-all border border-slate-100 flex items-center justify-center hover:text-emerald-600 z-30">
                     <Camera size={14} />
                   </div>
                 </div>
+                {/* --- AKHIR AVATAR UI --- */}
 
                 <div className="flex flex-col items-center w-full">
                   <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
@@ -937,13 +949,26 @@ export default function Profile({
                   <p className="text-xs text-slate-500 mb-8">Customize your appearance and account information</p>
 
                   <div className="p-6 bg-slate-50 rounded-[32px] flex flex-col sm:flex-row items-center gap-6 mb-6">
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-md flex-shrink-0">
-                      {userProfile?.avatar_url ? (
-                        <img src={userProfile.avatar_url} alt="Avatar Preview" className="w-full h-full object-cover" />
-                      ) : (
-                        <User size={36} />
+                    
+                    {/* --- KONSISTENSI BINGKAI VIP DI TAB SETTINGS JUGA --- */}
+                    <div className="relative w-24 h-24 flex-shrink-0">
+                      {userProfile?.is_premium && (
+                        <img 
+                          src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp" 
+                          alt="VIP Avatar Border"
+                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[124px] h-[124px] max-w-none z-20 pointer-events-none drop-shadow-xl"
+                        />
                       )}
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-md relative z-10 border-4 border-white">
+                        {userProfile?.avatar_url ? (
+                          <img src={userProfile.avatar_url} alt="Avatar Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <User size={36} />
+                        )}
+                      </div>
                     </div>
+                    {/* --- AKHIR BINGKAI VIP SETTINGS --- */}
+
                     <div className="text-center sm:text-left space-y-3">
                       <div>
                         <h3 className="text-sm font-bold text-slate-800">Character Avatar</h3>
