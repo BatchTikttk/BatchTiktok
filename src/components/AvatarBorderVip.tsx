@@ -15,8 +15,7 @@ export const VIP_BORDERS = [
 export default function AvatarBorderVip({ 
   isPremium, 
   borderUrl, 
-  // Posisi disesuaikan sedikit lebih turun menjadi top-[-32px]
-  className = "absolute top-[-32px] left-1/2 -translate-x-1/2 ml-[1px] w-[128px] h-auto max-w-none object-contain z-20 pointer-events-none" 
+  className = "absolute top-[-37px] left-1/2 -translate-x-1/2 ml-[1px] w-[128px] h-auto max-w-none object-contain z-20 pointer-events-none" 
 }: AvatarBorderVipProps) {
   
   if (!isPremium || !borderUrl) return null;
