@@ -546,7 +546,7 @@ export default function Profile({
                   =======================================================
                 */}
                 <div 
-                  className="relative group cursor-pointer mb-6 w-[88px] h-[88px]"
+                  className="relative group cursor-pointer mb-2 w-[88px] h-[88px]"
                   onClick={() => setShowAvatarModal(true)}
                   title="Click to change avatar"
                 >
@@ -562,14 +562,17 @@ export default function Profile({
                     <img 
                       src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp"
                       alt="VIP Border"
-                      // Perubahan pada posisi: diturunkan lebih pas dari top-[-18px] menjadi top-[-6px]
                       className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none transition-all duration-300 group-hover:scale-105"
                     />
                   )}
-
-                  <div className="absolute -bottom-1 -right-1 p-2 bg-white text-slate-600 rounded-full shadow-md transition-all border border-slate-100 flex items-center justify-center hover:text-emerald-600 z-30">
-                    <Camera size={14} />
-                  </div>
+                </div>
+                
+                <div 
+                  onClick={() => setShowAvatarModal(true)}
+                  className="mb-4 flex items-center justify-center p-2 bg-white text-slate-600 rounded-full shadow-md transition-all border border-slate-100 hover:text-emerald-600 cursor-pointer z-30"
+                  title="Change avatar"
+                >
+                  <Camera size={14} />
                 </div>
                 {/* ======================================================= */}
 
