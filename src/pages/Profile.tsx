@@ -556,7 +556,7 @@ export default function Profile({
                   {/* Panggilan AvatarBorderVip Component */}
                   {userProfile?.is_premium && (
                     <div className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none transition-all duration-300 group-hover:scale-105">
-                      <AvatarBorderVip />
+                      <AvatarBorderVip isPremium={userProfile?.is_premium} />
                     </div>
                   )}
                 </div>
@@ -952,7 +952,7 @@ export default function Profile({
                       {/* Panggilan AvatarBorderVip Component */}
                       {userProfile?.is_premium && (
                         <div className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none">
-                          <AvatarBorderVip />
+                          <AvatarBorderVip isPremium={userProfile?.is_premium} />
                         </div>
                       )}
                     </div>
