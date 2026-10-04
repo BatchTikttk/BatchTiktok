@@ -1,6 +1,6 @@
 interface AvatarBorderVipProps {
   isPremium: boolean;
-  borderUrl?: string | null; // Menerima URL bingkai pilihan user
+  borderUrl?: string | null;
   className?: string;
 }
 
@@ -18,7 +18,6 @@ export default function AvatarBorderVip({
   className = "absolute top-[-28px] left-1/2 -translate-x-1/2 ml-[2px] w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none" 
 }: AvatarBorderVipProps) {
   
-  // Jangan render apapun jika user bukan premium atau belum memilih border
   if (!isPremium || !borderUrl) return null;
 
   return (

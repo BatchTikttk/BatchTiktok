@@ -334,7 +334,7 @@ export default function Profile({
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
-    // Klik ulang border yang sama untuk melepasnya (toggle)
+    // Toggle border: jika diklik ulang maka lepas border
     const newBorderUrl = userProfile?.vip_border_url === borderUrl ? null : borderUrl;
 
     const { error } = await supabase
@@ -343,7 +343,8 @@ export default function Profile({
       .eq('id', session.user.id);
 
     if (error) {
-      handleShowToast("Gagal memperbarui bingkai avatar", "error");
+      // Tampilkan error spesifik dari Supabase
+      handleShowToast(`Gagal: ${error.message}`, "error");
     } else {
       setUserProfile((prev: any) => ({ ...prev, vip_border_url: newBorderUrl }));
       handleShowToast(newBorderUrl ? "Bingkai VIP berhasil dipasang!" : "Bingkai VIP dilepas!", "success");
@@ -580,7 +581,7 @@ export default function Profile({
                     )}
                   </div>
 
-                  {/* Panggilan AvatarBorderVip dengan borderUrl pilihan user */}
+                  {/* Panggilan AvatarBorderVip */}
                   {userProfile?.is_premium && (
                     <AvatarBorderVip 
                       isPremium={userProfile?.is_premium} 
@@ -1000,7 +1001,7 @@ export default function Profile({
                     </div>
                   </div>
 
-                  {/* ===== WADAH KUMPULAN AVATAR BORDER VIP (ARRAY MAP) ===== */}
+                  {/* ===== WADAH KUMPULAN AVATAR BORDER VIP ===== */}
                   <div className="p-6 bg-slate-50 rounded-[32px] mb-6">
                     <div className="flex items-center justify-between mb-4">
                       <div>
