@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface AvatarBorderVipProps {
   isPremium: boolean;
   level?: 1 | 2 | 3 | 4; // You can specify which VIP border to use (1-4)
