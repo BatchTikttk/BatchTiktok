@@ -591,6 +591,7 @@ export default function Profile({
                     </span>
                   </div>
                 </div>
+</div>
 
               {/* Sidebar Navigation */}
               <div className="space-y-2">
