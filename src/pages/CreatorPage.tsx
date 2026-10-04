@@ -8,6 +8,7 @@ import { supabase } from "../supabase";
 
 import PreviewModal from "../components/PreviewModal";
 import { EmeraldFolderIcon } from "../components/SharedIcons";
+import AvatarBorderVip from "../components/AvatarBorderVip";
 
 interface BatchItem {
   id: string;
@@ -377,23 +378,21 @@ export default function CreatorPage({ username, onCheckAccess }: { username: str
             </div>
           )}
 
-          {/* Avatar diam di tengah penuh, border VIP digeser ke bawah agar pas dengan ujung atas avatar */}
-          <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 z-10 flex items-center justify-center">
-            {/* Foto Avatar (Diam di tempat & ukuran penuh) */}
-            <div className={`w-full h-full rounded-full overflow-hidden flex items-center justify-center text-white bg-gradient-to-tr from-emerald-500 to-teal-400 shadow-md ${creatorProfile?.is_premium ? '' : 'border-4 border-white shadow-emerald-500/25'}`}>
+          {/* Avatar Container Diselaraskan dengan Profile.tsx */}
+          <div className="relative w-[88px] h-[88px] flex-shrink-0 z-10">
+            <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center text-white bg-gradient-to-tr from-emerald-500 to-teal-400 shadow-lg shadow-emerald-500/20 border-4 border-white relative z-10">
               {creatorProfile?.avatar_url ? (
                 <img src={creatorProfile.avatar_url} alt={username} className="w-full h-full object-cover" />
               ) : (
-                <User size={48} className="sm:w-16 sm:h-16" />
+                <User size={40} strokeWidth={2.2} />
               )}
             </div>
 
-            {/* Bingkai Border VIP digeser ke bawah menggunakan translate-y-3 */}
+            {/* Pemanggilan AvatarBorderVip Komponen Sesuai Pilihan User */}
             {creatorProfile?.is_premium && (
-              <img 
-                src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp" 
-                alt="VIP Border" 
-                className="absolute inset-0 w-full h-full object-contain pointer-events-none z-25 scale-[1.38] translate-y-3 drop-shadow-md"
+              <AvatarBorderVip 
+                isPremium={creatorProfile?.is_premium} 
+                borderUrl={creatorProfile?.vip_border_url} 
               />
             )}
           </div>
