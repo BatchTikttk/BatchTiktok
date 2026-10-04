@@ -2,8 +2,12 @@ import { useState } from 'react';
 import { supabase } from '../supabase';
 import { Crown, Clock, Send, Link as LinkIcon } from 'lucide-react';
 
+interface CustomBatchRequestProps {
+  currentUser: any; 
+}
+
 // Props currentUser berisi data dari tabel profiles
-export default function CustomBatchRequest({ currentUser }) {
+export default function CustomBatchRequest({ currentUser }: CustomBatchRequestProps) {
   const [targetUrl, setTargetUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
