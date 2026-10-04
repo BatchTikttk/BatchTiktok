@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase';
-import { Send, MessageSquare, X, User, Loader2, LogIn, Smile, ShieldCheck } from 'lucide-react';
+import { Send, MessageSquare, X, User, Loader2, LogIn, Smile } from 'lucide-react';
 
 interface ChatGroupProps {
   currentUser: string | null;
@@ -335,7 +335,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                         )}
                       </div>
                       
-                      {/* Badge Admin Absolute (Kanan Bawah) - Diperbesar */}
+                      {/* Badge Admin Absolute (Kanan Bawah) */}
                       {senderProfile?.is_admin && (
                         <img
                           src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp"
@@ -359,12 +359,10 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                       
                       {/* Name & Tier Badges Container */}
                       <div className="flex items-center gap-1.5 mb-1 px-1 flex-wrap">
-                        {/* Username dengan warna emerald jika admin */}
                         <span className={`text-[12px] font-bold ${senderProfile?.is_admin ? 'text-emerald-600' : 'text-slate-600'}`}>
                           {isMe ? 'You' : senderProfile?.username || msg.username}
                         </span>
                         
-                        {/* Tier Badges (Hanya muncul jika BUKAN admin) */}
                         {!senderProfile?.is_admin && userBadges.map((badge) => (
                           <img
                             key={badge.id}
