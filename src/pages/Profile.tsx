@@ -11,7 +11,6 @@ import {
   Trash2, 
   TrendingUp, 
   ShieldCheck,
-  Camera,
   LayoutDashboard,
   FolderHeart,
   Settings,
@@ -546,7 +545,7 @@ export default function Profile({
                   =======================================================
                 */}
                 <div 
-                  className="relative group cursor-pointer mb-2 w-[88px] h-[88px]"
+                  className="relative group cursor-pointer mb-4 w-[88px] h-[88px]"
                   onClick={() => setShowAvatarModal(true)}
                   title="Click to change avatar"
                 >
@@ -565,14 +564,6 @@ export default function Profile({
                       className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none transition-all duration-300 group-hover:scale-105"
                     />
                   )}
-                </div>
-                
-                <div 
-                  onClick={() => setShowAvatarModal(true)}
-                  className="mb-4 flex items-center justify-center p-2 bg-white text-slate-600 rounded-full shadow-md transition-all border border-slate-100 hover:text-emerald-600 cursor-pointer z-30"
-                  title="Change avatar"
-                >
-                  <Camera size={14} />
                 </div>
                 {/* ======================================================= */}
 
