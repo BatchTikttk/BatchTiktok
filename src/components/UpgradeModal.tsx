@@ -64,9 +64,19 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
   const handlePayment = async () => {
     setIsLoading(true);
     try {
-      // Memanggil Supabase Edge Function bernama 'midtrans-payment'
+      // 1. Ambil data user yang sedang login saat ini di Supabase
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        throw new Error('Anda harus login terlebih dahulu sebelum melakukan upgrade.');
+      }
+
+      // 2. Memanggil Supabase Edge Function 'midtrans-payment' dengan membawa amount dan user_id
       const { data, error } = await supabase.functions.invoke('midtrans-payment', {
-        body: { amount: 50000 }
+        body: { 
+          amount: 50000,
+          user_id: user.id // Mengirim ID user aktif agar webhook bisa membaca tujuannya
+        }
       });
 
       if (error) {
@@ -78,28 +88,28 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
         throw new Error('Token pembayaran tidak ditemukan');
       }
 
-      // Munculkan popup UI Midtrans
+      // 3. Munculkan popup UI Midtrans
       window.snap.pay(data.token, {
         onSuccess: function (result: any) {
           console.log('Pembayaran Sandbox SUKSES:', result);
-          alert('Pembayaran Berhasil! (Mode Sandbox)');
+          alert('Pembayaran Berhasil! Status akun Anda akan segera diperbarui.');
           onClose(); // Tutup modal otomatis setelah berhasil
         },
         onPending: function (result: any) {
           console.log('Pembayaran Sandbox PENDING:', result);
-          alert('Menunggu pembayaran diselesaikan (Mode Sandbox).');
+          alert('Menunggu pembayaran diselesaikan.');
         },
         onError: function (result: any) {
           console.log('Pembayaran Sandbox GAGAL:', result);
-          alert('Pembayaran gagal (Mode Sandbox).');
+          alert('Pembayaran gagal.');
         },
         onClose: function () {
           console.log('User menutup popup tanpa menyelesaikan pembayaran');
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Terjadi kesalahan:', error);
-      alert('Gagal memproses pembayaran. Cek console browser untuk detailnya.');
+      alert(error.message || 'Gagal memproses pembayaran. Cek console browser untuk detailnya.');
     } finally {
       setIsLoading(false);
     }
