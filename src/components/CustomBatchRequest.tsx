@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../utils/supabaseClient'; // Sesuaikan dengan path file supabase Anda
+import { supabase } from '../supabase';
 import { Crown, Clock, Send, Link as LinkIcon } from 'lucide-react';
 
 // Props currentUser berisi data dari tabel profiles
