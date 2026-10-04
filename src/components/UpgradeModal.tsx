@@ -1,4 +1,8 @@
+import { useEffect, useState } from 'react';
 import { Check, ShieldCheck } from 'lucide-react';
+
+// Import mengarah ke file supabase.ts di dalam folder src
+import { supabase } from '../supabase'; 
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -23,11 +27,82 @@ const CONTENT = {
   ]
 };
 
+// Deklarasi global object window untuk TypeScript agar tidak error saat memanggil window.snap
+declare global {
+  interface Window {
+    snap: any;
+  }
+}
+
 export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Load Midtrans Snap.js script ketika modal dibuka
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // URL Sandbox Midtrans
+    const snapScriptUrl = 'https://app.sandbox.midtrans.com/snap/snap.js';
+    
+    // Memanggil Client Key dari file .env Vite
+    const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY; 
+
+    // Cek agar script tidak di-load berulang kali
+    let scriptTag = document.querySelector(`script[src="${snapScriptUrl}"]`) as HTMLScriptElement;
+    
+    if (!scriptTag) {
+      scriptTag = document.createElement('script');
+      scriptTag.src = snapScriptUrl;
+      scriptTag.setAttribute('data-client-key', clientKey);
+      scriptTag.async = true;
+      document.body.appendChild(scriptTag);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  const handlePayment = () => {
-    window.open('https://wa.me/your_number', '_blank');
+  const handlePayment = async () => {
+    setIsLoading(true);
+    try {
+      // Memanggil Supabase Edge Function bernama 'midtrans-payment'
+      const { data, error } = await supabase.functions.invoke('midtrans-payment', {
+        body: { amount: 50000 }
+      });
+
+      if (error) {
+        console.error('Error dari Supabase:', error);
+        throw new Error('Gagal memanggil fungsi dari Supabase');
+      }
+
+      if (!data?.token) {
+        throw new Error('Token pembayaran tidak ditemukan');
+      }
+
+      // Munculkan popup UI Midtrans
+      window.snap.pay(data.token, {
+        onSuccess: function (result: any) {
+          console.log('Pembayaran Sandbox SUKSES:', result);
+          alert('Pembayaran Berhasil! (Mode Sandbox)');
+          onClose(); // Tutup modal otomatis setelah berhasil
+        },
+        onPending: function (result: any) {
+          console.log('Pembayaran Sandbox PENDING:', result);
+          alert('Menunggu pembayaran diselesaikan (Mode Sandbox).');
+        },
+        onError: function (result: any) {
+          console.log('Pembayaran Sandbox GAGAL:', result);
+          alert('Pembayaran gagal (Mode Sandbox).');
+        },
+        onClose: function () {
+          console.log('User menutup popup tanpa menyelesaikan pembayaran');
+        }
+      });
+    } catch (error) {
+      console.error('Terjadi kesalahan:', error);
+      alert('Gagal memproses pembayaran. Cek console browser untuk detailnya.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -67,7 +142,7 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
           {/* Content Body */}
           <div className="p-8 md:p-10 flex flex-col items-center w-full">
             
-            {/* Features Section (Ikon Ceklis Polos & Rata Tengah) */}
+            {/* Features Section */}
             <div className="w-full flex flex-col items-center mb-8">
               <h3 className="text-zinc-100 font-bold text-lg mb-6 text-center tracking-wide">
                 {CONTENT.featuresHeader}
@@ -102,12 +177,13 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
                 </p>
               </div>
 
-              {/* Tombol CTA Solid Gold */}
+              {/* Tombol CTA Update dengan Loading State */}
               <button
                 onClick={handlePayment}
-                className="w-full max-w-md bg-amber-600 hover:bg-amber-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-amber-600/20 text-sm border-none cursor-pointer"
+                disabled={isLoading}
+                className="w-full max-w-md bg-amber-600 hover:bg-amber-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-amber-600/20 text-sm border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {CONTENT.ctaButton}
+                {isLoading ? 'Menghubungkan ke Midtrans...' : CONTENT.ctaButton}
               </button>
               <p className="text-zinc-400 text-xs mt-4 font-medium flex items-center justify-center gap-1.5">
                 <ShieldCheck size={16} className="text-amber-500" />
