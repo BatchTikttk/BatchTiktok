@@ -111,7 +111,11 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorB
           
           {isAdmin ? (
             <span title="Admin Verified">
-              <ShieldCheck size={16} className="text-[#fbbf24] ml-0.5 cursor-help drop-shadow-sm hover:scale-110 transition-transform" />
+              <img 
+                src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp" 
+                alt="Admin Verified"
+                className="w-6 h-6 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform ml-0.5"
+              />
             </span>
           ) : creatorBadge ? (
             <img 
@@ -361,10 +365,13 @@ export default function CreatorPage({ username, onCheckAccess }: { username: str
 
           {creatorProfile?.is_admin && (
             <div className="absolute top-6 right-6 sm:top-8 sm:right-10 flex flex-col items-center justify-center z-0 hover:scale-105 transition-transform duration-300">
-              <span className="inline-flex items-center justify-center text-white bg-gradient-to-tr from-amber-400 to-amber-500 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full shadow-md border-4 border-amber-100 mb-1.5">
-                <ShieldCheck size={40} className="sm:w-12 sm:h-12" />
-              </span>
-              <span className="text-[10px] sm:text-xs font-extrabold tracking-wide text-amber-500 text-center whitespace-nowrap drop-shadow-sm">
+              <img 
+                src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp"
+                alt="Verified Staff"
+                title="Verified Staff"
+                className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain drop-shadow-md"
+              />
+              <span className="mt-1.5 text-[10px] sm:text-xs font-extrabold tracking-wide text-amber-500 text-center whitespace-nowrap drop-shadow-sm">
                 Verified Staff
               </span>
             </div>
