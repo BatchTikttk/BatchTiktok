@@ -34,8 +34,6 @@ import {
 import { EmeraldFolderIcon } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import PostModal from '../components/PostModal';
-import LoginModal from '../components/LoginModal';
 import AvatarModal from '../components/Avatar';
 import CustomBatchRequest from '../components/CustomBatchRequest'; 
 
@@ -153,8 +151,8 @@ export default function Profile({
   const [adminSearchQuery, setAdminSearchQuery] = useState('');
 
   const [showAvatarModal, setShowAvatarModal] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [, setShowAddModal] = useState(false);
+  const [, setShowLoginModal] = useState(false);
   
   const [editingBatch, setEditingBatch] = useState<any>(null);
   const [isUpdatingBatch, setIsUpdatingBatch] = useState(false);
@@ -1423,7 +1421,6 @@ export default function Profile({
       {/* Avatar Modal */}
       {showAvatarModal && (
         <AvatarModal 
-          isOpen={showAvatarModal} 
           onClose={() => setShowAvatarModal(false)} 
           onSelectAvatar={handleUpdateAvatar} 
           currentAvatar={userProfile?.avatar_url}
