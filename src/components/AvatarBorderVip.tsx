@@ -4,8 +4,8 @@ interface AvatarBorderVipProps {
   className?: string;
 }
 
-// List of VIP border URLs provided from the Supabase bucket
-const VIP_BORDERS = {
+// List of VIP border URLs provided from the Supabase bucket (Ditambahkan export)
+export const VIP_BORDERS = {
   1: "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/VIP%20BORDER%20AVATAR%20NEW/VIP%201.webp",
   2: "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/VIP%20BORDER%20AVATAR%20NEW/VIP%202.webp",
   3: "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/VIP%20BORDER%20AVATAR%20NEW/VIP%203.webp",
@@ -15,7 +15,6 @@ const VIP_BORDERS = {
 export default function AvatarBorderVip({ 
   isPremium, 
   level = 1, // Default to VIP 1 if level is not provided
-  // Mengubah ml-[4px] menjadi ml-[2px] agar bergeser sedikit kembali ke kiri
   className = "absolute top-[-28px] left-1/2 -translate-x-1/2 ml-[2px] w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none" 
 }: AvatarBorderVipProps) {
   
