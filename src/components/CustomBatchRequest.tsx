@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { Crown, Clock, Send, Link as LinkIcon, ExternalLink, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import UpgradeModal from './UpgradeModal'; // Pastikan path import ini sesuai dengan struktur folder Anda
 
 interface CustomBatchRequestProps {
   currentUser: any; 
 }
 
-// The currentUser prop contains data from the profiles table
 export default function CustomBatchRequest({ currentUser }: CustomBatchRequestProps) {
   const [targetUrl, setTargetUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [userRequests, setUserRequests] = useState<any[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  
+  // State untuk mengontrol modal pop-up upgrade
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   // Check if the user is VIP based on the is_premium column from the profiles table
   const isVip = currentUser?.is_premium || false;
@@ -47,16 +50,15 @@ export default function CustomBatchRequest({ currentUser }: CustomBatchRequestPr
     setIsSubmitting(true);
     setMessage('');
 
-    // Insert data into the newly created batch_requests table
+    // Insert data into the batch_requests table
     const { error } = await supabase
       .from('batch_requests')
       .insert([
         {
           user_id: currentUser.id,
           target_url: targetUrl,
-          is_priority: isVip, // Automatically true if the user is VIP
+          is_priority: isVip,
           status: 'pending'
-          // result_url is not passed here as it will be filled by the admin later
         }
       ]);
 
@@ -75,7 +77,7 @@ export default function CustomBatchRequest({ currentUser }: CustomBatchRequestPr
   if (!currentUser) return null; // Hide form if not logged in
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 relative">
       {/* Request Form Section */}
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
         <div className={`p-6 text-white ${isVip ? 'bg-gradient-to-r from-gray-900 to-gray-800' : 'bg-gray-600'}`}>
@@ -95,8 +97,21 @@ export default function CustomBatchRequest({ currentUser }: CustomBatchRequestPr
             {isVip ? <Crown className="shrink-0 text-yellow-500 mt-1" size={20} /> : <Clock className="shrink-0 text-gray-400 mt-1" size={20} />}
             <div>
               <h4 className="font-semibold">{isVip ? 'VIP Queue Active' : 'Standard Queue'}</h4>
-              <p className="text-sm">
-                {isVip ? 'Your request is prioritized and will be processed faster by the admin.' : 'Estimated processing 3-7 days. Upgrade to VIP for instant processing.'}
+              <p className="text-sm mt-1">
+                {isVip ? (
+                  'Your request is prioritized and will be processed faster by the admin.'
+                ) : (
+                  <>
+                    Estimated processing 3-7 days.{' '}
+                    <button 
+                      type="button"
+                      onClick={() => setIsUpgradeModalOpen(true)}
+                      className="font-bold text-blue-600 hover:text-blue-800 underline underline-offset-2 transition-colors cursor-pointer"
+                    >
+                      Upgrade to VIP for instant processing.
+                    </button>
+                  </>
+                )}
               </p>
             </div>
           </div>
@@ -206,6 +221,12 @@ export default function CustomBatchRequest({ currentUser }: CustomBatchRequestPr
           </div>
         )}
       </div>
+
+      {/* Render Upgrade Modal */}
+      <UpgradeModal 
+        isOpen={isUpgradeModalOpen} 
+        onClose={() => setIsUpgradeModalOpen(false)} 
+      />
     </div>
   );
 }
