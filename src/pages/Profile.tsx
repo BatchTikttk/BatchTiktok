@@ -567,7 +567,7 @@ export default function Profile({
                 </div>
                 {/* ======================================================= */}
 
-                <div className="flex flex-col items-center w-full mt-2">
+            <div className="flex flex-col items-center w-full mt-5">
                   <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
                     {activeUsername || 'User'}
                     {unlockedBadges.length > 0 && (
@@ -591,7 +591,6 @@ export default function Profile({
                     </span>
                   </div>
                 </div>
-              </div>
 
               {/* Sidebar Navigation */}
               <div className="space-y-2">
