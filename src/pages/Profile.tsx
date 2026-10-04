@@ -523,8 +523,7 @@ export default function Profile({
           resetSearch={() => {}}
           CATEGORIES={CATEGORIES}
           EmeraldFolderIcon={EmeraldFolderIcon}
-          currentUser={activeUsername}
-          userProfile={userProfile} 
+          currentUser={activeUsername} 
           handleLogout={handleLogoutAction}
           setShowAddModal={() => setShowAddModal(true)}
           setShowLoginModal={() => setShowLoginModal(true)}
@@ -554,9 +553,9 @@ export default function Profile({
                     )}
                   </div>
 
-                  {/* Panggilan AvatarBorderVip Component Diperbaiki Posisi Center-nya */}
+                  {/* Panggilan AvatarBorderVip Component */}
                   {userProfile?.is_premium && (
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[124px] h-[124px] z-20 pointer-events-none transition-all duration-300 group-hover:scale-105 flex items-center justify-center">
+                    <div className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none transition-all duration-300 group-hover:scale-105">
                       <AvatarBorderVip isPremium={userProfile?.is_premium} />
                     </div>
                   )}
@@ -675,7 +674,6 @@ export default function Profile({
               
               {activeTab === 'overview' && (
                 <div className="space-y-8 animate-in fade-in duration-300">
-                  {/* ... Konten overview tetap sama persis ... */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
                     <div className="bg-[#3b82f6] p-6 rounded-[32px] shadow-[0_12px_24px_-8px_rgba(59,130,246,0.4)] flex flex-col justify-between text-white relative overflow-hidden transition-transform hover:-translate-y-1">
                       <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
@@ -828,7 +826,6 @@ export default function Profile({
 
               {activeTab === 'collections' && (
                 <div className="animate-in fade-in duration-300">
-                  {/* ... Konten Collections tetap sama persis ... */}
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
                       <h2 className="text-xl font-bold text-slate-800">Batch Collections</h2>
@@ -943,13 +940,8 @@ export default function Profile({
                   <p className="text-xs text-slate-500 mb-8">Customize your appearance and account information</p>
 
                   <div className="p-6 bg-slate-50 rounded-[32px] flex flex-col sm:flex-row items-center gap-6 mb-6">
-                    {/* BAGIAN AVATAR DAN BORDER DIPERBAIKI */}
-                    <div 
-                      className="relative w-[88px] h-[88px] flex-shrink-0 cursor-pointer group"
-                      onClick={() => setShowAvatarModal(true)}
-                      title="Click to change avatar"
-                    >
-                      <div className="w-full h-full rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-md relative z-10 transition-transform duration-300 group-hover:scale-105">
+                    <div className="relative w-[88px] h-[88px] flex-shrink-0">
+                      <div className="w-full h-full rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-md relative z-10">
                         {userProfile?.avatar_url ? (
                           <img src={userProfile.avatar_url} alt="Avatar Preview" className="w-full h-full object-cover" />
                         ) : (
@@ -957,9 +949,9 @@ export default function Profile({
                         )}
                       </div>
                       
-                      {/* Panggilan AvatarBorderVip Component Diperbaiki Posisi Center-nya */}
+                      {/* Panggilan AvatarBorderVip Component */}
                       {userProfile?.is_premium && (
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[124px] h-[124px] z-20 pointer-events-none transition-transform duration-300 group-hover:scale-105 flex items-center justify-center">
+                        <div className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none">
                           <AvatarBorderVip isPremium={userProfile?.is_premium} />
                         </div>
                       )}
@@ -967,27 +959,15 @@ export default function Profile({
 
                     <div className="text-center sm:text-left space-y-3">
                       <div>
-                        <h3 className="text-sm font-bold text-slate-800">Character Avatar & Border</h3>
-                        <p className="text-[11px] text-slate-500 mt-1">Choose an avatar and border to represent yourself.</p>
+                        <h3 className="text-sm font-bold text-slate-800">Character Avatar</h3>
+                        <p className="text-[11px] text-slate-500 mt-1">Choose an avatar to represent yourself.</p>
                       </div>
-                      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                        <button
-                          onClick={() => setShowAvatarModal(true)}
-                          className="inline-flex items-center gap-2 px-5 py-2 bg-white text-slate-700 text-xs font-bold rounded-full shadow-sm border border-slate-200 hover:border-[#10b981] hover:text-[#10b981] transition-all"
-                        >
-                          <Sparkles size={14} /> Change Avatar
-                        </button>
-                        
-                        {/* TOMBOL SELECT BORDER DITAMBAHKAN KHUSUS UNTUK PREMIUM */}
-                        {userProfile?.is_premium && (
-                          <button
-                            onClick={() => handleShowToast("Fitur pemilihan variasi Avatar Border akan segera rilis!", "success")}
-                            className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-amber-100 to-amber-200 text-amber-900 text-xs font-bold rounded-full shadow-sm border border-amber-300 hover:scale-105 transition-all"
-                          >
-                            <Crown size={14} /> Select Border
-                          </button>
-                        )}
-                      </div>
+                      <button
+                        onClick={() => setShowAvatarModal(true)}
+                        className="inline-flex items-center gap-2 px-5 py-2 bg-white text-slate-700 text-xs font-bold rounded-full shadow-sm border border-slate-200 hover:border-[#10b981] hover:text-[#10b981] transition-all"
+                      >
+                        <Sparkles size={14} /> Change Avatar
+                      </button>
                     </div>
                   </div>
 
@@ -1017,7 +997,6 @@ export default function Profile({
 
               {activeTab === 'admin' && userProfile?.is_admin && (
                 <div className="animate-in fade-in duration-300">
-                  {/* ... Konten Admin Tab tetap sama persis seperti awal ... */}
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div>
                       <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -1348,7 +1327,6 @@ export default function Profile({
       {editingBatch && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setEditingBatch(null)}></div>
-          {/* ... Modal Edit Batch tetap sama ... */}
           
           <div className="relative w-full max-w-2xl bg-white rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-slate-100 flex items-start justify-between">
@@ -1423,11 +1401,9 @@ export default function Profile({
         </div>
       )}
 
-      {/* PROPS isPremium DITAMBAHKAN DI MODAL AGAR TETAP TERLIHAT SAAT MEMILIH AVATAR */}
       {showAvatarModal && (
         <AvatarModal 
           currentAvatar={userProfile?.avatar_url} 
-          isPremium={userProfile?.is_premium} 
           onClose={() => setShowAvatarModal(false)}
           onSelectAvatar={handleUpdateAvatar} 
         />
