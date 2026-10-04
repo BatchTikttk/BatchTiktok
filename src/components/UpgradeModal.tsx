@@ -18,7 +18,7 @@ const CONTENT = {
     'Akses to all Exclusive Konten',
     'Direct download links (Google Drive & TeraBox) without ads',
     'Priority queue for custom batch requests',
-    'Exclusive VIP profile badge & custom avatar borders',
+    'Exclusive Border Aatar VIP',
     'Daily archive synchronization updates'
   ]
 };
