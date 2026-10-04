@@ -15,7 +15,11 @@ import {
   GitMerge,
   ShieldCheck,
   History,
-  Crown
+  Crown,
+  Zap,
+  Download,
+  MessageCircle,
+  RefreshCw
 } from 'lucide-react';
 
 const RulesPage = () => {
@@ -28,6 +32,7 @@ const RulesPage = () => {
 
   const tabs = [
     { id: 'rules', label: 'Guidelines & Rules', icon: BookOpen },
+    { id: 'premium', label: 'Premium Benefits', icon: Crown }, // Tab Baru Ditambahkan
     { id: 'badges', label: 'Badges System', icon: Award },
     { id: 'editing', label: 'Editing Flow', icon: GitMerge },
   ];
@@ -77,7 +82,7 @@ const RulesPage = () => {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-colors whitespace-nowrap md:whitespace-normal text-left cursor-pointer ${
                       isActive 
-                        ? 'bg-emerald-500 text-white shadow-md' 
+                        ? (tab.id === 'premium' ? 'bg-amber-500 text-white shadow-md' : 'bg-emerald-500 text-white shadow-md')
                         : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
                     }`}
                   >
@@ -206,7 +211,89 @@ const RulesPage = () => {
               </div>
             )}
 
-            {/* TAB: BADGES (Bagian yang diperbarui dengan 5 Tier Badge terbaru) */}
+            {/* TAB: PREMIUM BENEFITS (TAB BARU) */}
+            {activeTab === 'premium' && (
+              <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                <div className="mb-8">
+                  <h2 className="text-2xl font-black text-amber-600 mb-2">Premium Member Benefits</h2>
+                  <p className="text-slate-500 font-medium">Upgrade your account to unlock the ultimate archiving experience with exclusive features and unlimited access.</p>
+                </div>
+
+                <div className="grid gap-5">
+                  
+                  {/* Benefit 1: Exclusive Content */}
+                  <div className="flex gap-5 p-6 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 shadow-sm">
+                    <Crown className="text-amber-500 shrink-0 mt-0.5 fill-amber-400 drop-shadow-sm" size={26} />
+                    <div>
+                      <h3 className="font-bold text-amber-900 text-lg">Access to All Exclusive Content</h3>
+                      <p className="text-amber-800/90 mt-2 leading-relaxed font-medium">
+                        Unlock unrestricted access to our highly curated Premium Collections. Folders marked with the golden crown are exclusively available for VIP members, featuring the highest quality and most complete archives.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Benefit 2: Direct Links */}
+                  <div className="flex gap-5 p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                    <Download className="text-emerald-500 shrink-0 mt-0.5" size={26} />
+                    <div>
+                      <h3 className="font-bold text-slate-800 text-lg">Ad-Free Direct Download Links</h3>
+                      <p className="text-slate-600 mt-2 leading-relaxed font-medium">
+                        Say goodbye to annoying shortlinks, wait timers, and pop-up advertisements. As a Premium member, you get straightforward, direct links to Google Drive and TeraBox files for seamless and fast downloading.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Benefit 3: Priority Request */}
+                  <div className="flex gap-5 p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                    <Zap className="text-blue-500 shrink-0 mt-0.5 fill-blue-50" size={26} />
+                    <div>
+                      <h3 className="font-bold text-slate-800 text-lg">Priority Queue for Custom Requests</h3>
+                      <p className="text-slate-600 mt-2 leading-relaxed font-medium">
+                        Need a specific TikTok profile archived? Skip the standard 3-7 days waiting line. VIP requests are pushed to the very top of the admin's queue for instant processing, and you will receive the direct result link right in your dashboard.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Benefit 4: Badges & Chat */}
+                  <div className="flex gap-5 p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                    <MessageCircle className="text-indigo-500 shrink-0 mt-0.5" size={26} />
+                    <div>
+                      <h3 className="font-bold text-slate-800 text-lg">VIP Profile Badge & Global Chat Access</h3>
+                      <p className="text-slate-600 mt-2 leading-relaxed font-medium">
+                        Stand out from the crowd with an exclusive VIP badge displayed on your profile. Furthermore, you unlock full access to the Global Chat feature to interact, request, and share findings with other community members.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Benefit 5: Daily Sync */}
+                  <div className="flex gap-5 p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                    <RefreshCw className="text-cyan-500 shrink-0 mt-0.5" size={26} />
+                    <div>
+                      <h3 className="font-bold text-slate-800 text-lg">Daily Archive Synchronization Updates</h3>
+                      <p className="text-slate-600 mt-2 leading-relaxed font-medium">
+                        Our database is updated consistently. Premium members are guaranteed to receive daily synchronization updates, ensuring you are always the first to get the latest archived content.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Pricing Summary Footer */}
+                  <div className="mt-4 flex items-center justify-between p-6 rounded-2xl bg-slate-900 text-white shadow-md">
+                    <div>
+                      <h3 className="font-bold text-amber-400 text-xl">One-Time Payment</h3>
+                      <p className="text-slate-300 mt-1 font-medium text-sm">
+                        No monthly fees. Pay once of <strong className="text-white">Rp 50,000</strong> for lifetime access.
+                      </p>
+                    </div>
+                    <div className="hidden sm:block">
+                      <ShieldCheck size={36} className="text-amber-500" />
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            )}
+
+            {/* TAB: BADGES */}
             {activeTab === 'badges' && (
               <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                 <div className="mb-8">
