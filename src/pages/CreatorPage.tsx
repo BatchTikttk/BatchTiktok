@@ -83,20 +83,17 @@ interface CreatorCardProps {
   creatorBadge: BadgeItem | null;
   isAdmin: boolean;
   onCheckAccess: (isExclusive: boolean | undefined, action: () => void) => void;
-  currentUser: any; // Menerima data user yang sedang login
+  currentUser: any; 
 }
 
 const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorBadge, isAdmin, onCheckAccess, currentUser }) => {
   
   const handleCardClick = () => {
-    // Cek apakah user yang login adalah pemilik (uploader) dari postingan ini
     const isOwner = currentUser && (currentUser.id === data.user_id);
 
     if (isOwner) {
-      // Jika dia pemiliknya, BYPASS (langsung buka preview modal tanpa cek premium)
       onOpenPreview(data);
     } else {
-      // Jika dia bukan pemiliknya (pengunjung), lakukan pengecekan Premium
       onCheckAccess(Boolean(data.is_exclusive), () => onOpenPreview(data));
     }
   };
@@ -179,7 +176,7 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorB
 export default function CreatorPage({ username, onCheckAccess }: { username: string, onCheckAccess: any }) {
   const [batches, setBatches] = useState<BatchItem[]>([]);
   const [creatorProfile, setCreatorProfile] = useState<any>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null); // State untuk simpan user yang login
+  const [currentUser, setCurrentUser] = useState<any>(null); 
   const [loading, setLoading] = useState(true);
   const [previewItem, setPreviewItem] = useState<BatchItem | null>(null);
 
@@ -190,7 +187,6 @@ export default function CreatorPage({ username, onCheckAccess }: { username: str
   useEffect(() => {
     let isMounted = true;
 
-    // Fetch user yang sedang login saat ini
     const fetchCurrentUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (isMounted) setCurrentUser(user);
@@ -374,19 +370,35 @@ export default function CreatorPage({ username, onCheckAccess }: { username: str
             </div>
           )}
 
-          <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 border-4 border-white flex-shrink-0 z-10">
-            {creatorProfile?.avatar_url ? (
-              <img src={creatorProfile.avatar_url} alt={username} className="w-full h-full object-cover" />
-            ) : (
-              <User size={48} className="sm:w-16 sm:h-16" />
+          {/* Avatar diam di tengah penuh, border VIP digeser ke bawah agar pas dengan ujung atas avatar */}
+          <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 z-10 flex items-center justify-center">
+            {/* Foto Avatar (Diam di tempat & ukuran penuh) */}
+            <div className={`w-full h-full rounded-full overflow-hidden flex items-center justify-center text-white bg-gradient-to-tr from-emerald-500 to-teal-400 shadow-md ${creatorProfile?.is_premium ? '' : 'border-4 border-white shadow-emerald-500/25'}`}>
+              {creatorProfile?.avatar_url ? (
+                <img src={creatorProfile.avatar_url} alt={username} className="w-full h-full object-cover" />
+              ) : (
+                <User size={48} className="sm:w-16 sm:h-16" />
+              )}
+            </div>
+
+            {/* Bingkai Border VIP digeser ke bawah menggunakan translate-y-3 */}
+            {creatorProfile?.is_premium && (
+              <img 
+                src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp" 
+                alt="VIP Border" 
+                className="absolute inset-0 w-full h-full object-contain pointer-events-none z-25 scale-[1.38] translate-y-3 drop-shadow-md"
+              />
             )}
           </div>
           
           <div className="flex-1 text-center md:text-left z-10">
             
             <div className="flex flex-col md:flex-row items-center gap-3 mb-2 justify-center md:justify-start">
-              <h1 className="text-3xl sm:text-4xl font-bold text-slate-800">
+              <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 flex items-center gap-2">
                 {creatorProfile?.username || username}
+                {creatorProfile?.is_premium && (
+                  <Crown size={22} className="text-amber-500 fill-amber-400 inline-block drop-shadow-sm" title="Premium Creator" />
+                )}
               </h1>
             </div>
 
@@ -435,7 +447,7 @@ export default function CreatorPage({ username, onCheckAccess }: { username: str
                 creatorBadge={highestBadge}
                 isAdmin={!!creatorProfile?.is_admin}
                 onCheckAccess={onCheckAccess}
-                currentUser={currentUser} // Pass data user yang login ke Card
+                currentUser={currentUser} 
               />
             ))}
           </div>
