@@ -1206,7 +1206,11 @@ export default function Profile({
                               <div>
                                 <div className="flex items-center gap-2">
                                   <h3 className="text-sm font-bold text-slate-800">{req.profiles?.username || 'Unknown User'}</h3>
-                                  {req.is_priority && <Crown size={14} className="text-yellow-500" title="VIP Request" />}
+                                  {req.is_priority && (
+                                    <span title="VIP Request" className="flex">
+                                      <Crown size={14} className="text-yellow-500" />
+                                    </span>
+                                  )}
                                 </div>
                                 <a href={req.target_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-blue-500 hover:underline flex items-center gap-1 mt-1">
                                   <Link2 size={12} /> {req.target_url}
