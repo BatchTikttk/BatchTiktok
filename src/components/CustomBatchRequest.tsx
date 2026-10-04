@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom'; // 1. Import createPortal dari react-dom
 import { supabase } from '../supabase';
 import { Crown, Clock, Send, Link as LinkIcon, ExternalLink, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import UpgradeModal from './UpgradeModal'; // Pastikan path import ini sesuai dengan struktur folder Anda
@@ -14,6 +15,9 @@ export default function CustomBatchRequest({ currentUser }: CustomBatchRequestPr
   const [userRequests, setUserRequests] = useState<any[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   
+  // State untuk memastikan komponen sudah di-mount di sisi klien (mencegah error hidrasi)
+  const [mounted, setMounted] = useState(false);
+  
   // State untuk mengontrol modal pop-up upgrade
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
@@ -21,6 +25,7 @@ export default function CustomBatchRequest({ currentUser }: CustomBatchRequestPr
   const isVip = currentUser?.is_premium || false;
 
   useEffect(() => {
+    setMounted(true); // Tandai bahwa komponen sudah dirender di browser
     if (currentUser?.id) {
       fetchUserRequests();
     }
@@ -77,7 +82,8 @@ export default function CustomBatchRequest({ currentUser }: CustomBatchRequestPr
   if (!currentUser) return null; // Hide form if not logged in
 
   return (
-    <div className="space-y-8 relative">
+    // 2. Class 'relative' dihilangkan agar tidak mengunci context anak elemennya
+    <div className="space-y-8">
       {/* Request Form Section */}
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
         <div className={`p-6 text-white ${isVip ? 'bg-gradient-to-r from-gray-900 to-gray-800' : 'bg-gray-600'}`}>
@@ -222,11 +228,17 @@ export default function CustomBatchRequest({ currentUser }: CustomBatchRequestPr
         )}
       </div>
 
-      {/* Render Upgrade Modal */}
-      <UpgradeModal 
-        isOpen={isUpgradeModalOpen} 
-        onClose={() => setIsUpgradeModalOpen(false)} 
-      />
+      {/* 3. Render Upgrade Modal menggunakan React Portal */}
+      {/* Ini akan melempar modal ke body tag secara langsung sehingga lepas dari batasan elemen parent */}
+      {mounted && typeof document !== 'undefined'
+        ? createPortal(
+            <UpgradeModal 
+              isOpen={isUpgradeModalOpen} 
+              onClose={() => setIsUpgradeModalOpen(false)} 
+            />,
+            document.body
+          )
+        : null}
     </div>
   );
 }
