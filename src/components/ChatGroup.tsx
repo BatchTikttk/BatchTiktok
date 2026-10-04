@@ -20,6 +20,7 @@ interface UserProfile {
   username: string;
   avatar_url: string;
   is_admin: boolean;
+  is_premium: boolean;
 }
 
 interface UserStats {
@@ -104,7 +105,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
   const fetchProfiles = async () => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, is_admin');
+      .select('id, username, avatar_url, is_admin, is_premium');
     if (!error && data) {
       setProfiles(data);
     }
@@ -330,46 +331,54 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                   <div key={msg.id} className={`flex gap-2.5 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                     
                     {/* Avatar */}
-                    <div className="flex-shrink-0 mt-1">
-                      {senderProfile?.avatar_url ? (
-                        <img
-                          src={senderProfile.avatar_url}
-                          alt={msg.username}
-                          className="w-8 h-8 rounded-full object-cover shadow-sm border border-slate-200"
+                    <div className="flex-shrink-0 mt-1 relative w-8 h-8 flex justify-center">
+                      <div className="w-full h-full relative z-10 rounded-full overflow-hidden shadow-sm border border-slate-200 flex items-center justify-center bg-slate-200">
+                        {senderProfile?.avatar_url ? (
+                          <img
+                            src={senderProfile.avatar_url}
+                            alt={msg.username}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User size={14} className="text-slate-500" />
+                        )}
+                      </div>
+                      
+                      {/* VIP Border for Premium Users */}
+                      {senderProfile?.is_premium && (
+                        <img 
+                          src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp"
+                          alt="VIP Border"
+                          className="absolute top-[-4px] left-1/2 -translate-x-1/2 w-[45px] max-w-none object-contain z-20 pointer-events-none drop-shadow-sm"
                         />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-500 shadow-sm">
-                          <User size={14} />
-                        </div>
                       )}
                     </div>
 
                     {/* Bubble Message */}
                     <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[75%]`}>
                       
-                      {/* Name, Admin Badge, & User Unlocked Badges */}
+                      {/* Name & Badges */}
                       <div className="flex items-center gap-1 mb-1 px-1 flex-wrap">
                         <span className="text-[11px] font-bold text-slate-600">
                           {isMe ? 'You' : senderProfile?.username || msg.username}
                         </span>
                         
-                        {/* Admin Badge */}
-                        {senderProfile?.is_admin && (
+                        {/* Logic Perbaikan: Jika Admin, HANYA tampilkan Shield Admin. Jika Bukan Admin, tampilkan tier badge. */}
+                        {senderProfile?.is_admin ? (
                           <span title="Admin Verified" className="inline-flex items-center ml-0.5">
                             <ShieldCheck size={14} className="text-[#fbbf24] drop-shadow-sm" />
                           </span>
+                        ) : (
+                          userBadges.map((badge) => (
+                            <img
+                              key={badge.id}
+                              src={badge.iconUrl}
+                              alt={badge.title}
+                              title={`${badge.title} (${badge.tier})`}
+                              className="w-4 h-4 object-contain inline-block drop-shadow-sm hover:scale-125 transition-transform cursor-pointer"
+                            />
+                          ))
                         )}
-                        
-                        {/* Display User Unlocked Badges */}
-                        {userBadges.map((badge) => (
-                          <img
-                            key={badge.id}
-                            src={badge.iconUrl}
-                            alt={badge.title}
-                            title={`${badge.title} (${badge.tier})`}
-                            className="w-4 h-4 object-contain inline-block drop-shadow-sm hover:scale-125 transition-transform cursor-pointer"
-                          />
-                        ))}
                       </div>
 
                       <div
