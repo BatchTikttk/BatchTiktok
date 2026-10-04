@@ -548,7 +548,7 @@ export default function Profile({
                 >
                   <div className="w-full h-full rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 border-4 border-white transition-all duration-300 group-hover:scale-105 relative z-10">
                     {userProfile?.avatar_url ? (
-                      <img src={userProfile.avatar_url} alt="Profile Avatar" className="w-full h-full object-cover" />
+                      <img src={userProfile.avatar_url} alt={t("Profile Avatar")} className="w-full h-full object-cover" />
                     ) : (
                       <User size={40} strokeWidth={2.2} />
                     )}
@@ -557,7 +557,7 @@ export default function Profile({
                   {userProfile?.is_premium && (
                     <img 
                       src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp"
-                      alt="VIP Border"
+                      alt={t("VIP Border")}
                       className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none transition-all duration-300 group-hover:scale-105"
                     />
                   )}
@@ -860,7 +860,7 @@ export default function Profile({
                             <div>
                               <h3 className="text-sm font-bold text-slate-800">{batch.username}</h3>
                               <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-500 font-medium flex-wrap">
-                                <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md font-semibold">{batch.country}</span>
+                                <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md font-semibold">{t(batch.country) || batch.country}</span>
                                 <span>•</span>
                                 <span>{batch.video_count} {t('Videos')}</span>
                                 <span>•</span>
@@ -946,7 +946,7 @@ export default function Profile({
                     <div className="relative w-[88px] h-[88px] flex-shrink-0">
                       <div className="w-full h-full rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-md relative z-10">
                         {userProfile?.avatar_url ? (
-                          <img src={userProfile.avatar_url} alt="Avatar Preview" className="w-full h-full object-cover" />
+                          <img src={userProfile.avatar_url} alt={t("Avatar Preview")} className="w-full h-full object-cover" />
                         ) : (
                           <User size={36} />
                         )}
@@ -955,7 +955,7 @@ export default function Profile({
                       {userProfile?.is_premium && (
                         <img 
                           src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp"
-                          alt="VIP Border"
+                          alt={t("VIP Border")}
                           className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none"
                         />
                       )}
@@ -1105,7 +1105,7 @@ export default function Profile({
                                     <div className="flex items-center gap-2">
                                       <h3 className="text-sm font-bold text-slate-800">{batch.username}</h3>
                                       <span className="text-[10px] px-2 py-0.5 rounded-md font-semibold bg-blue-50 text-blue-600">
-                                        {batch.country}
+                                        {t(batch.country) || batch.country}
                                       </span>
                                     </div>
                                     <p className="text-[11px] text-slate-500 font-medium mt-1">
@@ -1216,7 +1216,7 @@ export default function Profile({
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center border border-slate-200">
                                 {req.profiles?.avatar_url ? (
-                                  <img src={req.profiles.avatar_url} className="w-full h-full object-cover" alt="User" />
+                                  <img src={req.profiles.avatar_url} className="w-full h-full object-cover" alt={t("User")} />
                                 ) : (
                                   <User size={20} className="text-slate-400" />
                                 )}
@@ -1225,7 +1225,7 @@ export default function Profile({
                                 <div className="flex items-center gap-2">
                                   <h3 className="text-sm font-bold text-slate-800">{req.profiles?.username || t('Unknown User')}</h3>
                                   {req.is_priority && (
-                                    <span title="VIP Request" className="flex">
+                                    <span title={t("VIP Request")} className="flex">
                                       <Crown size={14} className="text-yellow-500" />
                                     </span>
                                   )}
@@ -1331,7 +1331,7 @@ export default function Profile({
 
       {/* Modal Edit Batch */}
       {editingBatch && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setEditingBatch(null)}></div>
           
           <div className="relative w-full max-w-2xl bg-white rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
@@ -1347,6 +1347,7 @@ export default function Profile({
             
             <form onSubmit={handleUpdateBatchSubmit} className="p-6 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('Username')}</label>
                   <input required type="text" name="username" value={editingBatch.username || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
@@ -1356,7 +1357,7 @@ export default function Profile({
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('Region')}</label>
                   <select name="country" value={editingBatch.country || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium">
                     {selectableCategories.map((cat: string) => (
-                      <option key={cat} value={cat}>{cat}</option>
+                      <option key={cat} value={cat}>{t(cat)}</option>
                     ))}
                   </select>
                 </div>
@@ -1367,39 +1368,48 @@ export default function Profile({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('Size')}</label>
-                  <input required type="text" name="size_file" value={editingBatch.size_file || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('File Size')}</label>
+                  <input required type="text" name="size_file" value={editingBatch.size_file || ''} onChange={handleEditChange} placeholder="e.g. 1.5 GB or 500 MB" className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('Download Count')}</label>
+                  <input type="number" name="download_count" value={editingBatch.download_count || 0} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('Total Downloads')}</label>
-                  <input type="number" name="download_count" value={editingBatch.download_count ?? 0} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('TikTok URL')}</label>
+                  <input type="url" name="tiktok_url" value={editingBatch.tiktok_url || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('TikTok Link')}</label>
-                  <input required={!editingBatch.is_banned} type="url" name="tiktok_url" value={editingBatch.tiktok_url || ''} onChange={handleEditChange} disabled={editingBatch.is_banned} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] disabled:opacity-50 text-sm font-medium" />
-                  
-                  <div className="flex items-center gap-2 mt-3 pl-1">
-                    <input type="checkbox" name="is_banned" id="edit_is_banned" checked={editingBatch.is_banned || false} onChange={handleEditChange} className="w-4 h-4 rounded border-slate-300 text-red-500 focus:ring-red-500 cursor-pointer" />
-                    <label htmlFor="edit_is_banned" className="text-xs font-bold text-slate-600 cursor-pointer select-none">
-                      {t('Mark Account as Banned')}
-                    </label>
-                  </div>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('Video Preview URL')}</label>
+                  <input type="url" name="video_url" value={editingBatch.video_url || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('Google Drive Link')}</label>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('Google Drive URL')}</label>
                   <input type="url" name="gdrive_url" value={editingBatch.gdrive_url || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('TeraBox URL')}</label>
+                  <input type="url" name="terabox_url" value={editingBatch.terabox_url || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
+                </div>
+
+                <div className="flex items-center gap-3 pt-2 md:col-span-2">
+                  <input type="checkbox" name="is_banned" checked={editingBatch.is_banned || false} onChange={handleEditChange} className="w-5 h-5 text-red-500 border-slate-300 rounded focus:ring-red-500" />
+                  <label className="text-sm font-bold text-slate-700">{t('Mark as Banned (TikTok account suspended)')}</label>
                 </div>
               </div>
 
-              <div className="mt-8 pt-5 flex justify-end gap-3">
-                <button type="button" onClick={() => setEditingBatch(null)} className="px-6 py-3 rounded-full font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors text-xs">
+              <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end gap-3">
+                <button type="button" onClick={() => setEditingBatch(null)} className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-bold rounded-2xl transition-all">
                   {t('Cancel')}
                 </button>
-                <button type="submit" disabled={isUpdatingBatch} className="px-6 py-3 rounded-full font-bold text-white bg-[#10b981] hover:bg-[#059669] transition-colors flex items-center gap-2 disabled:opacity-70 shadow-md shadow-emerald-500/20 text-xs">
-                  {isUpdatingBatch ? t("Saving...") : <><Save size={16} /> {t('Save')}</>}
+                <button type="submit" disabled={isUpdatingBatch} className="px-6 py-3 bg-[#10b981] hover:bg-[#059669] disabled:opacity-50 text-white text-sm font-bold rounded-2xl shadow-md shadow-emerald-500/20 transition-all flex items-center gap-2">
+                  {isUpdatingBatch ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                  {t('Save Changes')}
                 </button>
               </div>
             </form>
@@ -1407,40 +1417,19 @@ export default function Profile({
         </div>
       )}
 
+      {/* Toast Notification Container Component */}
+      <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
+      
+      {/* Avatar Modal */}
       {showAvatarModal && (
         <AvatarModal 
-          currentAvatar={userProfile?.avatar_url} 
-          onClose={() => setShowAvatarModal(false)}
+          isOpen={showAvatarModal} 
+          onClose={() => setShowAvatarModal(false)} 
           onSelectAvatar={handleUpdateAvatar} 
+          currentAvatar={userProfile?.avatar_url}
         />
       )}
 
-      {showAddModal && (
-        <PostModal 
-          onClose={() => setShowAddModal(false)}
-          onSuccess={() => {
-            fetchUserData(false);
-            if (userProfile?.is_admin) fetchAllBatches();
-            setShowAddModal(false);
-          }}
-          currentUser={activeUsername}
-          showToast={handleShowToast}
-          CATEGORIES={CATEGORIES}
-        />
-      )}
-
-      {showLoginModal && (
-        <LoginModal 
-          onClose={() => setShowLoginModal(false)}
-          onSuccess={() => {
-            fetchUserData(false);
-            setShowLoginModal(false);
-          }}
-          showToast={handleShowToast}
-        />
-      )}
-
-      <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
     </div>
   );
 }
