@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Home, User, HardDrive, FolderOpen, Video, 
-  MousePointerClick, Play, ShieldCheck, Check,
+  MousePointerClick, Play, Check,
   Crown 
 } from 'lucide-react';
 import { supabase } from "../supabase";
