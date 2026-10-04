@@ -37,7 +37,7 @@ import PostModal from '../components/PostModal';
 import LoginModal from '../components/LoginModal';
 import AvatarModal from '../components/Avatar';
 import CustomBatchRequest from '../components/CustomBatchRequest'; 
-import AvatarBaorderVip from '../components/AvatarBaorderVip'; // <-- Import komponen baru di sini
+import AvatarBorderVip from '../components/AvatarBorderVip'; // <-- Import komponen baru di sini
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
