@@ -562,8 +562,8 @@ export default function Profile({
                     <img 
                       src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp"
                       alt="VIP Border"
-                      // Perubahan pada posisi: menggunakan anchor top-[-18px] sebagai patokan atas
-                      className="absolute top-[-18px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none transition-all duration-300 group-hover:scale-105"
+                      // Perubahan pada posisi: diturunkan lebih pas dari top-[-18px] menjadi top-[-6px]
+                      className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none transition-all duration-300 group-hover:scale-105"
                     />
                   )}
 
@@ -971,8 +971,8 @@ export default function Profile({
                         <img 
                           src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp"
                           alt="VIP Border"
-                          // Perubahan pada posisi: menggunakan anchor top-[-18px] sebagai patokan atas
-                          className="absolute top-[-18px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none"
+                          // Perubahan pada posisi: diturunkan lebih pas dari top-[-18px] menjadi top-[-6px]
+                          className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none"
                         />
                       )}
                     </div>
