@@ -28,7 +28,7 @@ interface UserStats {
   totalApproved: number;
 }
 
-// Badge Tier Definitions (Matches Profile.tsx 5 Tiers)
+// Badge Tier Definitions
 const BADGES = [
   {
     id: 'bronze',
@@ -67,7 +67,7 @@ const BADGES = [
   },
 ];
 
-// Map Emoticon 3D WebP Bergerak (Google Noto 3D)
+// Map Emoticon 3D WebP Bergerak
 const EMOJI_MAP: Record<string, string> = {
   '😀': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f600/512.webp',
   '😂': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f602/512.webp',
@@ -101,7 +101,6 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Fetch profiles data
   const fetchProfiles = async () => {
     const { data, error } = await supabase
       .from('profiles')
@@ -111,7 +110,6 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     }
   };
 
-  // Fetch batches data to calculate user upload stats for badges
   const fetchUserStats = async () => {
     const { data, error } = await supabase
       .from('batches')
@@ -135,7 +133,6 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     }
   };
 
-  // Fetch messages
   const fetchMessages = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -159,7 +156,6 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     }
   }, [isOpen]);
 
-  // Realtime Subscription untuk Messages, Profiles, dan Batches
   useEffect(() => {
     if (!isOpen) return;
 
@@ -237,14 +233,12 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     setNewMessage((prev) => prev + emojiChar);
   };
 
-  // Function to get unlocked badges for a user ID
   const getUserUnlockedBadges = (userId?: string) => {
     if (!userId) return [];
     const stats = userStatsMap[userId] || { totalUploads: 0, totalApproved: 0 };
     return BADGES.filter((badge) => badge.isUnlocked(stats));
   };
 
-  // Parser untuk mengubah emoji teks jadi gambar WebP 3D bergerak di dalam gelembung chat
   const renderMessageWith3DEmojis = (text: string) => {
     const emojiRegex = new RegExp(`(${Object.keys(EMOJI_MAP).map(e => e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
     const parts = text.split(emojiRegex);
@@ -266,7 +260,6 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
 
   return (
     <div className="fixed bottom-6 right-6 z-[9990] font-sans">
-      {/* Floating Toggle Button */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
@@ -277,11 +270,9 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
         </button>
       )}
 
-      {/* Chat Box (Light Theme) */}
       {isOpen && (
         <div className="w-[360px] sm:w-[400px] h-[540px] bg-white border border-slate-200 rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
           
-          {/* Header */}
           <div className="p-4 bg-white border-b border-slate-100 flex items-center justify-between shadow-sm z-10 relative">
             <div className="flex items-center gap-3">
               <div className="text-emerald-500 relative flex items-center justify-center p-1">
@@ -304,7 +295,6 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
             </button>
           </div>
 
-          {/* Messages Body */}
           <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50/50 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {loading ? (
               <div className="h-full flex items-center justify-center text-slate-400 gap-2 text-sm font-medium">
@@ -328,10 +318,11 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                 const userBadges = getUserUnlockedBadges(msg.user_id);
 
                 return (
-                  <div key={msg.id} className={`flex gap-2.5 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+                  <div key={msg.id} className={`flex gap-3 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                     
-                    {/* Avatar */}
-                    <div className="flex-shrink-0 mt-1 relative w-8 h-8 flex justify-center">
+                    {/* Container Avatar & Admin Badge */}
+                    <div className="flex-shrink-0 mt-1 relative w-9 h-9 flex justify-center">
+                      {/* Avatar Image */}
                       <div className="w-full h-full relative z-10 rounded-full overflow-hidden shadow-sm border border-slate-200 flex items-center justify-center bg-slate-200">
                         {senderProfile?.avatar_url ? (
                           <img
@@ -344,41 +335,45 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                         )}
                       </div>
                       
+                      {/* Badge Admin Absolute (Kanan Bawah) - Diperbesar */}
+                      {senderProfile?.is_admin && (
+                        <img
+                          src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp"
+                          alt="Admin"
+                          title="Admin Verified"
+                          className="absolute -bottom-1.5 -right-1.5 w-[22px] h-[22px] object-contain drop-shadow-md z-30"
+                        />
+                      )}
+
                       {/* VIP Border for Premium Users */}
                       {senderProfile?.is_premium && (
                         <img 
                           src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp"
                           alt="VIP Border"
-                          className="absolute top-[-4px] left-1/2 -translate-x-1/2 w-[45px] max-w-none object-contain z-20 pointer-events-none drop-shadow-sm"
+                          className="absolute top-[-5px] left-1/2 -translate-x-1/2 w-[50px] max-w-none object-contain z-20 pointer-events-none drop-shadow-sm"
                         />
                       )}
                     </div>
 
-                    {/* Bubble Message */}
                     <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[75%]`}>
                       
-                      {/* Name & Badges */}
-                      <div className="flex items-center gap-1 mb-1 px-1 flex-wrap">
-                        <span className="text-[11px] font-bold text-slate-600">
+                      {/* Name & Tier Badges Container */}
+                      <div className="flex items-center gap-1.5 mb-1 px-1 flex-wrap">
+                        {/* Username dengan warna emerald jika admin */}
+                        <span className={`text-[12px] font-bold ${senderProfile?.is_admin ? 'text-emerald-600' : 'text-slate-600'}`}>
                           {isMe ? 'You' : senderProfile?.username || msg.username}
                         </span>
                         
-                        {/* Logic Perbaikan: Jika Admin, HANYA tampilkan Shield Admin. Jika Bukan Admin, tampilkan tier badge. */}
-                        {senderProfile?.is_admin ? (
-                          <span title="Admin Verified" className="inline-flex items-center ml-0.5">
-                            <ShieldCheck size={14} className="text-[#fbbf24] drop-shadow-sm" />
-                          </span>
-                        ) : (
-                          userBadges.map((badge) => (
-                            <img
-                              key={badge.id}
-                              src={badge.iconUrl}
-                              alt={badge.title}
-                              title={`${badge.title} (${badge.tier})`}
-                              className="w-4 h-4 object-contain inline-block drop-shadow-sm hover:scale-125 transition-transform cursor-pointer"
-                            />
-                          ))
-                        )}
+                        {/* Tier Badges (Hanya muncul jika BUKAN admin) */}
+                        {!senderProfile?.is_admin && userBadges.map((badge) => (
+                          <img
+                            key={badge.id}
+                            src={badge.iconUrl}
+                            alt={badge.title}
+                            title={`${badge.title} (${badge.tier})`}
+                            className="w-4 h-4 object-contain inline-block drop-shadow-sm hover:scale-125 transition-transform cursor-pointer"
+                          />
+                        ))}
                       </div>
 
                       <div
@@ -402,10 +397,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Footer Input */}
           <div className="p-3 bg-white border-t border-slate-100 relative">
-            
-            {/* Popover Emoji Picker 3D WebP */}
             {showEmojiPicker && (
               <div className="absolute bottom-16 left-4 bg-white border border-slate-200 shadow-xl rounded-2xl p-3 grid grid-cols-6 gap-2 z-20 animate-in fade-in zoom-in-95 duration-200">
                 {EMOJI_LIST.map((item, index) => (
@@ -456,7 +448,6 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
               </form>
             )}
           </div>
-
         </div>
       )}
     </div>
