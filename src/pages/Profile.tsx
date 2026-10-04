@@ -540,9 +540,9 @@ export default function Profile({
               <div className="flex flex-col items-center text-center">
                 
                 {/* --- AVATAR & VIP BORDER YANG DIPERBESAR + IKON KAMERA TERPISAH --- */}
-                <div className="flex flex-col items-center mb-4">
+                <div className="flex flex-col items-center mb-6"> {/* Perbaikan margin agar konten di bawahnya tidak tertutup */}
                   <div 
-                    className="relative group cursor-pointer p-4"
+                    className="relative group cursor-pointer p-4 mb-3" {/* Tambahan margin bottom (mb-3) */}
                     onClick={() => setShowAvatarModal(true)}
                     title="Click to change avatar"
                   >
@@ -550,7 +550,8 @@ export default function Profile({
                       <img 
                         src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp" 
                         alt="VIP Avatar Border"
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140px] h-[140px] max-w-none z-20 pointer-events-none transition-transform duration-300 group-hover:scale-105 drop-shadow-xl"
+                        /* Perbaikan posisi border ditarik ke bawah menggunakan top-[58%] */
+                        className="absolute top-[58%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140px] h-[140px] max-w-none z-20 pointer-events-none transition-transform duration-300 group-hover:scale-105 drop-shadow-xl"
                       />
                     )}
 
@@ -959,7 +960,8 @@ export default function Profile({
                         <img 
                           src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp" 
                           alt="VIP Avatar Border"
-                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140px] h-[140px] max-w-none z-20 pointer-events-none drop-shadow-xl"
+                          /* Perbaikan posisi border agar turun dengan mengubah ke top-[58%] di pengaturan */
+                          className="absolute top-[58%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140px] h-[140px] max-w-none z-20 pointer-events-none drop-shadow-xl"
                         />
                       )}
                       <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-md relative z-10 border-4 border-white">
