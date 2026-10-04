@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase';
 import { Send, MessageSquare, X, User, Loader2, LogIn, Smile } from 'lucide-react';
+import AvatarBorderVip from './AvatarBorderVip';
 
 interface ChatGroupProps {
   currentUser: string | null;
@@ -21,6 +22,7 @@ interface UserProfile {
   avatar_url: string;
   is_admin: boolean;
   is_premium: boolean;
+  vip_border_url?: string | null;
 }
 
 interface UserStats {
@@ -104,9 +106,12 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
   const fetchProfiles = async () => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, is_admin, is_premium');
+      .select('id, username, avatar_url, is_admin, is_premium, vip_border_url');
+    
     if (!error && data) {
       setProfiles(data);
+    } else if (error) {
+      console.error('Failed to fetch profiles in ChatGroup:', error.message);
     }
   };
 
@@ -346,11 +351,11 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                       )}
 
                       {/* VIP Border for Premium Users */}
-                      {senderProfile?.is_premium && (
-                        <img 
-                          src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AvatarBorderVIP.webp"
-                          alt="VIP Border"
-                          className="absolute top-[-5px] left-1/2 -translate-x-1/2 w-[50px] max-w-none object-contain z-20 pointer-events-none drop-shadow-sm"
+                      {senderProfile?.is_premium && senderProfile?.vip_border_url && (
+                        <AvatarBorderVip
+                          isPremium={senderProfile.is_premium}
+                          borderUrl={senderProfile.vip_border_url}
+                          className="absolute top-[-7px] left-1/2 -translate-x-1/2 w-[48px] h-auto max-w-none object-contain z-20 pointer-events-none drop-shadow-sm"
                         />
                       )}
                     </div>
