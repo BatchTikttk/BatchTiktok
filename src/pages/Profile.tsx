@@ -26,7 +26,8 @@ import {
   Check,
   AlertCircle,
   ExternalLink,
-  MousePointerClick
+  MousePointerClick,
+  Send // Added Send icon for the Request tab
 } from 'lucide-react';
 import { EmeraldFolderIcon } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
@@ -34,6 +35,7 @@ import Footer from '../components/Footer';
 import PostModal from '../components/PostModal';
 import LoginModal from '../components/LoginModal';
 import AvatarModal from '../components/Avatar';
+import CustomBatchRequest from '../components/CustomBatchRequest'; // Import the new component
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
@@ -98,7 +100,7 @@ const BADGES = [
     getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 200),
     target: 200,
     unit: 'Uploaded'
-  },
+  }
 ];
 
 // Local Toast Component
@@ -136,7 +138,8 @@ export default function Profile({
 
   const [usernameInput, setUsernameInput] = useState('');
   const [updatingUsername, setUpdatingUsername] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'settings' | 'admin'>('overview');
+  // Added 'request' to the activeTab state types
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'request' | 'settings' | 'admin'>('overview');
   const [collectionSearchQuery, setCollectionSearchQuery] = useState('');
   
   const [adminStatusFilter, setAdminStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
@@ -573,6 +576,17 @@ export default function Profile({
                   Collections
                   <div className="ml-auto w-2 h-2 rounded-full bg-[#f97316]"></div>
                 </button>
+                
+                {/* NEW Request Batch Tab Button */}
+                <button
+                  onClick={() => setActiveTab('request')}
+                  className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
+                    activeTab === 'request' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                  }`}
+                >
+                  <Send size={18} className={activeTab === 'request' ? 'text-[#10b981]' : ''} /> 
+                  Request Batch
+                </button>
 
                 <button
                   onClick={() => setActiveTab('settings')}
@@ -866,6 +880,17 @@ export default function Profile({
                       </p>
                     </div>
                   )}
+                </div>
+              )}
+              
+              {/* NEW Request Batch Section */}
+              {activeTab === 'request' && (
+                <div className="animate-in fade-in duration-300">
+                  <div className="mb-8">
+                    <h2 className="text-xl font-bold text-slate-800">Request Batch</h2>
+                    <p className="text-xs text-slate-500 mt-1">Submit a request to archive specific TikTok profiles</p>
+                  </div>
+                  <CustomBatchRequest currentUser={userProfile} />
                 </div>
               )}
 
