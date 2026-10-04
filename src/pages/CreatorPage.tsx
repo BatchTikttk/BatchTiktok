@@ -397,7 +397,9 @@ export default function CreatorPage({ username, onCheckAccess }: { username: str
               <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 flex items-center gap-2">
                 {creatorProfile?.username || username}
                 {creatorProfile?.is_premium && (
-                  <Crown size={22} className="text-amber-500 fill-amber-400 inline-block drop-shadow-sm" title="Premium Creator" />
+                  <span title="Premium Creator" className="inline-flex items-center">
+                    <Crown size={22} className="text-amber-500 fill-amber-400 inline-block drop-shadow-sm" />
+                  </span>
                 )}
               </h1>
             </div>
