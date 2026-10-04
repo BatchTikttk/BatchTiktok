@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Cloud, Box, Download, User, Volume2, VolumeX, ShieldCheck, Crown } from 'lucide-react';
+import { X, Cloud, Box, Download, User, Volume2, VolumeX, Crown } from 'lucide-react';
 import { EmeraldFolderIcon } from './SharedIcons'; 
 import { supabase } from '../supabase';
 
@@ -319,12 +319,12 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
                   </span>
                   
                   {uploaderIsAdmin ? (
-                    <span title="Admin Verified">
-                      <ShieldCheck 
-                        size={18} 
-                        className="text-[#fbbf24] ml-0.5 cursor-help drop-shadow-sm hover:scale-110 transition-transform" 
-                      />
-                    </span>
+                    <img 
+                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp" 
+                      alt="Admin Verified" 
+                      title="Admin Verified"
+                      className="w-5 h-5 object-contain drop-shadow-sm cursor-help hover:scale-110 transition-transform ml-0.5"
+                    />
                   ) : badge ? (
                     <img 
                       src={badge.url} 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabase';
 import { 
-  Search, CheckCircle2, Play, XCircle, ChevronLeft, ChevronRight, Check, ShieldCheck,
+  Search, CheckCircle2, Play, XCircle, ChevronLeft, ChevronRight, Check,
   Folder, Film, HardDrive, Users, Crown
 } from 'lucide-react';
 
@@ -65,12 +65,12 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, onCheckAccess }: Crea
           </span>
           
           {data.uploader_is_admin ? (
-            <span title="Admin Verified">
-              <ShieldCheck 
-                size={15} 
-                className="text-[#fbbf24] ml-0.5 cursor-help drop-shadow-sm hover:scale-110 transition-transform" 
-              />
-            </span>
+            <img 
+              src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp" 
+              alt="Admin Verified" 
+              title="Admin Verified"
+              className="w-5 h-5 object-contain drop-shadow-sm cursor-help hover:scale-110 transition-transform ml-0.5"
+            />
           ) : badge ? (
             <img 
               src={badge.url} 
