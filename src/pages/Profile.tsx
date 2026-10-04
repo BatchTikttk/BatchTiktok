@@ -674,8 +674,8 @@ export default function Profile({
             <div className="flex-1 lg:pl-6 space-y-8">
               
               {activeTab === 'overview' && (
-                {/* ... Konten overview tetap sama persis ... */}
                 <div className="space-y-8 animate-in fade-in duration-300">
+                  {/* ... Konten overview tetap sama persis ... */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
                     <div className="bg-[#3b82f6] p-6 rounded-[32px] shadow-[0_12px_24px_-8px_rgba(59,130,246,0.4)] flex flex-col justify-between text-white relative overflow-hidden transition-transform hover:-translate-y-1">
                       <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
@@ -827,8 +827,8 @@ export default function Profile({
               )}
 
               {activeTab === 'collections' && (
-                {/* ... Konten Collections tetap sama persis ... */}
                 <div className="animate-in fade-in duration-300">
+                  {/* ... Konten Collections tetap sama persis ... */}
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
                       <h2 className="text-xl font-bold text-slate-800">Batch Collections</h2>
@@ -1016,8 +1016,8 @@ export default function Profile({
               )}
 
               {activeTab === 'admin' && userProfile?.is_admin && (
-                  {/* ... Konten Admin Tab tetap sama persis seperti awal ... */}
                 <div className="animate-in fade-in duration-300">
+                  {/* ... Konten Admin Tab tetap sama persis seperti awal ... */}
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div>
                       <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -1346,9 +1346,9 @@ export default function Profile({
 
       {/* Modal Edit Batch */}
       {editingBatch && (
-          {/* ... Modal Edit Batch tetap sama ... */}
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setEditingBatch(null)}></div>
+          {/* ... Modal Edit Batch tetap sama ... */}
           
           <div className="relative w-full max-w-2xl bg-white rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-slate-100 flex items-start justify-between">
