@@ -34,6 +34,7 @@ export default function CustomBatchRequest({ currentUser }: CustomBatchRequestPr
           target_url: targetUrl,
           is_priority: isVip, // Automatically true if the user is VIP
           status: 'pending'
+          // result_url is not passed here as it will be filled by the admin later
         }
       ]);
 

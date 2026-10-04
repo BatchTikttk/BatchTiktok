@@ -136,6 +136,7 @@ export default function Profile({
   // State for Custom Batch Requests in Admin Panel
   const [adminRequests, setAdminRequests] = useState<any[]>([]);
   const [adminTab, setAdminTab] = useState<'uploads' | 'requests'>('uploads');
+  const [requestResultUrls, setRequestResultUrls] = useState<{ [key: string]: string }>({});
 
   const [, setAdminList] = useState<string[]>([]);
   const [deletingId, setDeletingId] = useState<string | number | null>(null);
@@ -238,7 +239,6 @@ export default function Profile({
     }
   };
 
-  // Special function to fetch data from batch_requests table along with user profile data
   const fetchAllRequests = async () => {
     const { data } = await supabase
       .from('batch_requests')
@@ -270,13 +270,22 @@ export default function Profile({
     }
   };
 
-  // Function to update Custom Batch Request status
-  const handleUpdateRequestStatus = async (reqId: string | number, newStatus: string) => {
+  const handleResultUrlChange = (id: string | number, value: string) => {
+    setRequestResultUrls(prev => ({ ...prev, [id]: value }));
+  };
+
+  // Function to update Custom Batch Request status with optional result_url
+  const handleUpdateRequestStatus = async (reqId: string | number, newStatus: string, resultUrl?: string) => {
     setActionLoadingId(`req_${reqId}`);
     
+    const updateData: any = { status: newStatus };
+    if (resultUrl !== undefined) {
+      updateData.result_url = resultUrl;
+    }
+
     const { error } = await supabase
       .from('batch_requests')
-      .update({ status: newStatus })
+      .update(updateData)
       .eq('id', reqId);
 
     setActionLoadingId(null);
@@ -285,7 +294,16 @@ export default function Profile({
       handleShowToast(`Failed to update request status: ${error.message}`, "error");
     } else {
       handleShowToast(`Request status successfully changed to ${newStatus}`, "success");
-      setAdminRequests(prev => prev.map(req => req.id === reqId ? { ...req, status: newStatus } : req));
+      setAdminRequests(prev => prev.map(req => req.id === reqId ? { ...req, ...updateData } : req));
+      
+      // Clear input after successfully marking as complete
+      if (newStatus === 'completed') {
+        setRequestResultUrls(prev => {
+          const newState = { ...prev };
+          delete newState[reqId];
+          return newState;
+        });
+      }
     }
   };
 
@@ -343,11 +361,7 @@ export default function Profile({
 
   const stats = useMemo(() => {
     const totalUploads = userBatches.length;
-    const totalApproved = userBatches.filter(b => b.status === 'approved').length;
-    const totalPending = userBatches.filter(b => b.status === 'pending').length;
-    const totalRejected = userBatches.filter(b => b.status === 'rejected').length;
     const totalVideos = userBatches.reduce((acc: number, b: any) => acc + (Number(b.video_count) || 0), 0);
-    
     const totalClicks = userBatches.reduce((acc: number, b: any) => {
       const downloadVal = b.download_count ?? 0;
       return acc + (Number(downloadVal) || 0);
@@ -380,15 +394,7 @@ export default function Profile({
       }
     }
 
-    return {
-      totalUploads,
-      totalApproved,
-      totalPending,
-      totalRejected,
-      totalVideos,
-      totalClicks,
-      totalSizeDisplay
-    };
+    return { totalUploads, totalVideos, totalClicks, totalSizeDisplay };
   }, [userBatches]);
 
   const unlockedBadges = useMemo(() => {
@@ -453,8 +459,8 @@ export default function Profile({
 
       handleShowToast("Batch successfully updated!", "success");
       
-      setUserBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...editingBatch, download_count: downloadVal, is_edited: true } : b));
-      setAllBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...editingBatch, download_count: downloadVal, is_edited: true } : b));
+      setUserBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...updateData } : b));
+      setAllBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...updateData } : b));
       setEditingBatch(null);
     } catch (error: any) {
       handleShowToast(error.message || "Failed to update batch", "error");
@@ -542,11 +548,7 @@ export default function Profile({
                 >
                   <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 border-4 border-white transition-all duration-300 group-hover:scale-105">
                     {userProfile?.avatar_url ? (
-                      <img 
-                        src={userProfile.avatar_url} 
-                        alt="Profile Avatar" 
-                        className="w-full h-full object-cover" 
-                      />
+                      <img src={userProfile.avatar_url} alt="Profile Avatar" className="w-full h-full object-cover" />
                     ) : (
                       <User size={40} strokeWidth={2.2} />
                     )}
@@ -669,7 +671,6 @@ export default function Profile({
               
               {activeTab === 'overview' && (
                 <div className="space-y-8 animate-in fade-in duration-300">
-                  {/* Dashboard Stat Cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
                     <div className="bg-[#3b82f6] p-6 rounded-[32px] shadow-[0_12px_24px_-8px_rgba(59,130,246,0.4)] flex flex-col justify-between text-white relative overflow-hidden transition-transform hover:-translate-y-1">
                       <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
@@ -1219,7 +1220,7 @@ export default function Profile({
                             </div>
                             
                             {/* Status Label */}
-                            <div>
+                            <div className="flex flex-col items-end gap-1">
                               {req.status === 'completed' && (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#84cc16]/10 text-[#84cc16]">
                                   <CheckCircle2 size={13} /> Completed
@@ -1238,29 +1239,55 @@ export default function Profile({
                             </div>
                           </div>
                           
-                          {/* Admin Action Buttons */}
-                          <div className="flex items-center gap-2 pt-3 border-t border-slate-50">
-                            <button
-                              onClick={() => handleUpdateRequestStatus(req.id, 'processing')}
-                              disabled={actionLoadingId === `req_${req.id}` || req.status === 'processing'}
-                              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-[11px] font-bold rounded-full transition-all shadow-sm flex items-center gap-1.5"
-                            >
-                              Process
-                            </button>
-                            <button
-                              onClick={() => handleUpdateRequestStatus(req.id, 'completed')}
-                              disabled={actionLoadingId === `req_${req.id}` || req.status === 'completed'}
-                              className="px-4 py-2 bg-[#84cc16] hover:bg-[#65a30d] disabled:opacity-50 text-white text-[11px] font-bold rounded-full transition-all shadow-sm flex items-center gap-1.5"
-                            >
-                              Complete
-                            </button>
-                            <button
-                              onClick={() => handleUpdateRequestStatus(req.id, 'rejected')}
-                              disabled={actionLoadingId === `req_${req.id}` || req.status === 'rejected'}
-                              className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-[11px] font-bold rounded-full transition-all shadow-sm flex items-center gap-1.5"
-                            >
-                              Reject
-                            </button>
+                          {/* Admin Action Buttons with Result URL Input */}
+                          <div className="flex flex-col gap-3 pt-3 border-t border-slate-50">
+                            {/* Show Result URL if available */}
+                            {req.result_url && (
+                              <a href={req.result_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-[#10b981] hover:underline flex items-center gap-1 w-fit bg-emerald-50 px-2 py-1 rounded">
+                                <ExternalLink size={12} /> Result: {req.result_url}
+                              </a>
+                            )}
+                            
+                            {/* Input for new Result URL when not completed/rejected */}
+                            {req.status !== 'completed' && req.status !== 'rejected' && (
+                              <input 
+                                type="url"
+                                placeholder="Enter Result URL (required to Complete)"
+                                value={requestResultUrls[req.id] || ''}
+                                onChange={(e) => handleResultUrlChange(req.id, e.target.value)}
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981]"
+                              />
+                            )}
+
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleUpdateRequestStatus(req.id, 'processing')}
+                                disabled={actionLoadingId === `req_${req.id}` || req.status === 'processing'}
+                                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-[11px] font-bold rounded-full transition-all shadow-sm flex items-center gap-1.5"
+                              >
+                                Process
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (!requestResultUrls[req.id] && !req.result_url) {
+                                    handleShowToast("Please enter a result URL first", "error");
+                                    return;
+                                  }
+                                  handleUpdateRequestStatus(req.id, 'completed', requestResultUrls[req.id])
+                                }}
+                                disabled={actionLoadingId === `req_${req.id}` || req.status === 'completed'}
+                                className="px-4 py-2 bg-[#84cc16] hover:bg-[#65a30d] disabled:opacity-50 text-white text-[11px] font-bold rounded-full transition-all shadow-sm flex items-center gap-1.5"
+                              >
+                                Complete
+                              </button>
+                              <button
+                                onClick={() => handleUpdateRequestStatus(req.id, 'rejected')}
+                                disabled={actionLoadingId === `req_${req.id}` || req.status === 'rejected'}
+                                className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-[11px] font-bold rounded-full transition-all shadow-sm flex items-center gap-1.5"
+                              >
+                                Reject
+                              </button>
+                            </div>
                           </div>
                         </div>
                       )) : (
