@@ -567,30 +567,30 @@ export default function Profile({
                 </div>
                 {/* ======================================================= */}
 
-            <div className="flex flex-col items-center w-full mt-5">
-                  <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                    {activeUsername || 'User'}
-                    {unlockedBadges.length > 0 && (
-                      <img 
-                        src={unlockedBadges[unlockedBadges.length - 1].iconUrl} 
-                        alt={unlockedBadges[unlockedBadges.length - 1].title} 
-                        title={unlockedBadges[unlockedBadges.length - 1].title}
-                        className="w-6 h-6 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform"
-                      />
-                    )}
-                  </h1>
+           <div className="flex flex-col items-center w-full mt-2">
+  <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+    {activeUsername || 'User'}
+    {unlockedBadges.length > 0 && (
+      <img 
+        src={unlockedBadges[unlockedBadges.length - 1].iconUrl} 
+        alt={unlockedBadges[unlockedBadges.length - 1].title} 
+        title={unlockedBadges[unlockedBadges.length - 1].title}
+        className="w-6 h-6 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform"
+      />
+    )}
+  </h1>
 
-                  <div className="mt-2 flex items-center gap-2 flex-wrap justify-center">
-                    {userProfile?.is_admin && (
-                      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-white bg-[#fbbf24] px-3 py-1 rounded-full shadow-sm">
-                        <ShieldCheck size={12} /> Admin
-                      </span>
-                    )}
-                    <span className="text-[10px] text-slate-500 font-semibold bg-slate-100 px-3 py-1 rounded-full">
-                      Level {Math.floor(stats.totalUploads / 3) + 1}
-                    </span>
-                  </div>
-                </div>
+  <div className="mt-1.5 flex items-center gap-2 flex-wrap justify-center">
+    {userProfile?.is_admin && (
+      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-white bg-[#fbbf24] px-3 py-1 rounded-full shadow-sm">
+        <ShieldCheck size={12} /> Admin
+      </span>
+    )}
+    <span className="text-[10px] text-slate-500 font-semibold bg-slate-100 px-3 py-1 rounded-full">
+      Level {Math.floor(stats.totalUploads / 3) + 1}
+    </span>
+  </div>
+</div>
 </div>
 
               {/* Sidebar Navigation */}
