@@ -15,7 +15,8 @@ const VIP_BORDERS = {
 export default function AvatarBorderVip({ 
   isPremium, 
   level = 1, // Default to VIP 1 if level is not provided
-  className = "absolute top-[-6px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none" 
+  // Mengubah top-[-6px] menjadi top-[-14px] agar border naik sedikit ke atas
+  className = "absolute top-[-14px] left-1/2 -translate-x-1/2 w-[124px] h-auto max-w-none object-contain z-20 pointer-events-none" 
 }: AvatarBorderVipProps) {
   
   // If the user is not premium (FALSE), return null so the border is not rendered
