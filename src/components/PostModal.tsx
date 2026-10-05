@@ -2,7 +2,15 @@ import React, { useState } from "react";
 import { X, Upload, Info } from "lucide-react";
 import { supabase } from "../supabase";
 
-const PostModal = ({ onClose, onSuccess, currentUser, showToast, CATEGORIES, onOpenRules }: any) => {
+const PostModal = ({ 
+  onClose, 
+  onSuccess, 
+  currentUser, 
+  showToast, 
+  CATEGORIES, 
+  onOpenRules,
+  isAdmin = false // Default ke false jika prop tidak dikirimkan
+}: any) => {
   const [isLoading, setIsLoading] = useState(false);
   
   // Filter out "Home" and "All" to leave only region/country options
@@ -87,13 +95,19 @@ const PostModal = ({ onClose, onSuccess, currentUser, showToast, CATEGORIES, onO
           is_banned: formData.is_banned,
           is_exclusive: isExclusive,
           uploaded_by: currentUser,
-          status: 'pending'
+          // Mengatur status: Jika admin, langsung 'approved', jika user biasa, 'pending'
+          status: isAdmin ? 'approved' : 'pending'
         }
       ]);
 
       if (error) throw error;
 
-      showToast("Batch successfully submitted! Awaiting admin approval.", "success");
+      // Notifikasi toast yang disesuaikan
+      const successMessage = isAdmin 
+        ? "Batch successfully submitted and approved!" 
+        : "Batch successfully submitted! Awaiting admin approval.";
+
+      showToast(successMessage, "success");
       onSuccess();
       onClose();
     } catch (error: any) {
