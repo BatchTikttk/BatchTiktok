@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { supabase } from '../supabase';
 import { 
   User, 
@@ -33,11 +33,13 @@ import {
 import { EmeraldFolderIcon } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import PostModal from '../components/PostModal';
-import LoginModal from '../components/LoginModal';
-import AvatarModal from '../components/Avatar';
-import CustomBatchRequest from '../components/CustomBatchRequest'; 
 import AvatarBorderVip, { VIP_BORDERS } from '../components/AvatarBorderVip';
+
+// Lazy load heavy components
+const PostModal = lazy(() => import('../components/PostModal'));
+const LoginModal = lazy(() => import('../components/LoginModal'));
+const AvatarModal = lazy(() => import('../components/Avatar'));
+const CustomBatchRequest = lazy(() => import('../components/CustomBatchRequest'));
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
@@ -181,18 +183,23 @@ export default function Profile({
   }, [userProfile?.is_admin]);
 
   const fetchAdmins = async () => {
+    const cacheKey = 'swr_admin_list';
+    const cachedData = localStorage.getItem(cacheKey);
+    if (cachedData) setAdminList(JSON.parse(cachedData));
+
     const { data } = await supabase
       .from('profiles')
       .select('username')
       .eq('is_admin', true);
 
     if (data) {
-      setAdminList(data.map((p: any) => (p.username || '').toLowerCase()));
+      const list = data.map((p: any) => (p.username || '').toLowerCase());
+      setAdminList(list);
+      localStorage.setItem(cacheKey, JSON.stringify(list));
     }
   };
 
   const fetchUserData = async (isInitial = false) => {
-    if (isInitial) setLoading(true);
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
@@ -202,15 +209,40 @@ export default function Profile({
       return;
     }
 
+    const userId = session.user.id;
+    const cacheProfileKey = `swr_profile_${userId}`;
+    const cacheBatchesKey = `swr_batches_${userId}`;
+
+    if (isInitial) {
+      const cachedProfile = localStorage.getItem(cacheProfileKey);
+      const cachedBatches = localStorage.getItem(cacheBatchesKey);
+      
+      if (cachedProfile) {
+        const parsed = JSON.parse(cachedProfile);
+        setUserProfile(parsed);
+        setUsernameInput(parsed.username || currentUser || '');
+      }
+      if (cachedBatches) {
+        setUserBatches(JSON.parse(cachedBatches));
+      }
+      
+      if (cachedProfile && cachedBatches) {
+        setLoading(false); // SWR: Tampilkan cache langsung, loading screen di bypass
+      } else {
+        setLoading(true);
+      }
+    }
+
     const { data: profile } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', session.user.id)
+      .eq('id', userId)
       .single();
 
     if (profile) {
       setUserProfile(profile);
       setUsernameInput(profile.username || currentUser || '');
+      localStorage.setItem(cacheProfileKey, JSON.stringify(profile));
     } else if (currentUser) {
       setUsernameInput(currentUser);
     }
@@ -218,17 +250,22 @@ export default function Profile({
     const { data: batches } = await supabase
       .from('batches')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (batches) {
       setUserBatches(batches);
+      localStorage.setItem(cacheBatchesKey, JSON.stringify(batches));
     }
 
     setLoading(false);
   };
 
   const fetchAllBatches = async () => {
+    const cacheKey = 'swr_admin_all_batches';
+    const cachedData = localStorage.getItem(cacheKey);
+    if (cachedData) setAllBatches(JSON.parse(cachedData));
+
     const { data } = await supabase
       .from('batches')
       .select('*')
@@ -236,10 +273,15 @@ export default function Profile({
 
     if (data) {
       setAllBatches(data);
+      localStorage.setItem(cacheKey, JSON.stringify(data));
     }
   };
 
   const fetchAllRequests = async () => {
+    const cacheKey = 'swr_admin_all_requests';
+    const cachedData = localStorage.getItem(cacheKey);
+    if (cachedData) setAdminRequests(JSON.parse(cachedData));
+
     const { data } = await supabase
       .from('batch_requests')
       .select('*, profiles (username, avatar_url)')
@@ -248,6 +290,7 @@ export default function Profile({
 
     if (data) {
       setAdminRequests(data);
+      localStorage.setItem(cacheKey, JSON.stringify(data));
     }
   };
 
@@ -959,7 +1002,14 @@ export default function Profile({
                     <h2 className="text-xl font-bold text-slate-800">Request Batch</h2>
                     <p className="text-xs text-slate-500 mt-1">Submit a request to archive specific TikTok profiles</p>
                   </div>
-                  <CustomBatchRequest currentUser={userProfile} />
+                  <Suspense fallback={
+                    <div className="py-12 flex flex-col items-center justify-center bg-white rounded-[32px] border border-slate-100 text-center shadow-sm">
+                      <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-3" />
+                      <span className="text-sm font-bold text-slate-600">Loading Form Request...</span>
+                    </div>
+                  }>
+                    <CustomBatchRequest currentUser={userProfile} />
+                  </Suspense>
                 </div>
               )}
 
@@ -1499,36 +1549,42 @@ export default function Profile({
       )}
 
       {showAvatarModal && (
-        <AvatarModal 
-          currentAvatar={userProfile?.avatar_url} 
-          onClose={() => setShowAvatarModal(false)}
-          onSelectAvatar={handleUpdateAvatar} 
-        />
+        <Suspense fallback={null}>
+          <AvatarModal 
+            currentAvatar={userProfile?.avatar_url} 
+            onClose={() => setShowAvatarModal(false)}
+            onSelectAvatar={handleUpdateAvatar} 
+          />
+        </Suspense>
       )}
 
       {showAddModal && (
-        <PostModal 
-          onClose={() => setShowAddModal(false)}
-          onSuccess={() => {
-            fetchUserData(false);
-            if (userProfile?.is_admin) fetchAllBatches();
-            setShowAddModal(false);
-          }}
-          currentUser={activeUsername || ''}
-          showToast={handleShowToast}
-          CATEGORIES={CATEGORIES}
-        />
+        <Suspense fallback={null}>
+          <PostModal 
+            onClose={() => setShowAddModal(false)}
+            onSuccess={() => {
+              fetchUserData(false);
+              if (userProfile?.is_admin) fetchAllBatches();
+              setShowAddModal(false);
+            }}
+            currentUser={activeUsername || ''}
+            showToast={handleShowToast}
+            CATEGORIES={CATEGORIES}
+          />
+        </Suspense>
       )}
 
       {showLoginModal && (
-        <LoginModal 
-          onClose={() => setShowLoginModal(false)}
-          onSuccess={() => {
-            fetchUserData(false);
-            setShowLoginModal(false);
-          }}
-          showToast={handleShowToast}
-        />
+        <Suspense fallback={null}>
+          <LoginModal 
+            onClose={() => setShowLoginModal(false)}
+            onSuccess={() => {
+              fetchUserData(false);
+              setShowLoginModal(false);
+            }}
+            showToast={handleShowToast}
+          />
+        </Suspense>
       )}
 
       <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
