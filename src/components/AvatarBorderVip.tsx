@@ -12,8 +12,14 @@ export const VIP_BORDERS = [
   'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/VIP%20BORDER%20AVATAR%20NEW/VIP%204.webp'
 ];
 
-export default function AvatarBorderVip({ borderUrl, className = "absolute -inset-2 w-[calc(100%+16px)] h-[calc(100%+16px)] pointer-events-none z-20 object-contain" }: AvatarBorderVipProps) {
+export default function AvatarBorderVip({ 
+  borderUrl, 
+  // Menggunakan top-1/2 dan left-1/2 dikombinasikan dengan translate agar titik pusat bingkai benar-benar di tengah
+  // max-w-none mencegah bingkai terdistorsi oleh batasan ukuran parent
+  className = "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[52%] w-[135%] h-[135%] max-w-none pointer-events-none z-20 object-contain" 
+}: AvatarBorderVipProps) {
   if (!borderUrl) return null;
+
   return (
     <img 
       src={borderUrl} 
