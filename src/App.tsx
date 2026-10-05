@@ -117,7 +117,7 @@ export default function App() {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [currentUser]); // Tambahkan currentUser sebagai dependency agar nilainya selalu up-to-date
+  }, [currentUser]); 
 
   // Tambahan: Global Event Listener agar modal bisa dipanggil dari komponen manapun dengan CustomEvent
   useEffect(() => {
@@ -157,8 +157,6 @@ export default function App() {
   // ---------------------------------------------------------
   // LOGIKA GLOBAL: Penjaga Akses untuk Konten Eksklusif
   // ---------------------------------------------------------
-  // Kita menggunakan `any` pada interface fungsi untuk bypass Type Error di Vercel
-  // karena CreatorPage mungkin masih mengirimkan 2 argumen sedangkan Home mengirim 3.
   const handleExclusiveAccess: any = (
     isExclusive: boolean, 
     arg2: string | (() => void), 
@@ -168,19 +166,19 @@ export default function App() {
     const uploadedBy = typeof arg2 === 'string' ? arg2 : '';
     const onSuccessCallback = typeof arg2 === 'function' ? arg2 : arg3;
 
-    // 1. Jika bukan eksklusif
+    // 1. Jika bukan eksklusif, berikan akses langsung
     if (!isExclusive) {
       onSuccessCallback?.(); 
       return;
     }
 
-    // 2. Jika belum login sama sekali
+    // 2. Jika belum login sama sekali, arahkan ke modal login
     if (!currentUser) {
       setShowLoginModal(true); 
       return;
     }
 
-    // 3. Pengecualian: User yang login adalah uploader asli (Bypass Premium)
+    // 3. PENGECUALIAN PENTING: Jika user yang login adalah pengunggah asli konten tersebut
     if (uploadedBy && currentUser.toLowerCase() === uploadedBy.toLowerCase()) {
       onSuccessCallback?.();
       return;
@@ -192,7 +190,7 @@ export default function App() {
       return;
     }
 
-    // 5. User biasa (sudah login tapi bukan premium dan bukan pemilik konten)
+    // 5. User biasa (sudah login tapi bukan premium dan bukan pemilik konten) -> Buka Modal Upgrade
     setIsUpgradeModalOpen(true);
   };
 
@@ -232,6 +230,7 @@ export default function App() {
       <Home 
         onCheckAccess={handleExclusiveAccess}
         isUserPremium={isPremiumUser}
+        currentUser={currentUser} // <-- Pastikan dikirim agar Home/PreviewModal bisa mendeteksi uploader
         onOpenUpgradeModal={() => {
           if (!currentUser) {
             setShowLoginModal(true);
