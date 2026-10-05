@@ -25,6 +25,7 @@ interface BatchItem {
   uploader_is_admin?: boolean;
   is_edited?: boolean;
   is_exclusive?: boolean; 
+  is_banned?: boolean;
   status?: string;
   [key: string]: any; 
 }
@@ -141,7 +142,7 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorB
         className="mb-5 mt-2 relative transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
         title={data.is_exclusive ? "TikTok Exclusive Collection" : ""}
       >
-        <EmeraldFolderIcon country={data.country} isExclusive={data.is_exclusive} />
+        <EmeraldFolderIcon country={data.country} isExclusive={data.is_exclusive} isBanned={data.is_banned} />
         
         {data.is_exclusive && (
           <div 
