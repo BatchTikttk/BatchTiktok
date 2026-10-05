@@ -222,7 +222,15 @@ export default function App() {
       return (
         <CreatorPage 
           username={username} 
-          onCheckAccess={handleExclusiveAccess} 
+          isUserPremium={isPremiumUser}
+          currentUser={currentUser}
+          onOpenUpgradeModal={() => {
+            if (!currentUser) {
+              setShowLoginModal(true);
+            } else {
+              setIsUpgradeModalOpen(true);
+            }
+          }}
         />
       );
     }
