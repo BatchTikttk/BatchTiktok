@@ -4,6 +4,7 @@ import {
   Scale, BarChart2, Home, Globe, Trophy, Crown 
 } from 'lucide-react';
 import { supabase } from '../supabase';
+import AvatarBorderVip from './AvatarBorderVip';
 
 // Komponen helper untuk menampilkan bendera di Navbar
 const RegionFlag = ({ country, className = "w-4 h-4" }: { country: string, className?: string }) => {
@@ -76,7 +77,7 @@ const RegionFlag = ({ country, className = "w-4 h-4" }: { country: string, class
   );
 };
 
-// Mendefinisikan tipe data (TypeScript Interface) dengan benar agar Deploy tidak gagal
+// Mendefinisikan tipe data (TypeScript Interface)
 interface NavbarProps {
   activeCategory?: string;
   setActiveCategory: (category: string) => void;
@@ -113,6 +114,8 @@ export default function Navbar({
   const [isRegionOpen, setIsRegionOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isPremium, setIsPremium] = useState<boolean>(false);
+  const [animationBorderUrl, setAnimationBorderUrl] = useState<string | null>(null);
+  const [vipBorderUrl, setVipBorderUrl] = useState<string | null>(null);
 
   const regions = CATEGORIES.filter((c: string) => c !== 'Home');
 
@@ -135,6 +138,8 @@ export default function Navbar({
       if (!session) {
         setAvatarUrl(null);
         setIsPremium(false);
+        setAnimationBorderUrl(null);
+        setVipBorderUrl(null);
         return;
       }
 
@@ -142,15 +147,18 @@ export default function Navbar({
 
       const { data } = await supabase
         .from('profiles')
-        .select('avatar_url, is_premium')
+        .select('avatar_url, is_premium, animation_border_url, vip_border_url')
         .eq('id', userId)
         .single();
 
       if (data) {
-        if (data.avatar_url) setAvatarUrl(data.avatar_url);
+        if (data.avatar_url !== undefined) setAvatarUrl(data.avatar_url);
         if (data.is_premium !== undefined) setIsPremium(data.is_premium);
+        if (data.animation_border_url !== undefined) setAnimationBorderUrl(data.animation_border_url);
+        if (data.vip_border_url !== undefined) setVipBorderUrl(data.vip_border_url);
       }
 
+      // Realtime subscription untuk mendeteksi perubahan profil & border secara instan
       channel = supabase
         .channel(`public:profiles:${userId}`)
         .on(
@@ -163,11 +171,18 @@ export default function Navbar({
           },
           (payload) => {
             if (payload.new) {
-              if ((payload.new as any).avatar_url) {
-                setAvatarUrl((payload.new as any).avatar_url);
+              const newProfile = payload.new as Record<string, any>;
+              if (newProfile.avatar_url !== undefined) {
+                setAvatarUrl(newProfile.avatar_url);
               }
-              if ((payload.new as any).is_premium !== undefined) {
-                setIsPremium((payload.new as any).is_premium);
+              if (newProfile.is_premium !== undefined) {
+                setIsPremium(newProfile.is_premium);
+              }
+              if (newProfile.animation_border_url !== undefined) {
+                setAnimationBorderUrl(newProfile.animation_border_url);
+              }
+              if (newProfile.vip_border_url !== undefined) {
+                setVipBorderUrl(newProfile.vip_border_url);
               }
             }
           }
@@ -344,15 +359,30 @@ export default function Navbar({
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="px-4 py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold text-slate-600 flex items-center gap-2.5 transition-all border-none cursor-pointer"
                 >
-                  <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {avatarUrl ? (
-                      <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-                    ) : typeof currentUser === 'object' && currentUser?.user_metadata?.avatar_url ? (
-                      <img src={currentUser.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                    ) : (
-                      <User size={18} />
-                    )}
+                  {/* Container Avatar + Animation Border */}
+                  <div className="relative w-8 h-8 flex items-center justify-center flex-shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0 relative z-10">
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                      ) : typeof currentUser === 'object' && currentUser?.user_metadata?.avatar_url ? (
+                        <img src={currentUser.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <User size={18} />
+                      )}
+                    </div>
+
+                    {/* Menampilkan VIP Border jika ada, atau Animation Border (Progress) jika tidak ada VIP */}
+                    {vipBorderUrl ? (
+                      <AvatarBorderVip borderUrl={vipBorderUrl} isPremium={isPremium} />
+                    ) : animationBorderUrl ? (
+                      <img 
+                        src={animationBorderUrl} 
+                        alt="Animated Border" 
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] max-w-none object-contain z-20 pointer-events-none drop-shadow-sm"
+                      />
+                    ) : null}
                   </div>
+
                   <span>@{displayUser}</span>
                   <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -484,13 +514,27 @@ export default function Navbar({
             {currentUser ? (
               <>
                 <div className="px-4 py-2 mb-1 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {avatarUrl ? (
-                      <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-                    ) : (
-                      <User size={20} />
-                    )}
+                  {/* Container Avatar + Border di Tampilan Mobile */}
+                  <div className="relative w-11 h-11 flex items-center justify-center flex-shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0 relative z-10">
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <User size={20} />
+                      )}
+                    </div>
+
+                    {vipBorderUrl ? (
+                      <AvatarBorderVip borderUrl={vipBorderUrl} isPremium={isPremium} />
+                    ) : animationBorderUrl ? (
+                      <img 
+                        src={animationBorderUrl} 
+                        alt="Animated Border" 
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] max-w-none object-contain z-20 pointer-events-none drop-shadow-sm"
+                      />
+                    ) : null}
                   </div>
+
                   <div>
                     <span className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Signed in as</span>
                     <span className="block text-sm font-bold text-slate-800">@{displayUser}</span>
