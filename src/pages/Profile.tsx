@@ -1,11 +1,9 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { supabase } from '../supabaseClient';
+import { useState, useEffect, Suspense, lazy } from 'react';
+import { supabase } from '../supabase';
 import { 
   Loader2, 
   ShieldCheck, 
-  X,
-  Upload,
-  FolderPlus
+  X
 } from 'lucide-react';
 
 // Import Komponen Moduler yang Telah Dibuat
@@ -17,6 +15,11 @@ import ProfileSettings from '../components/ProfileSettings';
 // Lazy load untuk komponen berat/tambahan
 const CustomBatchRequest = lazy(() => import('../components/CustomBatchRequest'));
 
+interface ProfileProps {
+  currentUser?: string | null;
+  onBack?: () => void;
+}
+
 // Definisi Badge / Achievement System
 export const BADGES = [
   {
@@ -26,7 +29,7 @@ export const BADGES = [
     description: 'Upload your first 3 batches to unlock.',
     target: 3,
     unit: 'batches',
-    iconUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80', // Contoh URL icon
+    iconUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80',
     isUnlocked: (stats: any) => stats.totalUploads >= 3,
     getCurrentProgress: (stats: any) => stats.totalUploads
   },
@@ -76,7 +79,7 @@ export const BADGES = [
   }
 ];
 
-export default function Profile() {
+export default function Profile({}: ProfileProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'request' | 'settings' | 'admin'>('overview');
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userBatches, setUserBatches] = useState<any[]>([]);
@@ -87,12 +90,12 @@ export default function Profile() {
   const [updatingUsername, setUpdatingUsername] = useState(false);
   const [collectionSearchQuery, setCollectionSearchQuery] = useState('');
   const [showAvatarModal, setShowAvatarModal] = useState(false);
-  const [editingBatch, setEditingBatch] = useState<any>(null);
+  const [, setEditingBatch] = useState<any>(null);
   const [deletingId, setDeletingId] = useState<any>(null);
 
   // Admin panel states
   const [allBatches, setAllBatches] = useState<any[]>([]);
-  const [allRequests, setAllRequests] = useState<any[]>([]);
+  const [, setAllRequests] = useState<any[]>([]);
 
   useEffect(() => {
     fetchUserData();
@@ -320,7 +323,7 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* MODAL PILIH / UBAH AVATAR (Jika diperlukan) */}
+      {/* MODAL PILIH / UBAH AVATAR */}
       {showAvatarModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-[32px] p-6 max-w-md w-full shadow-xl relative animate-in zoom-in-95 duration-200">

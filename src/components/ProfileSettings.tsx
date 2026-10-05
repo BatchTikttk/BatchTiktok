@@ -20,7 +20,6 @@ export default function ProfileSettings({
   setUsernameInput,
   handleUpdateUsername,
   updatingUsername,
-  activeUsername,
   setShowAvatarModal,
   handleSelectVipBorder
 }: ProfileSettingsProps) {

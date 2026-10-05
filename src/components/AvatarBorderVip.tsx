@@ -1,30 +1,26 @@
-interface AvatarBorderVipProps {
-  isPremium: boolean;
-  borderUrl?: string | null;
+import React from 'react';
+
+export interface AvatarBorderVipProps {
+  isPremium?: boolean;
+  borderUrl?: string;
+  progress?: number;
   className?: string;
 }
 
-// Kumpulan URL Border VIP dalam bentuk Array (tanpa level)
 export const VIP_BORDERS = [
-  "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/VIP%20BORDER%20AVATAR%20NEW/VIP%201.webp",
-  "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/VIP%20BORDER%20AVATAR%20NEW/VIP%202.webp",
-  "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/VIP%20BORDER%20AVATAR%20NEW/VIP%203.webp",
-  "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/VIP%20BORDER%20AVATAR%20NEW/VIP%204.webp",
+  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=150&auto=format&fit=crop&q=80'
 ];
 
-export default function AvatarBorderVip({ 
-  isPremium, 
-  borderUrl, 
-  className = "absolute top-[-37px] left-1/2 -translate-x-1/2 ml-[1px] w-[128px] h-auto max-w-none object-contain z-20 pointer-events-none" 
-}: AvatarBorderVipProps) {
-  
-  if (!isPremium || !borderUrl) return null;
-
+export default function AvatarBorderVip({ borderUrl, className = "absolute -inset-2 w-[calc(100%+16px)] h-[calc(100%+16px)] pointer-events-none z-20 object-contain" }: AvatarBorderVipProps) {
+  if (!borderUrl) return null;
   return (
     <img 
-      src={borderUrl}
-      alt="VIP Avatar Border"
-      className={className}
+      src={borderUrl} 
+      alt="VIP Border" 
+      className={className} 
     />
   );
 }

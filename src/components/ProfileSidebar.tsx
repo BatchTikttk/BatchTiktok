@@ -5,7 +5,6 @@ import {
   FolderHeart,
   Settings,
   LogOut,
-  Sparkles,
   Send
 } from 'lucide-react';
 import AvatarBorderVip from './AvatarBorderVip';
