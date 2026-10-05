@@ -273,7 +273,7 @@ const PreviewModal = ({
               className="flex-shrink-0 pt-1 relative drop-shadow-sm" 
               title={item.is_exclusive ? "TikTok Exclusive Collection" : ""}
             >
-              <EmeraldFolderIcon className="w-12 h-12 drop-shadow-sm" country={item.country} isExclusive={item.is_exclusive} />
+              <EmeraldFolderIcon className="w-12 h-12 drop-shadow-sm" country={item.country} isExclusive={item.is_exclusive} isBanned={item.is_banned} />
               
               {item.is_exclusive && (
                 <div 

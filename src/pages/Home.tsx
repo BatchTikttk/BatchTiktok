@@ -97,9 +97,14 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: CreatorCardProps) =
 
       <div 
         className="relative mb-5 mt-2 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
-        title={data.is_exclusive ? "TikTok Exclusive Collection" : ""}
+        title={data.is_banned ? "Account Banned" : data.is_exclusive ? "TikTok Exclusive Collection" : ""}
       >
-        <EmeraldFolderIcon country={data.country} isExclusive={data.is_exclusive} />
+        {/* Mengirimkan data.is_banned ke prop isBanned pada ikon folder */}
+        <EmeraldFolderIcon 
+          country={data.country} 
+          isExclusive={data.is_exclusive} 
+          isBanned={data.is_banned} 
+        />
         
         {data.is_exclusive && (
           <div 
@@ -168,7 +173,6 @@ const fetchApprovedBatches = async () => {
   });
 };
 
-// PERBAIKAN: Hapus onCheckAccess dari destructuring props (di parameter) agar TypeScript tidak mengeluh TS6133
 export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: propCurrentUser }: HomeProps) { 
   const { data: batches = [], mutate, error: swrError } = useSWR('approved_batches', fetchApprovedBatches, {
     dedupingInterval: 600000, 

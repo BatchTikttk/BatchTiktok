@@ -45,11 +45,13 @@ export const UserBadge = ({
 export const EmeraldFolderIcon = ({ 
   className = "w-24 h-24", 
   country,
-  isExclusive = false // Tambahan properti baru
+  isExclusive = false,
+  isBanned = false 
 }: { 
   className?: string, 
   country?: string,
-  isExclusive?: boolean // Tambahan tipe data boolean
+  isExclusive?: boolean,
+  isBanned?: boolean 
 }) => {
   const clipId = country ? `flag-clip-${country.toLowerCase()}` : '';
 
@@ -122,8 +124,8 @@ export const EmeraldFolderIcon = ({
     );
   };
 
-  // Mengganti warna bawaan jika folder isExclusive bernilai true (Warna Emas: #F59E0B)
-  const folderColor = isExclusive ? "#F59E0B" : "#10b981";
+  // Logika warna: Merah Dop (#991B1B) jika dibanned, Emas (#F59E0B) jika eksklusif, Hijau (#10b981) jika normal
+  const folderColor = isBanned ? "#991B1B" : isExclusive ? "#F59E0B" : "#10b981";
 
   return (
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className={className}>
