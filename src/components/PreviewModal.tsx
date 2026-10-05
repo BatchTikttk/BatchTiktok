@@ -48,8 +48,9 @@ const PreviewModal = ({
 
   const badge = getAchievementBadge(uploaderCount);
 
-  const handleCreatorClick = (creatorName?: string) => {
-    const targetName = creatorName || item?.username || item?.uploaded_by;
+  // Logika klik sekarang HANYA untuk uploader asli
+  const handleUploaderClick = () => {
+    const targetName = item?.uploaded_by;
     if (!targetName) return;
 
     if (onClose) onClose();
@@ -196,14 +197,12 @@ const PreviewModal = ({
   const hasGdrive = Boolean(finalGdriveLink && finalGdriveLink.trim() !== '');
   const hasTerabox = Boolean(finalTeraboxLink && finalTeraboxLink.trim() !== '');
 
-  // PENGECEKAN UPLOADER: Pengunggah yang sedang login
   const isUploader = Boolean(
     currentUser && 
     ((item.uploaded_by && currentUser.toLowerCase() === item.uploaded_by.toLowerCase()) ||
      (item.username && currentUser.toLowerCase() === item.username.toLowerCase()))
   );
   
-  // STATUS KUNCI: Hanya terkunci jika file eksklusif, BUKAN uploader, DAN BUKAN user premium
   const isLocked = Boolean(item.is_exclusive && !isUserPremium && !isUploader);
 
   return (
@@ -251,13 +250,8 @@ const PreviewModal = ({
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
           
           <div className="absolute bottom-6 left-6 right-6 text-white pointer-events-none">
-            <h4 
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCreatorClick(item.username);
-              }}
-              className="font-bold text-lg drop-shadow-md flex items-center gap-2 pointer-events-auto cursor-pointer hover:text-emerald-400 transition-colors"
-            >
+            {/* Hapus fungsi onClick dan efek hover kursor pada nama konten */}
+            <h4 className="font-bold text-lg drop-shadow-md flex items-center gap-2 pointer-events-auto">
               {item.username}
             </h4>
             <p className="text-xs text-white/90 line-clamp-2 mt-1 drop-shadow-md">
@@ -287,11 +281,8 @@ const PreviewModal = ({
 
             <div className="flex-1">
               <h2 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-                <span 
-                  onClick={() => handleCreatorClick(item.username)} 
-                  className="cursor-pointer hover:text-emerald-600 transition-colors"
-                  title={`View details for ${item.username}`}
-                >
+                {/* Hapus efek link pada nama header (bukan user asli, hanya label folder) */}
+                <span>
                   {item.username}
                 </span>
                 {item.is_banned && (
@@ -311,8 +302,9 @@ const PreviewModal = ({
                 
                 <span className="text-slate-300 text-sm">•</span>
                 
+                {/* Bagian Uploader ini yang dipertahankan fungsinya agar bisa diklik */}
                 <div 
-                  onClick={() => handleCreatorClick(item.uploaded_by || item.username)}
+                  onClick={handleUploaderClick}
                   className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 cursor-pointer hover:opacity-80 transition-opacity"
                   title={`View profile of ${item.uploaded_by}`}
                 >
