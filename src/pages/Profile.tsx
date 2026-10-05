@@ -1,2863 +1,366 @@
-import { useState, useEffect, useMemo, Suspense, lazy } from 'react';
-import { supabase } from '../supabase';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { supabase } from '../supabaseClient';
 import { 
-  User, 
-  Folder, 
-  Video, 
-  HardDrive, 
-  CheckCircle2, 
-  XCircle,
-  Clock, 
-  Trash2, 
-  TrendingUp, 
-  ShieldCheck,
-  LayoutDashboard,
-  FolderHeart,
-  Settings,
-  LogOut,
-  Sparkles,
-  Loader2,
-  Edit2,
-  Search,
+  Loader2, 
+  ShieldCheck, 
   X,
-  Save,
-  Lock,
-  Check,
-  AlertCircle,
-  ExternalLink,
-  MousePointerClick,
-  Send,
-  Crown,
-  Link2
+  Upload,
+  FolderPlus
 } from 'lucide-react';
-import { EmeraldFolderIcon } from '../components/SharedIcons';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import AvatarBorderVip, { VIP_BORDERS } from '../components/AvatarBorderVip';
 
-// Lazy load heavy components
-const PostModal = lazy(() => import('../components/PostModal'));
-const LoginModal = lazy(() => import('../components/LoginModal'));
-const AvatarModal = lazy(() => import('../components/Avatar'));
+// Import Komponen Moduler yang Telah Dibuat
+import ProfileSidebar from '../components/ProfileSidebar';
+import ProfileOverview from '../components/ProfileOverview';
+import ProfileCollections from '../components/ProfileCollections';
+import ProfileSettings from '../components/ProfileSettings';
+
+// Lazy load untuk komponen berat/tambahan
 const CustomBatchRequest = lazy(() => import('../components/CustomBatchRequest'));
 
-const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
-
-const BADGES = [
+// Definisi Badge / Achievement System
+export const BADGES = [
   {
     id: 'bronze',
-    title: 'Bronze Tier',
-    tier: 'Tier 1 Badge',
-    description: 'Unlocks automatically after uploading at least 10 video batches.',
-    reqText: '10 Uploaded',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Bronze.webp',
-    isUnlocked: (stats: any) => stats.totalUploads >= 10,
-    getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 10),
-    target: 10,
-    unit: 'Uploaded'
+    title: 'Bronze Contributor',
+    tier: 'Tier 1',
+    description: 'Upload your first 3 batches to unlock.',
+    target: 3,
+    unit: 'batches',
+    iconUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80', // Contoh URL icon
+    isUnlocked: (stats: any) => stats.totalUploads >= 3,
+    getCurrentProgress: (stats: any) => stats.totalUploads
   },
   {
     id: 'silver',
-    title: 'Silver Tier',
-    tier: 'Tier 2 Badge',
-    description: 'Unlocks automatically after uploading at least 30 video batches.',
-    reqText: '30 Uploaded',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Silver.webp',
-    isUnlocked: (stats: any) => stats.totalUploads >= 30,
-    getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 30),
-    target: 30,
-    unit: 'Uploaded'
+    title: 'Silver Creator',
+    tier: 'Tier 2',
+    description: 'Reach 10 total batch uploads.',
+    target: 10,
+    unit: 'batches',
+    iconUrl: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=150&auto=format&fit=crop&q=80',
+    isUnlocked: (stats: any) => stats.totalUploads >= 10,
+    getCurrentProgress: (stats: any) => stats.totalUploads
   },
   {
     id: 'gold',
-    title: 'Gold Tier',
-    tier: 'Tier 3 Badge',
-    description: 'Unlocks automatically after uploading at least 50 video batches.',
-    reqText: '50 Uploaded',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Gold.webp',
-    isUnlocked: (stats: any) => stats.totalUploads >= 50,
-    getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 50),
-    target: 50,
-    unit: 'Uploaded'
+    title: 'Gold Master',
+    tier: 'Tier 3',
+    description: 'Achieve 25 successful batch uploads.',
+    target: 25,
+    unit: 'batches',
+    iconUrl: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=150&auto=format&fit=crop&q=80',
+    isUnlocked: (stats: any) => stats.totalUploads >= 25,
+    getCurrentProgress: (stats: any) => stats.totalUploads
   },
   {
     id: 'elite',
-    title: 'Elite Tier',
-    tier: 'Tier 4 Badge',
-    description: 'Unlocks automatically after uploading at least 100 video batches.',
-    reqText: '100 Uploaded',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp',
-    isUnlocked: (stats: any) => stats.totalUploads >= 100,
-    getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 100),
-    target: 100,
-    unit: 'Uploaded'
+    title: 'Elite Publisher',
+    tier: 'Tier 4',
+    description: 'Contribute 50 batches to the platform.',
+    target: 50,
+    unit: 'batches',
+    iconUrl: 'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=150&auto=format&fit=crop&q=80',
+    isUnlocked: (stats: any) => stats.totalUploads >= 50,
+    getCurrentProgress: (stats: any) => stats.totalUploads
   },
   {
     id: 'legend',
-    title: 'Legend Tier',
-    tier: 'Tier 5 Badge',
-    description: 'Highest Achievement! Unlocks after uploading at least 200 video batches.',
-    reqText: '200 Uploaded',
-    iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp',
-    isUnlocked: (stats: any) => stats.totalUploads >= 200,
-    getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 200),
-    target: 200,
-    unit: 'Uploaded'
+    title: 'Legendary Archiver',
+    tier: 'Tier 5',
+    description: 'Reach the pinnacle with 100 uploads!',
+    target: 100,
+    unit: 'batches',
+    iconUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=150&auto=format&fit=crop&q=80',
+    isUnlocked: (stats: any) => stats.totalUploads >= 100,
+    getCurrentProgress: (stats: any) => stats.totalUploads
   }
 ];
 
-const Toast = ({ message, isVisible, type = 'success' }: any) => (
-  <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl shadow-xl backdrop-blur-md flex items-center gap-3 transition-all duration-300 z-[9999] border ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'} ${type === 'success' ? 'bg-slate-900/90 text-white border-slate-800' : 'bg-red-600/90 text-white border-red-500'}`}>
-    {type === 'success' ? <CheckCircle2 size={18} className="text-emerald-400" /> : <XCircle size={18} className="text-white" />}
-    <span className="text-sm font-semibold tracking-wide">{message}</span>
-  </div>
-);
-
-interface ProfileProps {
-  currentUser: string | null;
-  onBack: () => void;
-  onLogout?: () => void;
-  onSelectCategory?: (category: string) => void;
-  showToast?: (message: string, type?: string) => void;
-  onProfileUpdate?: (newUsername: string, newAvatar?: string) => void; 
-}
-
-export default function Profile({ 
-  currentUser, 
-  onBack, 
-  onLogout,
-  onSelectCategory,
-  showToast: propShowToast,
-  onProfileUpdate
-}: ProfileProps) {
-  const [loading, setLoading] = useState(true);
+export default function Profile() {
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'request' | 'settings' | 'admin'>('overview');
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userBatches, setUserBatches] = useState<any[]>([]);
-  const [allBatches, setAllBatches] = useState<any[]>([]); 
+  const [loading, setLoading] = useState(true);
   
-  // State for Custom Batch Requests in Admin Panel
-  const [adminRequests, setAdminRequests] = useState<any[]>([]);
-  const [adminTab, setAdminTab] = useState<'uploads' | 'requests'>('uploads');
-  const [requestResultUrls, setRequestResultUrls] = useState<Record<string, string>>({});
-
-  const [, setAdminList] = useState<string[]>([]);
-  const [deletingId, setDeletingId] = useState<string | number | null>(null);
-  const [actionLoadingId, setActionLoadingId] = useState<string | number | null>(null);
-
+  // States untuk fitur interaktif & form
   const [usernameInput, setUsernameInput] = useState('');
   const [updatingUsername, setUpdatingUsername] = useState(false);
-  
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'request' | 'settings' | 'admin'>('overview');
   const [collectionSearchQuery, setCollectionSearchQuery] = useState('');
-  
-  const [adminStatusFilter, setAdminStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
-  const [adminSearchQuery, setAdminSearchQuery] = useState('');
-
   const [showAvatarModal, setShowAvatarModal] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  
   const [editingBatch, setEditingBatch] = useState<any>(null);
-  const [isUpdatingBatch, setIsUpdatingBatch] = useState(false);
+  const [deletingId, setDeletingId] = useState<any>(null);
 
-  const [toastConfig, setToastConfig] = useState({ message: '', isVisible: false, type: 'success' });
-
-  const selectableCategories = CATEGORIES.filter((c: string) => c !== 'Home' && c !== 'All');
-
-  const handleShowToast = (message: string, type = 'success') => {
-    if (propShowToast) propShowToast(message, type);
-    setToastConfig({ message, isVisible: true, type });
-    setTimeout(() => setToastConfig({ message: '', isVisible: false, type }), 3000);
-  };
+  // Admin panel states
+  const [allBatches, setAllBatches] = useState<any[]>([]);
+  const [allRequests, setAllRequests] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchUserData(true);
-    fetchAdmins();
-  }, [currentUser]);
+    fetchUserData();
+  }, []);
 
-  useEffect(() => {
-    if (userProfile?.is_admin) {
-      fetchAllBatches();
-      fetchAllRequests();
-    }
-  }, [userProfile?.is_admin]);
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-  const fetchAdmins = async () => {
-    const cacheKey = 'swr_admin_list';
-    const cachedData = localStorage.getItem(cacheKey);
-    if (cachedData) setAdminList(JSON.parse(cachedData));
+      // Ambil profil pengguna
+      let { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
 
-    const { data } = await supabase
-      .from('profiles')
-      .select('username')
-      .eq('is_admin', true);
+      if (profileData) {
+        setUserProfile(profileData);
+        setUsernameInput(profileData.username || '');
+      }
 
-    if (data) {
-      const list = data.map((p: any) => (p.username || '').toLowerCase());
-      setAdminList(list);
-      localStorage.setItem(cacheKey, JSON.stringify(list));
-    }
-  };
+      // Ambil daftar batch milik user
+      const { data: batchesData } = await supabase
+        .from('batches')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-  const fetchUserData = async (isInitial = false) => {
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      setUserProfile(null);
-      setUserBatches([]);
+      if (batchesData) {
+        setUserBatches(batchesData);
+      }
+    } catch (error) {
+      console.error('Error fetching profile data:', error);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const userId = session.user.id;
-    const cacheProfileKey = `swr_profile_${userId}`;
-    const cacheBatchesKey = `swr_batches_${userId}`;
-
-    if (isInitial) {
-      const cachedProfile = localStorage.getItem(cacheProfileKey);
-      const cachedBatches = localStorage.getItem(cacheBatchesKey);
-      
-      if (cachedProfile) {
-        const parsed = JSON.parse(cachedProfile);
-        setUserProfile(parsed);
-        setUsernameInput(parsed.username || currentUser || '');
-      }
-      if (cachedBatches) {
-        setUserBatches(JSON.parse(cachedBatches));
-      }
-      
-      if (cachedProfile && cachedBatches) {
-        setLoading(false); // SWR: Tampilkan cache langsung, loading screen di bypass
-      } else {
-        setLoading(true);
-      }
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (profile) {
-      setUserProfile(profile);
-      setUsernameInput(profile.username || currentUser || '');
-      localStorage.setItem(cacheProfileKey, JSON.stringify(profile));
-    } else if (currentUser) {
-      setUsernameInput(currentUser);
-    }
-
-    const { data: batches } = await supabase
-      .from('batches')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (batches) {
-      setUserBatches(batches);
-      localStorage.setItem(cacheBatchesKey, JSON.stringify(batches));
-    }
-
-    setLoading(false);
   };
 
   const fetchAllBatches = async () => {
-    const cacheKey = 'swr_admin_all_batches';
-    const cachedData = localStorage.getItem(cacheKey);
-    if (cachedData) setAllBatches(JSON.parse(cachedData));
-
-    const { data } = await supabase
-      .from('batches')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (data) {
-      setAllBatches(data);
-      localStorage.setItem(cacheKey, JSON.stringify(data));
-    }
+    const { data } = await supabase.from('batches').select('*').order('created_at', { ascending: false });
+    if (data) setAllBatches(data);
   };
 
   const fetchAllRequests = async () => {
-    const cacheKey = 'swr_admin_all_requests';
-    const cachedData = localStorage.getItem(cacheKey);
-    if (cachedData) setAdminRequests(JSON.parse(cachedData));
-
-    const { data } = await supabase
-      .from('batch_requests')
-      .select('*, profiles (username, avatar_url)')
-      .order('is_priority', { ascending: false })
-      .order('created_at', { ascending: false });
-
-    if (data) {
-      setAdminRequests(data);
-      localStorage.setItem(cacheKey, JSON.stringify(data));
-    }
+    const { data } = await supabase.from('batch_requests').select('*').order('created_at', { ascending: false });
+    if (data) setAllRequests(data);
   };
 
-  const handleUpdateStatus = async (batchId: string | number, newStatus: 'approved' | 'rejected' | 'pending') => {
-    setActionLoadingId(batchId);
-    
-    const { error } = await supabase
-      .from('batches')
-      .update({ status: newStatus })
-      .eq('id', batchId);
-
-    setActionLoadingId(null);
-
-    if (error) {
-      handleShowToast(`Failed to update status: ${error.message}`, "error");
-    } else {
-      handleShowToast(`Batch status successfully changed to ${newStatus}`, "success");
-      setAllBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: newStatus } : b));
-      setUserBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: newStatus } : b));
-    }
-  };
-
-  const handleResultUrlChange = (id: string | number, value: string) => {
-    setRequestResultUrls(prev => ({ ...prev, [String(id)]: value }));
-  };
-
-  const handleUpdateRequestStatus = async (reqId: string | number, newStatus: string, resultUrl?: string) => {
-    setActionLoadingId(`req_${reqId}`);
-    
-    const updateData: any = { status: newStatus };
-    if (resultUrl !== undefined) {
-      updateData.result_url = resultUrl;
-    }
-
-    const { error } = await supabase
-      .from('batch_requests')
-      .update(updateData)
-      .eq('id', reqId);
-
-    setActionLoadingId(null);
-
-    if (error) {
-      handleShowToast(`Failed to update request status: ${error.message}`, "error");
-    } else {
-      handleShowToast(`Request status successfully changed to ${newStatus}`, "success");
-      setAdminRequests(prev => prev.map(req => req.id === reqId ? { ...req, ...updateData } : req));
-      
-      if (newStatus === 'completed') {
-        setRequestResultUrls(prev => {
-          const newState = { ...prev };
-          delete newState[String(reqId)];
-          return newState;
-        });
-      }
-    }
-  };
-
-  const handleUpdateAvatar = async (avatarUrl: string) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) return;
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ avatar_url: avatarUrl })
-      .eq('id', session.user.id);
-
-    if (error) {
-      handleShowToast("Failed to update profile avatar", "error");
-    } else {
-      setUserProfile((prev: any) => ({ ...prev, avatar_url: avatarUrl }));
-      if (onProfileUpdate) onProfileUpdate(userProfile?.username || currentUser || '', avatarUrl);
-      handleShowToast("Avatar successfully updated!", "success");
-    }
-  };
-
-  // Fungsi Memilih / Melepas Avatar Border VIP
-  const handleSelectVipBorder = async (borderUrl: string) => {
-    if (!userProfile?.is_premium) {
-      handleShowToast("This feature is exclusively for Premium VIP users!", "error");
-      return;
-    }
-
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-
-    // Toggle border: jika diklik ulang maka lepas border
-    const newBorderUrl = userProfile?.vip_border_url === borderUrl ? null : borderUrl;
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ vip_border_url: newBorderUrl })
-      .eq('id', session.user.id);
-
-    if (error) {
-      // Tampilkan error spesifik dari Supabase
-      handleShowToast(`Gagal: ${error.message}`, "error");
-    } else {
-      setUserProfile((prev: any) => ({ ...prev, vip_border_url: newBorderUrl }));
-      handleShowToast(newBorderUrl ? "Bingkai VIP berhasil dipasang!" : "Bingkai VIP dilepas!", "success");
-    }
-  };
-
+  // Handler Update Username
   const handleUpdateUsername = async () => {
-    const trimmedUsername = usernameInput.trim();
-    if (!trimmedUsername) {
-      handleShowToast("Username cannot be empty", "error");
-      return;
-    }
-
-    setUpdatingUsername(true);
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      setUpdatingUsername(false);
-      return;
-    }
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ username: trimmedUsername })
-      .eq('id', session.user.id);
-
-    setUpdatingUsername(false);
-
-    if (error) {
-      handleShowToast("Failed to update username", "error");
-    } else {
-      setUserProfile((prev: any) => ({ ...prev, username: trimmedUsername }));
-      if (onProfileUpdate) onProfileUpdate(trimmedUsername, userProfile?.avatar_url);
-      handleShowToast("Username successfully updated!", "success");
-    }
-  };
-
-  const activeUsername = userProfile?.username || currentUser || '';
-
-  const stats = useMemo(() => {
-    const totalUploads = userBatches.length;
-    const totalVideos = userBatches.reduce((acc: number, b: any) => acc + (Number(b.video_count) || 0), 0);
-    const totalClicks = userBatches.reduce((acc: number, b: any) => {
-      const downloadVal = b.download_count ?? 0;
-      return acc + (Number(downloadVal) || 0);
-    }, 0);
-
-    const totalGB = userBatches.reduce((acc: number, b: any) => {
-      if (b.size_gb !== undefined && b.size_gb !== null && b.size_gb !== '') {
-        return acc + Number(b.size_gb);
-      }
-      if (b.size_file) {
-        const sizeStr = b.size_file.toString().toUpperCase();
-        const val = parseFloat(sizeStr);
-        if (isNaN(val)) return acc;
-        
-        if (sizeStr.includes('MB')) return acc + (val / 1024);
-        if (sizeStr.includes('KB')) return acc + (val / (1024 * 1024));
-        if (sizeStr.includes('TB')) return acc + (val * 1024);
-        
-        return acc + val;
-      }
-      return acc;
-    }, 0);
-
-    let totalSizeDisplay = '0 GB';
-    if (totalGB > 0) {
-      if (totalGB < 1) {
-        totalSizeDisplay = (totalGB * 1024).toFixed(1) + ' MB';
-      } else {
-        totalSizeDisplay = totalGB.toFixed(1) + ' GB';
-      }
-    }
-
-    return { totalUploads, totalVideos, totalClicks, totalSizeDisplay };
-  }, [userBatches]);
-
-  const unlockedBadges = useMemo(() => {
-    return BADGES.filter(b => b.isUnlocked(stats));
-  }, [stats]);
-
-  const handleDeleteBatch = async (batchId: string | number) => {
-    if (!window.confirm("Are you sure you want to delete this collection folder?")) return;
-
-    setDeletingId(batchId);
-    const { error } = await supabase
-      .from('batches')
-      .delete()
-      .eq('id', batchId);
-
-    setDeletingId(null);
-
-    if (error) {
-      handleShowToast("Failed to delete folder", "error");
-    } else {
-      setUserBatches(prev => prev.filter(b => b.id !== batchId));
-      setAllBatches(prev => prev.filter(b => b.id !== batchId));
-      handleShowToast("Folder successfully deleted", "success");
-    }
-  };
-
-  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const target = e.target as HTMLInputElement; 
-    const value = target.type === 'checkbox' ? target.checked : target.value;
-    
-    setEditingBatch((prev: any) => ({ ...prev, [target.name]: value }));
-  };
-
-  const handleUpdateBatchSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingBatch) return;
-
-    setIsUpdatingBatch(true);
+    if (!usernameInput.trim() || !userProfile) return;
     try {
-      const downloadVal = parseInt(editingBatch.download_count) || 0;
-      
-      const updateData: any = {
-        username: editingBatch.username,
-        country: editingBatch.country,
-        video_count: parseInt(editingBatch.video_count) || 0,
-        size_file: editingBatch.size_file,
-        tiktok_url: editingBatch.tiktok_url,
-        video_url: editingBatch.video_url,
-        gdrive_url: editingBatch.gdrive_url,
-        terabox_url: editingBatch.terabox_url,
-        is_banned: editingBatch.is_banned,
-        download_count: downloadVal,
-        is_edited: true
-      };
-
+      setUpdatingUsername(true);
       const { error } = await supabase
-        .from('batches')
-        .update(updateData)
-        .eq('id', editingBatch.id);
+        .from('profiles')
+        .update({ username: usernameInput.trim() })
+        .eq('id', userProfile.id);
 
       if (error) throw error;
-
-      handleShowToast("Batch successfully updated!", "success");
-      
-      setUserBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...updateData } : b));
-      setAllBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...updateData } : b));
-      setEditingBatch(null);
+      setUserProfile({ ...userProfile, username: usernameInput.trim() });
+      alert('Username updated successfully!');
     } catch (error: any) {
-      const errorMsg = error?.message || "Failed to update batch";
-      handleShowToast(errorMsg, "error");
+      alert('Error updating username: ' + error.message);
     } finally {
-      setIsUpdatingBatch(false);
+      setUpdatingUsername(false);
+    }
+  };
+
+  // Handler Pilih VIP Border
+  const handleSelectVipBorder = async (url: string) => {
+    if (!userProfile?.is_premium) {
+      alert('VIP Avatar borders are exclusive to Premium accounts.');
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ vip_border_url: url })
+        .eq('id', userProfile.id);
+
+      if (error) throw error;
+      setUserProfile({ ...userProfile, vip_border_url: url });
+    } catch (error: any) {
+      alert('Error updating VIP border: ' + error.message);
+    }
+  };
+
+  // Handler Hapus Batch
+  const handleDeleteBatch = async (id: string | number) => {
+    if (!confirm('Are you sure you want to delete this batch collection?')) return;
+    try {
+      setDeletingId(id);
+      const { error } = await supabase.from('batches').delete().eq('id', id);
+      if (error) throw error;
+      setUserBatches(userBatches.filter(b => b.id !== id));
+    } catch (error: any) {
+      alert('Failed to delete batch: ' + error.message);
+    } finally {
+      setDeletingId(null);
     }
   };
 
   const handleLogoutAction = async () => {
     await supabase.auth.signOut();
-    if (onLogout) onLogout();
-    onBack();
+    window.location.href = '/';
   };
 
-  const filteredBatches = useMemo(() => {
-    if (!collectionSearchQuery.trim()) return userBatches;
-    const lowerQuery = collectionSearchQuery.toLowerCase();
-    return userBatches.filter(batch => 
-      (batch.username && batch.username.toLowerCase().includes(lowerQuery)) ||
-      (batch.country && batch.country.toLowerCase().includes(lowerQuery))
-    );
-  }, [userBatches, collectionSearchQuery]);
+  // Hitung Statistik
+  const stats = {
+    totalUploads: userBatches.length,
+    totalVideos: userBatches.reduce((acc, curr) => acc + (curr.video_count || 0), 0),
+    totalSizeDisplay: `${(userBatches.reduce((acc, curr) => acc + (curr.size_gb || 0), 0)).toFixed(1)} GB`,
+    totalClicks: userBatches.reduce((acc, curr) => acc + (curr.download_count || 0), 0)
+  };
 
-  const filteredAdminBatches = useMemo(() => {
-    return allBatches.filter(batch => {
-      const matchesStatus = adminStatusFilter === 'all' || batch.status === adminStatusFilter;
-      const lowerQuery = adminSearchQuery.toLowerCase();
-      const matchesSearch = !adminSearchQuery.trim() || 
-        (batch.username && batch.username.toLowerCase().includes(lowerQuery)) ||
-        (batch.country && batch.country.toLowerCase().includes(lowerQuery));
-      return matchesStatus && matchesSearch;
-    });
-  }, [allBatches, adminStatusFilter, adminSearchQuery]);
-
-  const adminStats = useMemo(() => {
-    const pendingCount = allBatches.filter(b => b.status === 'pending').length;
-    const approvedCount = allBatches.filter(b => b.status === 'approved').length;
-    const rejectedCount = allBatches.filter(b => b.status === 'rejected').length;
-    return { pendingCount, approvedCount, rejectedCount, total: allBatches.length };
-  }, [allBatches]);
+  const unlockedBadges = BADGES.filter(b => b.isUnlocked(stats));
+  const filteredBatches = userBatches.filter(b => 
+    b.username?.toLowerCase().includes(collectionSearchQuery.toLowerCase()) ||
+    b.country?.toLowerCase().includes(collectionSearchQuery.toLowerCase())
+  );
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f0f4f8] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4 p-8 bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-          <div className="w-10 h-10 border-4 border-[#10b981] border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-sm font-bold text-slate-600 tracking-wide">Loading Profile...</span>
-        </div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#10b981]" size={36} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f0f4f8] font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col justify-between">
-      <div>
-        <Navbar 
-          activeCategory="" 
-          setActiveCategory={(category: string) => {
-            if (onSelectCategory) onSelectCategory(category);
-            onBack(); 
-          }}
-          resetSearch={() => {}}
-          CATEGORIES={CATEGORIES}
-          EmeraldFolderIcon={EmeraldFolderIcon}
-          currentUser={activeUsername} 
-          handleLogout={handleLogoutAction}
-          setShowAddModal={() => setShowAddModal(true)}
-          setShowLoginModal={() => setShowLoginModal(true)}
-          setShowRulesModal={() => {
-            window.history.pushState({}, '', '/rules');
-            window.dispatchEvent(new Event('popstate'));
-          }}
-        />
-
-        <main className="max-w-7xl mx-auto px-6 lg:px-8 pt-8 pb-16">
-          <div className="bg-white rounded-[40px] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)] p-6 md:p-8 lg:p-10 flex flex-col lg:flex-row gap-8 lg:gap-12 min-h-[75vh]">
-            
-            {/* LEFT SIDEBAR */}
-            <div className="w-full lg:w-[260px] shrink-0 space-y-8">
-              <div className="flex flex-col items-center text-center">
-                
-                <div 
-                  className="relative group cursor-pointer mb-4 w-[88px] h-[88px]"
-                  onClick={() => setShowAvatarModal(true)}
-                  title="Click to change avatar"
-                >
-                  <div className="w-full h-full rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 border-4 border-white transition-all duration-300 group-hover:scale-105 relative z-10">
-                    {userProfile?.avatar_url ? (
-                      <img src={userProfile.avatar_url} alt="Profile Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <User size={40} strokeWidth={2.2} />
-                    )}
-                  </div>
-
-                  {/* Panggilan AvatarBorderVip */}
-                  {userProfile?.is_premium && (
-                    <AvatarBorderVip 
-                      isPremium={userProfile?.is_premium} 
-                      borderUrl={userProfile?.vip_border_url}
-                      progress={stats.totalUploads}
-                    />
-                  )}
-                </div>
-
-                <div className="flex flex-col items-center w-full mt-2">
-                  <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                    {activeUsername || 'User'}
-                    {unlockedBadges.length > 0 && (
-                      <img 
-                        src={unlockedBadges[unlockedBadges.length - 1].iconUrl} 
-                        alt={unlockedBadges[unlockedBadges.length - 1].title} 
-                        title={unlockedBadges[unlockedBadges.length - 1].title}
-                        className="w-6 h-6 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform"
-                      />
-                    )}
-                  </h1>
-
-                  <div className="mt-1.5 flex items-center gap-2 flex-wrap justify-center">
-                    {userProfile?.is_admin && (
-                      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-white bg-[#fbbf24] px-3 py-1 rounded-full shadow-sm">
-                        <ShieldCheck size={12} /> Admin
-                      </span>
-                    )}
-                    <span className="text-[10px] text-slate-500 font-semibold bg-slate-100 px-3 py-1 rounded-full">
-                      Level {Math.floor(stats.totalUploads / 3) + 1}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sidebar Navigation */}
-              <div className="space-y-2">
-                <div className="mb-4">
-                  <button className="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl text-sm font-bold bg-[#10b981] text-white shadow-lg shadow-emerald-500/30 transition-all border-none cursor-default pointer-events-none">
-                    <div className="w-5 h-5 flex items-center justify-center bg-white/20 rounded-md">
-                      <LayoutDashboard size={14} />
-                    </div>
-                    Main Menu
-                  </button>
-                </div>
-
-                <button
-                  onClick={() => setActiveTab('overview')}
-                  className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
-                    activeTab === 'overview' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
-                >
-                  <LayoutDashboard size={18} className={activeTab === 'overview' ? 'text-[#10b981]' : ''} /> 
-                  Statistics
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('collections')}
-                  className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
-                    activeTab === 'collections' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
-                >
-                  <FolderHeart size={18} className={activeTab === 'collections' ? 'text-[#10b981]' : ''} /> 
-                  Collections
-                  <div className="ml-auto w-2 h-2 rounded-full bg-[#f97316]"></div>
-                </button>
-                
-                <button
-                  onClick={() => setActiveTab('request')}
-                  className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
-                    activeTab === 'request' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
-                >
-                  <Send size={18} className={activeTab === 'request' ? 'text-[#10b981]' : ''} /> 
-                  Request Batch
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('settings')}
-                  className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
-                    activeTab === 'settings' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
-                >
-                  <Settings size={18} className={activeTab === 'settings' ? 'text-[#10b981]' : ''} /> 
-                  Settings
-                </button>
-
-                {userProfile?.is_admin && (
-                  <button
-                    onClick={() => {
-                      setActiveTab('admin');
-                      fetchAllBatches();
-                      fetchAllRequests();
-                    }}
-                    className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
-                      activeTab === 'admin' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                    }`}
-                  >
-                    <ShieldCheck size={18} className={activeTab === 'admin' ? 'text-[#fbbf24]' : ''} /> 
-                    Admin Panel
-                    {adminStats.pendingCount > 0 && (
-                      <div className="ml-auto w-2 h-2 rounded-full bg-[#10b981]"></div>
-                    )}
-                  </button>
-                )}
-
-                <div className="pt-4 mt-2 border-t border-slate-100">
-                  <button
-                    onClick={handleLogoutAction}
-                    className="w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium text-slate-500 hover:bg-red-50 hover:text-red-500 transition-all border-none cursor-pointer"
-                  >
-                    <LogOut size={18} /> Logout
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* RIGHT CONTENT AREA */}
-            <div className="flex-1 lg:pl-6 space-y-8">
-              
-              {activeTab === 'overview' && (
-                <div className="space-y-8 animate-in fade-in duration-300">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-                    <div className="bg-[#3b82f6] p-6 rounded-[32px] shadow-[0_12px_24px_-8px_rgba(59,130,246,0.4)] flex flex-col justify-between text-white relative overflow-hidden transition-transform hover:-translate-y-1">
-                      <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-                      <div className="flex justify-between items-start mb-4 relative z-10">
-                        <span className="text-sm font-medium text-blue-100">Total Folders</span>
-                        <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                          <Folder size={18} className="text-white" />
-                        </div>
-                      </div>
-                      <div className="relative z-10">
-                        <div className="text-3xl font-bold">{stats.totalUploads}</div>
-                        <div className="text-[10px] mt-1 text-blue-100 flex items-center gap-1">
-                          <TrendingUp size={12} /> Active Progress
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-[#84cc16] p-6 rounded-[32px] shadow-[0_12px_24px_-8px_rgba(132,204,22,0.4)] flex flex-col justify-between text-white relative overflow-hidden transition-transform hover:-translate-y-1">
-                      <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-                      <div className="flex justify-between items-start mb-4 relative z-10">
-                        <span className="text-sm font-medium text-green-100">Total Videos</span>
-                        <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                          <Video size={18} className="text-white" />
-                        </div>
-                      </div>
-                      <div className="relative z-10">
-                        <div className="text-3xl font-bold">{stats.totalVideos}</div>
-                        <div className="text-[10px] mt-1 text-green-100 flex items-center gap-1">
-                          <CheckCircle2 size={12} /> Successfully Uploaded
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.06)] flex flex-col justify-between transition-transform hover:-translate-y-1">
-                      <div className="flex justify-between items-start mb-4">
-                        <span className="text-sm font-medium text-slate-500">Total Size</span>
-                        <div className="p-2 bg-slate-50 rounded-xl text-slate-400">
-                          <HardDrive size={18} />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-3xl font-bold text-slate-800">{stats.totalSizeDisplay}</div>
-                        <div className="text-[10px] mt-1 text-slate-400">Size Uploaded</div>
-                      </div>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.06)] flex flex-col justify-between transition-transform hover:-translate-y-1">
-                      <div className="flex justify-between items-start mb-4">
-                        <span className="text-sm font-medium text-slate-500">Total Downloads</span>
-                        <div className="p-2 bg-slate-50 rounded-xl text-slate-400">
-                          <MousePointerClick size={18} />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-3xl font-bold text-slate-800">{stats.totalClicks}</div>
-                        <div className="text-[10px] mt-1 text-slate-400">Inbound click traffic</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* BADGES SECTION */}
-                  <div className="bg-white rounded-[32px] p-6 sm:p-8 border border-slate-100 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.04)]">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                      <div>
-                        <h2 className="text-lg font-bold text-slate-800">Achievement Badges</h2>
-                        <p className="text-xs text-slate-500 mt-1">Badges unlock automatically based on contributions</p>
-                      </div>
-                      <span className="text-xs font-bold text-[#10b981] bg-emerald-50 px-4 py-2 rounded-full">
-                        {unlockedBadges.length} / {BADGES.length} Unlocked
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      {BADGES.map((badge) => {
-                        const unlocked = badge.isUnlocked(stats);
-                        const progress = badge.getCurrentProgress(stats);
-                        const percent = Math.min(Math.round((progress / badge.target) * 100), 100);
-                        const isLegend = badge.id === 'legend';
-
-                        return (
-                          <div 
-                            key={badge.id}
-                            className={`relative p-5 rounded-[24px] transition-all duration-300 flex flex-col justify-between h-full ${
-                              unlocked 
-                                ? (isLegend 
-                                    ? 'bg-gradient-to-b from-yellow-50 to-amber-100/50 border border-amber-200 shadow-[0_8px_24px_-8px_rgba(251,191,36,0.4)] scale-[1.02] hover:-translate-y-1' 
-                                    : 'bg-gradient-to-b from-white to-blue-50/30 border border-blue-100 shadow-[0_4px_16px_-8px_rgba(59,130,246,0.2)] hover:-translate-y-1') 
-                                : 'bg-slate-50 border border-slate-100 opacity-80'
-                            } ${isLegend ? 'md:col-span-2 max-w-[380px] mx-auto w-full' : 'w-full'}`}
-                          >
-                            <div className="flex items-center justify-between mb-4">
-                              <span className={`text-[10px] font-bold px-3 py-1.5 rounded-full ${
-                                unlocked 
-                                  ? (isLegend ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') 
-                                  : 'bg-slate-200 text-slate-500'
-                              }`}>
-                                {badge.tier}
-                              </span>
-                              {unlocked ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#84cc16]">
-                                  <Sparkles size={12} /> Active
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400">
-                                  <Lock size={12} /> Locked
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="flex flex-col items-center mb-4 text-center">
-                              <div className="relative w-24 h-24 mb-3 flex items-center justify-center">
-                                <img 
-                                  src={badge.iconUrl} 
-                                  alt={badge.title} 
-                                  className={`w-20 h-20 object-contain transition-all duration-300 ${
-                                    unlocked ? (isLegend ? 'drop-shadow-2xl scale-125 hover:scale-150' : 'drop-shadow-lg hover:scale-110') : 'grayscale opacity-40'
-                                  }`}
-                                />
-                              </div>
-                              <h3 className={`text-sm font-bold mt-2 ${isLegend && unlocked ? 'text-amber-600 text-base' : 'text-slate-800'}`}>
-                                {badge.title}
-                              </h3>
-                              <p className="text-[10px] text-slate-500 font-medium leading-relaxed mt-1 px-4">
-                                {badge.description}
-                              </p>
-                            </div>
-
-                            <div className="mt-auto">
-                              <div className="flex justify-between items-center text-[10px] font-bold mb-1.5">
-                                <span className="text-slate-400">Target</span>
-                                <span className={unlocked ? (isLegend ? 'text-amber-500' : 'text-[#10b981]') : 'text-slate-500'}>
-                                  {badge.target} {badge.unit}
-                                </span>
-                              </div>
-                              
-                              <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                <div 
-                                  className={`h-full transition-all duration-500 rounded-full ${unlocked ? (isLegend ? 'bg-amber-500' : 'bg-[#10b981]') : 'bg-slate-300'}`}
-                                  style={{ width: `${percent}%` }}
-                                ></div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'collections' && (
-                <div className="animate-in fade-in duration-300">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                    <div>
-                      <h2 className="text-xl font-bold text-slate-800">Batch Collections</h2>
-                      <p className="text-xs text-slate-500 mt-1">List of uploaded video folders</p>
-                    </div>
-                    
-                    <div className="relative w-full md:w-64">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                      <input 
-                        type="text" 
-                        placeholder="Search collections..." 
-                        value={collectionSearchQuery}
-                        onChange={(e) => setCollectionSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-full focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium text-slate-700 transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  {filteredBatches.length > 0 ? (
-                    <div className="space-y-4">
-                      {filteredBatches.map((batch) => (
-                        <div 
-                          key={batch.id} 
-                          className="p-5 rounded-[24px] bg-white border border-slate-100 shadow-[0_4px_16px_-10px_rgba(0,0,0,0.05)] hover:shadow-md transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="p-3 bg-slate-50 rounded-2xl">
-                              <EmeraldFolderIcon className="w-10 h-10 flex-shrink-0" country={batch.country} />
-                            </div>
-                            <div>
-                              <h3 className="text-sm font-bold text-slate-800">{batch.username}</h3>
-                              <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-500 font-medium flex-wrap">
-                                <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md font-semibold">{batch.country}</span>
-                                <span>•</span>
-                                <span>{batch.video_count} Videos</span>
-                                <span>•</span>
-                                <span>{batch.size_file || `${batch.size_gb || 0} GB`}</span>
-                                <span>•</span>
-                                <span>{batch.download_count ?? 0} Downloads</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                            {batch.status === 'approved' ? (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#84cc16]/10 text-[#84cc16]">
-                                <CheckCircle2 size={14} /> Approved
-                              </span>
-                            ) : batch.status === 'rejected' ? (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-red-50 text-red-500">
-                                <XCircle size={14} /> Rejected
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-orange-50 text-orange-500">
-                                <Clock size={14} /> Pending
-                              </span>
-                            )}
-
-                            <div className="flex items-center gap-1 ml-2">
-                              <button
-                                onClick={() => setEditingBatch(batch)}
-                                className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
-                                title="Edit Folder"
-                              >
-                                <Edit2 size={16} />
-                              </button>
-
-                              <button
-                                onClick={() => handleDeleteBatch(batch.id)}
-                                disabled={deletingId === batch.id}
-                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all disabled:opacity-50"
-                                title="Delete Folder"
-                              >
-                                {deletingId === batch.id ? (
-                                  <Loader2 className="animate-spin text-red-500" size={16} />
-                                ) : (
-                                  <Trash2 size={16} />
-                                )}
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-20 flex flex-col items-center justify-center text-center bg-slate-50/50 rounded-[32px] border border-dashed border-slate-200">
-                      <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mb-4 text-slate-300">
-                        <Folder size={28} />
-                      </div>
-                      <h3 className="text-sm font-bold text-slate-700 mb-1">No Collections</h3>
-                      <p className="text-xs text-slate-400 font-medium max-w-xs">
-                        {collectionSearchQuery ? 'No matches for your search.' : 'Folders you upload will appear here.'}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              {activeTab === 'request' && (
-                <div className="animate-in fade-in duration-300">
-                  <div className="mb-8">
-                    <h2 className="text-xl font-bold text-slate-800">Request Batch</h2>
-                    <p className="text-xs text-slate-500 mt-1">Submit a request to archive specific TikTok profiles</p>
-                  </div>
-                  <Suspense fallback={
-                    <div className="py-12 flex flex-col items-center justify-center bg-white rounded-[32px] border border-slate-100 text-center shadow-sm">
-                      <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-3" />
-                      <span className="text-sm font-bold text-slate-600">Loading Form Request...</span>
-                    </div>
-                  }>
-                    <CustomBatchRequest currentUser={userProfile} />
-                  </Suspense>
-                </div>
-              )}
-
-              {activeTab === 'settings' && (
-                <div className="animate-in fade-in duration-300 max-w-2xl">
-                  <h2 className="text-xl font-bold text-slate-800 mb-1">Profile Settings</h2>
-                  <p className="text-xs text-slate-500 mb-8">Customize your appearance and account information</p>
-
-                  <div className="p-6 bg-slate-50 rounded-[32px] flex flex-col sm:flex-row items-center gap-6 mb-6">
-                    <div className="relative w-[88px] h-[88px] flex-shrink-0">
-                      <div className="w-full h-full rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-md relative z-10">
-                        {userProfile?.avatar_url ? (
-                          <img src={userProfile.avatar_url} alt="Avatar Preview" className="w-full h-full object-cover" />
-                        ) : (
-                          <User size={36} />
-                        )}
-                      </div>
-                      
-                      {/* Avatar Border Preview */}
-                      {userProfile?.is_premium && (
-                        <AvatarBorderVip 
-                          isPremium={userProfile?.is_premium} 
-                          borderUrl={userProfile?.vip_border_url} 
-                          progress={stats.totalUploads}
-                        />
-                      )}
-                    </div>
-
-                    <div className="text-center sm:text-left space-y-3">
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-800">Character Avatar</h3>
-                        <p className="text-[11px] text-slate-500 mt-1">Choose an avatar to represent yourself.</p>
-                      </div>
-                      <button
-                        onClick={() => setShowAvatarModal(true)}
-                        className="inline-flex items-center gap-2 px-5 py-2 bg-white text-slate-700 text-xs font-bold rounded-full shadow-sm border border-slate-200 hover:border-[#10b981] hover:text-[#10b981] transition-all"
-                      >
-                        <Sparkles size={14} /> Change Avatar
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* ===== WADAH KUMPULAN AVATAR BORDER VIP ===== */}
-                  <div className="p-6 bg-slate-50 rounded-[32px] mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                          <Crown size={18} className="text-amber-500" /> VIP Avatar Border Selector
-                        </h3>
-                        <p className="text-[11px] text-slate-500 mt-1">
-                          Pilih bingkai avatar eksklusif untuk profil Anda (Khusus Akun Premium).
-                        </p>
-                      </div>
-                      {!userProfile?.is_premium && (
-                        <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full flex items-center gap-1">
-                          <Lock size={12} /> Requires Premium
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      {VIP_BORDERS.map((url, index) => {
-                        const isSelected = userProfile?.vip_border_url === url;
-                        const isPremium = !!userProfile?.is_premium;
-
-                        return (
-                          <div
-                            key={index}
-                            onClick={() => handleSelectVipBorder(url)}
-                            className={`relative p-4 rounded-2xl border-2 flex flex-col items-center justify-center transition-all cursor-pointer ${
-                              isSelected && isPremium
-                                ? 'bg-amber-50/60 border-amber-400 shadow-md scale-105'
-                                : 'bg-white border-slate-200 hover:border-amber-300'
-                            } ${!isPremium ? 'opacity-60 cursor-not-allowed' : ''}`}
-                          >
-                            <div className="relative w-16 h-16 mb-2 flex items-center justify-center">
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white relative z-10">
-                                {userProfile?.avatar_url ? (
-                                  <img src={userProfile.avatar_url} alt="User Avatar" className="w-full h-full object-cover" />
-                                ) : (
-                                  <User size={24} />
-                                )}
-                              </div>
-                              <AvatarBorderVip 
-                                isPremium={true} 
-                                borderUrl={url} 
-                                progress={stats.totalUploads}
-                                className="absolute top-[-16px] left-1/2 -translate-x-1/2 ml-[1px] w-[80px] h-auto max-w-none object-contain z-20 pointer-events-none" 
-                              />
-                            </div>
-
-                            <span className="text-xs font-bold text-slate-700 mt-1">VIP Border {index + 1}</span>
-
-                            {isSelected && isPremium && (
-                              <span className="absolute top-2 right-2 bg-amber-500 text-white rounded-full p-0.5 shadow-sm">
-                                <Check size={12} />
-                              </span>
-                            )}
-
-                            {!isPremium && (
-                              <span className="absolute top-2 right-2 text-slate-400">
-                                <Lock size={12} />
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 mb-2 uppercase tracking-wider">Username</label>
-                      <div className="flex gap-3">
-                        <input 
-                          type="text" 
-                          value={usernameInput}
-                          onChange={(e) => setUsernameInput(e.target.value)}
-                          placeholder="Enter your username"
-                          className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] focus:bg-white transition-all"
-                        />
-                        <button
-                          onClick={handleUpdateUsername}
-                          disabled={updatingUsername || usernameInput.trim() === activeUsername}
-                          className="px-6 py-3.5 bg-[#10b981] hover:bg-[#059669] disabled:opacity-50 text-white text-sm font-bold rounded-2xl shadow-md shadow-emerald-500/20 transition-all flex-shrink-0 flex items-center justify-center min-w-[100px]"
-                        >
-                          {updatingUsername ? <Loader2 className="animate-spin" size={16} /> : 'Save'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'admin' && userProfile?.is_admin && (
-                <div className="animate-in fade-in duration-300">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                    <div>
-                      <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                        <ShieldCheck className="text-[#fbbf24]" size={24} /> Moderation Panel
-                      </h2>
-                      <p className="text-xs text-slate-500 mt-1">Manage uploads and user requests</p>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        if (adminTab === 'uploads') fetchAllBatches();
-                        else fetchAllRequests();
-                      }}
-                      className="px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-full transition-all flex items-center gap-2"
-                    >
-                      <Loader2 size={14} className={actionLoadingId ? "animate-spin" : ""} /> Reload
-                    </button>
-                  </div>
-
-                  {/* Toggle Between Uploads and Requests */}
-                  <div className="flex gap-3 mb-6 p-1 bg-slate-100 rounded-xl w-fit">
-                    <button
-                      onClick={() => setAdminTab('uploads')}
-                      className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
-                        adminTab === 'uploads' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                      }`}
-                    >
-                      Creator Uploads
-                    </button>
-                    <button
-                      onClick={() => setAdminTab('requests')}
-                      className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
-                        adminTab === 'requests' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                      }`}
-                    >
-                      User Requests
-                    </button>
-                  </div>
-
-                  {/* ===== TAB: CREATOR UPLOADS ===== */}
-                  {adminTab === 'uploads' && (
-                    <>
-                      <div className="flex overflow-x-auto gap-3 pb-2 mb-6 [&::-webkit-scrollbar]:hidden">
-                        <button 
-                          onClick={() => setAdminStatusFilter('pending')}
-                          className={`px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 ${
-                            adminStatusFilter === 'pending' ? 'bg-[#fbbf24] text-white shadow-md shadow-amber-500/20' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
-                          }`}
-                        >
-                          <Clock size={14} /> Pending ({adminStats.pendingCount})
-                        </button>
-                        <button 
-                          onClick={() => setAdminStatusFilter('approved')}
-                          className={`px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 ${
-                            adminStatusFilter === 'approved' ? 'bg-[#84cc16] text-white shadow-md shadow-green-500/20' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
-                          }`}
-                        >
-                          <CheckCircle2 size={14} /> Approved ({adminStats.approvedCount})
-                        </button>
-                        <button 
-                          onClick={() => setAdminStatusFilter('rejected')}
-                          className={`px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 ${
-                            adminStatusFilter === 'rejected' ? 'bg-red-500 text-white shadow-md shadow-red-500/20' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
-                          }`}
-                        >
-                          <XCircle size={14} /> Rejected ({adminStats.rejectedCount})
-                        </button>
-                        <button 
-                          onClick={() => setAdminStatusFilter('all')}
-                          className={`px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 ${
-                            adminStatusFilter === 'all' ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
-                          }`}
-                        >
-                          <Folder size={14} /> All ({adminStats.total})
-                        </button>
-                      </div>
-
-                      <div className="relative mb-6">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                        <input 
-                          type="text" 
-                          placeholder="Search creator or region..." 
-                          value={adminSearchQuery}
-                          onChange={(e) => setAdminSearchQuery(e.target.value)}
-                          className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-full focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/30 focus:border-[#fbbf24] text-sm font-medium transition-all"
-                        />
-                      </div>
-
-                      {filteredAdminBatches.length > 0 ? (
-                        <div className="space-y-4">
-                          {filteredAdminBatches.map((batch) => (
-                            <div 
-                              key={batch.id} 
-                              className="p-5 rounded-[24px] bg-white border border-slate-100 shadow-[0_4px_16px_-10px_rgba(0,0,0,0.05)] flex flex-col gap-4"
-                            >
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                <div className="flex items-center gap-4">
-                                  <div className="p-2 bg-slate-50 rounded-2xl">
-                                    <EmeraldFolderIcon className="w-10 h-10 flex-shrink-0" country={batch.country} />
-                                  </div>
-                                  <div>
-                                    <div className="flex items-center gap-2">
-                                      <h3 className="text-sm font-bold text-slate-800">{batch.username}</h3>
-                                      <span className="text-[10px] px-2 py-0.5 rounded-md font-semibold bg-blue-50 text-blue-600">
-                                        {batch.country}
-                                      </span>
-                                    </div>
-                                    <p className="text-[11px] text-slate-500 font-medium mt-1">
-                                      {batch.video_count} Videos • {batch.size_file || `${batch.size_gb || 0} GB`} • {batch.download_count ?? 0} Downloads
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div>
-                                  {batch.status === 'approved' && (
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#84cc16]/10 text-[#84cc16]">
-                                      <CheckCircle2 size={13} /> Approved
-                                    </span>
-                                  )}
-                                  {batch.status === 'rejected' && (
-                                    <span className="inline-flex items-centerTentu, berikut adalah kode lengkap `Profile_5.tsx` tanpa mengubah logika yang sudah ada, hanya menambahkan kalkulasi `uploadProgress` dan mengimplementasikan komponen `AnimationBorder.tsx` dengan strict TypeScript sesuai dengan permintaan Anda.
-
-```tsx
-import { useState, useEffect, useMemo, Suspense, lazy } from 'react';
-import { supabase } from '../supabase';
-import { 
-  User, 
-  Folder, 
-  Video, 
-  HardDrive, 
-  CheckCircle2, 
-  XCircle,
-  Clock, 
-  Trash2, 
-  TrendingUp, 
-  ShieldCheck,
-  LayoutDashboard,
-  FolderHeart,
-  Settings,
-  LogOut,
-  Sparkles,
-  Loader2,
-  Edit2,
-  Search,
-  X,
-  Save,
-  Lock,
-  Check,
-  AlertCircle,
-  ExternalLink,
-  MousePointerClick,
-  Send,
-  Crown,
-  Link2
-} from 'lucide-react';
-import { EmeraldFolderIcon } from '../components/SharedIcons';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import AvatarBorderVip, { VIP_BORDERS } from '../components/AvatarBorderVip';
-import AnimationBorder from '../components/AnimationBorder'; // Ditambahkan import AnimationBorder
-
-// Lazy load heavy components
-const PostModal = lazy(() => import('../components/PostModal'));
-const LoginModal = lazy(() => import('../components/LoginModal'));
-const AvatarModal = lazy(() => import('../components/Avatar'));
-const CustomBatchRequest = lazy(() => import('../components/CustomBatchRequest'));
-
-const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
-
-const BADGES = [
-  {
-    id: 'bronze',
-    title: 'Bronze Tier',
-    tier: 'Tier 1 Badge',
-    description: 'Unlocks automatically after uploading at least 10 video batches.',
-    reqText: '10 Uploaded',
-    iconUrl: '[https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Bronze.webp](https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Bronze.webp)',
-    isUnlocked: (stats: any) => stats.totalUploads >= 10,
-    getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 10),
-    target: 10,
-    unit: 'Uploaded'
-  },
-  {
-    id: 'silver',
-    title: 'Silver Tier',
-    tier: 'Tier 2 Badge',
-    description: 'Unlocks automatically after uploading at least 30 video batches.',
-    reqText: '30 Uploaded',
-    iconUrl: '[https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Silver.webp](https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Silver.webp)',
-    isUnlocked: (stats: any) => stats.totalUploads >= 30,
-    getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 30),
-    target: 30,
-    unit: 'Uploaded'
-  },
-  {
-    id: 'gold',
-    title: 'Gold Tier',
-    tier: 'Tier 3 Badge',
-    description: 'Unlocks automatically after uploading at least 50 video batches.',
-    reqText: '50 Uploaded',
-    iconUrl: '[https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Gold.webp](https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Gold.webp)',
-    isUnlocked: (stats: any) => stats.totalUploads >= 50,
-    getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 50),
-    target: 50,
-    unit: 'Uploaded'
-  },
-  {
-    id: 'elite',
-    title: 'Elite Tier',
-    tier: 'Tier 4 Badge',
-    description: 'Unlocks automatically after uploading at least 100 video batches.',
-    reqText: '100 Uploaded',
-    iconUrl: '[https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp](https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp)',
-    isUnlocked: (stats: any) => stats.totalUploads >= 100,
-    getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 100),
-    target: 100,
-    unit: 'Uploaded'
-  },
-  {
-    id: 'legend',
-    title: 'Legend Tier',
-    tier: 'Tier 5 Badge',
-    description: 'Highest Achievement! Unlocks after uploading at least 200 video batches.',
-    reqText: '200 Uploaded',
-    iconUrl: '[https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp](https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp)',
-    isUnlocked: (stats: any) => stats.totalUploads >= 200,
-    getCurrentProgress: (stats: any) => Math.min(stats.totalUploads, 200),
-    target: 200,
-    unit: 'Uploaded'
-  }
-];
-
-const Toast = ({ message, isVisible, type = 'success' }: any) => (
-  <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl shadow-xl backdrop-blur-md flex items-center gap-3 transition-all duration-300 z-[9999] border ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'} ${type === 'success' ? 'bg-slate-900/90 text-white border-slate-800' : 'bg-red-600/90 text-white border-red-500'}`}>
-    {type === 'success' ? <CheckCircle2 className="text-emerald-400" size="{18}"/> : <XCircle className="text-white" size="{18}"/>}
-    <span className="text-sm font-semibold tracking-wide">{message}</span>
-  </div>
-);
-
-interface ProfileProps {
-  currentUser: string | null;
-  onBack: () => void;
-  onLogout?: () => void;
-  onSelectCategory?: (category: string) => void;
-  showToast?: (message: string, type?: string) => void;
-  onProfileUpdate?: (newUsername: string, newAvatar?: string) => void; 
-}
-
-export default function Profile({ 
-  currentUser, 
-  onBack, 
-  onLogout,
-  onSelectCategory,
-  showToast: propShowToast,
-  onProfileUpdate
-}: ProfileProps) {
-  const [loading, setLoading] = useState(true);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [userBatches, setUserBatches] = useState<any[]>([]);
-  const [allBatches, setAllBatches] = useState<any[]>([]); 
-  
-  // State for Custom Batch Requests in Admin Panel
-  const [adminRequests, setAdminRequests] = useState<any[]>([]);
-  const [adminTab, setAdminTab] = useState<'uploads' | 'requests'>('uploads');
-  const [requestResultUrls, setRequestResultUrls] = useState<Record<string, string>>({});
-
-  const [, setAdminList] = useState<string[]>([]);
-  const [deletingId, setDeletingId] = useState<string | number | null>(null);
-  const [actionLoadingId, setActionLoadingId] = useState<string | number | null>(null);
-
-  const [usernameInput, setUsernameInput] = useState('');
-  const [updatingUsername, setUpdatingUsername] = useState(false);
-  
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'request' | 'settings' | 'admin'>('overview');
-  const [collectionSearchQuery, setCollectionSearchQuery] = useState('');
-  
-  const [adminStatusFilter, setAdminStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
-  const [adminSearchQuery, setAdminSearchQuery] = useState('');
-
-  const [showAvatarModal, setShowAvatarModal] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  
-  const [editingBatch, setEditingBatch] = useState<any>(null);
-  const [isUpdatingBatch, setIsUpdatingBatch] = useState(false);
-
-  const [toastConfig, setToastConfig] = useState({ message: '', isVisible: false, type: 'success' });
-
-  const selectableCategories = CATEGORIES.filter((c: string) => c !== 'Home' && c !== 'All');
-
-  const handleShowToast = (message: string, type = 'success') => {
-    if (propShowToast) propShowToast(message, type);
-    setToastConfig({ message, isVisible: true, type });
-    setTimeout(() => setToastConfig({ message: '', isVisible: false, type }), 3000);
-  };
-
-  useEffect(() => {
-    fetchUserData(true);
-    fetchAdmins();
-  }, [currentUser]);
-
-  useEffect(() => {
-    if (userProfile?.is_admin) {
-      fetchAllBatches();
-      fetchAllRequests();
-    }
-  }, [userProfile?.is_admin]);
-
-  const fetchAdmins = async () => {
-    const cacheKey = 'swr_admin_list';
-    const cachedData = localStorage.getItem(cacheKey);
-    if (cachedData) setAdminList(JSON.parse(cachedData));
-
-    const { data } = await supabase
-      .from('profiles')
-      .select('username')
-      .eq('is_admin', true);
-
-    if (data) {
-      const list = data.map((p: any) => (p.username || '').toLowerCase());
-      setAdminList(list);
-      localStorage.setItem(cacheKey, JSON.stringify(list));
-    }
-  };
-
-  const fetchUserData = async (isInitial = false) => {
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      setUserProfile(null);
-      setUserBatches([]);
-      setLoading(false);
-      return;
-    }
-
-    const userId = session.user.id;
-    const cacheProfileKey = `swr_profile_${userId}`;
-    const cacheBatchesKey = `swr_batches_${userId}`;
-
-    if (isInitial) {
-      const cachedProfile = localStorage.getItem(cacheProfileKey);
-      const cachedBatches = localStorage.getItem(cacheBatchesKey);
-      
-      if (cachedProfile) {
-        const parsed = JSON.parse(cachedProfile);
-        setUserProfile(parsed);
-        setUsernameInput(parsed.username || currentUser || '');
-      }
-      if (cachedBatches) {
-        setUserBatches(JSON.parse(cachedBatches));
-      }
-      
-      if (cachedProfile && cachedBatches) {
-        setLoading(false); // SWR: Tampilkan cache langsung, loading screen di bypass
-      } else {
-        setLoading(true);
-      }
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (profile) {
-      setUserProfile(profile);
-      setUsernameInput(profile.username || currentUser || '');
-      localStorage.setItem(cacheProfileKey, JSON.stringify(profile));
-    } else if (currentUser) {
-      setUsernameInput(currentUser);
-    }
-
-    const { data: batches } = await supabase
-      .from('batches')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (batches) {
-      setUserBatches(batches);
-      localStorage.setItem(cacheBatchesKey, JSON.stringify(batches));
-    }
-
-    setLoading(false);
-  };
-
-  const fetchAllBatches = async () => {
-    const cacheKey = 'swr_admin_all_batches';
-    const cachedData = localStorage.getItem(cacheKey);
-    if (cachedData) setAllBatches(JSON.parse(cachedData));
-
-    const { data } = await supabase
-      .from('batches')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (data) {
-      setAllBatches(data);
-      localStorage.setItem(cacheKey, JSON.stringify(data));
-    }
-  };
-
-  const fetchAllRequests = async () => {
-    const cacheKey = 'swr_admin_all_requests';
-    const cachedData = localStorage.getItem(cacheKey);
-    if (cachedData) setAdminRequests(JSON.parse(cachedData));
-
-    const { data } = await supabase
-      .from('batch_requests')
-      .select('*, profiles (username, avatar_url)')
-      .order('is_priority', { ascending: false })
-      .order('created_at', { ascending: false });
-
-    if (data) {
-      setAdminRequests(data);
-      localStorage.setItem(cacheKey, JSON.stringify(data));
-    }
-  };
-
-  const handleUpdateStatus = async (batchId: string | number, newStatus: 'approved' | 'rejected' | 'pending') => {
-    setActionLoadingId(batchId);
-    
-    const { error } = await supabase
-      .from('batches')
-      .update({ status: newStatus })
-      .eq('id', batchId);
-
-    setActionLoadingId(null);
-
-    if (error) {
-      handleShowToast(`Failed to update status: ${error.message}`, "error");
-    } else {
-      handleShowToast(`Batch status successfully changed to ${newStatus}`, "success");
-      setAllBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: newStatus } : b));
-      setUserBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: newStatus } : b));
-    }
-  };
-
-  const handleResultUrlChange = (id: string | number, value: string) => {
-    setRequestResultUrls(prev => ({ ...prev, [String(id)]: value }));
-  };
-
-  const handleUpdateRequestStatus = async (reqId: string | number, newStatus: string, resultUrl?: string) => {
-    setActionLoadingId(`req_${reqId}`);
-    
-    const updateData: any = { status: newStatus };
-    if (resultUrl !== undefined) {
-      updateData.result_url = resultUrl;
-    }
-
-    const { error } = await supabase
-      .from('batch_requests')
-      .update(updateData)
-      .eq('id', reqId);
-
-    setActionLoadingId(null);
-
-    if (error) {
-      handleShowToast(`Failed to update request status: ${error.message}`, "error");
-    } else {
-      handleShowToast(`Request status successfully changed to ${newStatus}`, "success");
-      setAdminRequests(prev => prev.map(req => req.id === reqId ? { ...req, ...updateData } : req));
-      
-      if (newStatus === 'completed') {
-        setRequestResultUrls(prev => {
-          const newState = { ...prev };
-          delete newState[String(reqId)];
-          return newState;
-        });
-      }
-    }
-  };
-
-  const handleUpdateAvatar = async (avatarUrl: string) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) return;
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ avatar_url: avatarUrl })
-      .eq('id', session.user.id);
-
-    if (error) {
-      handleShowToast("Failed to update profile avatar", "error");
-    } else {
-      setUserProfile((prev: any) => ({ ...prev, avatar_url: avatarUrl }));
-      if (onProfileUpdate) onProfileUpdate(userProfile?.username || currentUser || '', avatarUrl);
-      handleShowToast("Avatar successfully updated!", "success");
-    }
-  };
-
-  // Fungsi Memilih / Melepas Avatar Border VIP
-  const handleSelectVipBorder = async (borderUrl: string) => {
-    if (!userProfile?.is_premium) {
-      handleShowToast("This feature is exclusively for Premium VIP users!", "error");
-      return;
-    }
-
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-
-    // Toggle border: jika diklik ulang maka lepas border
-    const newBorderUrl = userProfile?.vip_border_url === borderUrl ? null : borderUrl;
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ vip_border_url: newBorderUrl })
-      .eq('id', session.user.id);
-
-    if (error) {
-      // Tampilkan error spesifik dari Supabase
-      handleShowToast(`Gagal: ${error.message}`, "error");
-    } else {
-      setUserProfile((prev: any) => ({ ...prev, vip_border_url: newBorderUrl }));
-      handleShowToast(newBorderUrl ? "Bingkai VIP berhasil dipasang!" : "Bingkai VIP dilepas!", "success");
-    }
-  };
-
-  const handleUpdateUsername = async () => {
-    const trimmedUsername = usernameInput.trim();
-    if (!trimmedUsername) {
-      handleShowToast("Username cannot be empty", "error");
-      return;
-    }
-
-    setUpdatingUsername(true);
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      setUpdatingUsername(false);
-      return;
-    }
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ username: trimmedUsername })
-      .eq('id', session.user.id);
-
-    setUpdatingUsername(false);
-
-    if (error) {
-      handleShowToast("Failed to update username", "error");
-    } else {
-      setUserProfile((prev: any) => ({ ...prev, username: trimmedUsername }));
-      if (onProfileUpdate) onProfileUpdate(trimmedUsername, userProfile?.avatar_url);
-      handleShowToast("Username successfully updated!", "success");
-    }
-  };
-
-  const activeUsername = userProfile?.username || currentUser || '';
-
-  const stats = useMemo(() => {
-    const totalUploads = userBatches.length;
-    const totalVideos = userBatches.reduce((acc: number, b: any) => acc + (Number(b.video_count) || 0), 0);
-    const totalClicks = userBatches.reduce((acc: number, b: any) => {
-      const downloadVal = b.download_count ?? 0;
-      return acc + (Number(downloadVal) || 0);
-    }, 0);
-
-    const totalGB = userBatches.reduce((acc: number, b: any) => {
-      if (b.size_gb !== undefined && b.size_gb !== null && b.size_gb !== '') {
-        return acc + Number(b.size_gb);
-      }
-      if (b.size_file) {
-        const sizeStr = b.size_file.toString().toUpperCase();
-        const val = parseFloat(sizeStr);
-        if (isNaN(val)) return acc;
-        
-        if (sizeStr.includes('MB')) return acc + (val / 1024);
-        if (sizeStr.includes('KB')) return acc + (val / (1024 * 1024));
-        if (sizeStr.includes('TB')) return acc + (val * 1024);
-        
-        return acc + val;
-      }
-      return acc;
-    }, 0);
-
-    let totalSizeDisplay = '0 GB';
-    if (totalGB > 0) {
-      if (totalGB < 1) {
-        totalSizeDisplay = (totalGB * 1024).toFixed(1) + ' MB';
-      } else {
-        totalSizeDisplay = totalGB.toFixed(1) + ' GB';
-      }
-    }
-
-    return { totalUploads, totalVideos, totalClicks, totalSizeDisplay };
-  }, [userBatches]);
-
-  const unlockedBadges = useMemo(() => {
-    return BADGES.filter(b => b.isUnlocked(stats));
-  }, [stats]);
-
-  // Kalkulasi Progress khusus untuk komponen AnimationBorder (0 - 100)
-  const uploadProgress = useMemo(() => {
-    if (!stats) return 0;
-    const nextBadge = BADGES.find(b => !b.isUnlocked(stats)) || BADGES[BADGES.length - 1];
-    const current = Math.min(stats.totalUploads, nextBadge.target);
-    return Math.min(Math.round((current / nextBadge.target) * 100), 100);
-  }, [stats]);
-
-  const handleDeleteBatch = async (batchId: string | number) => {
-    if (!window.confirm("Are you sure you want to delete this collection folder?")) return;
-
-    setDeletingId(batchId);
-    const { error } = await supabase
-      .from('batches')
-      .delete()
-      .eq('id', batchId);
-
-    setDeletingId(null);
-
-    if (error) {
-      handleShowToast("Failed to delete folder", "error");
-    } else {
-      setUserBatches(prev => prev.filter(b => b.id !== batchId));
-      setAllBatches(prev => prev.filter(b => b.id !== batchId));
-      handleShowToast("Folder successfully deleted", "success");
-    }
-  };
-
-  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement HTMLSelectElement |>) => {
-    const target = e.target as HTMLInputElement; 
-    const value = target.type === 'checkbox' ? target.checked : target.value;
-    
-    setEditingBatch((prev: any) => ({ ...prev, [target.name]: value }));
-  };
-
-  const handleUpdateBatchSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingBatch) return;
-
-    setIsUpdatingBatch(true);
-    try {
-      const downloadVal = parseInt(editingBatch.download_count) || 0;
-      
-      const updateData: any = {
-        username: editingBatch.username,
-        country: editingBatch.country,
-        video_count: parseInt(editingBatch.video_count) || 0,
-        size_file: editingBatch.size_file,
-        tiktok_url: editingBatch.tiktok_url,
-        video_url: editingBatch.video_url,
-        gdrive_url: editingBatch.gdrive_url,
-        terabox_url: editingBatch.terabox_url,
-        is_banned: editingBatch.is_banned,
-        download_count: downloadVal,
-        is_edited: true
-      };
-
-      const { error } = await supabase
-        .from('batches')
-        .update(updateData)
-        .eq('id', editingBatch.id);
-
-      if (error) throw error;
-
-      handleShowToast("Batch successfully updated!", "success");
-      
-      setUserBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...updateData } : b));
-      setAllBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...updateData } : b));
-      setEditingBatch(null);
-    } catch (error: any) {
-      const errorMsg = error?.message || "Failed to update batch";
-      handleShowToast(errorMsg, "error");
-    } finally {
-      setIsUpdatingBatch(false);
-    }
-  };
-
-  const handleLogoutAction = async () => {
-    await supabase.auth.signOut();
-    if (onLogout) onLogout();
-    onBack();
-  };
-
-  const filteredBatches = useMemo(() => {
-    if (!collectionSearchQuery.trim()) return userBatches;
-    const lowerQuery = collectionSearchQuery.toLowerCase();
-    return userBatches.filter(batch => 
-      (batch.username && batch.username.toLowerCase().includes(lowerQuery)) ||
-      (batch.country && batch.country.toLowerCase().includes(lowerQuery))
-    );
-  }, [userBatches, collectionSearchQuery]);
-
-  const filteredAdminBatches = useMemo(() => {
-    return allBatches.filter(batch => {
-      const matchesStatus = adminStatusFilter === 'all' || batch.status === adminStatusFilter;
-      const lowerQuery = adminSearchQuery.toLowerCase();
-      const matchesSearch = !adminSearchQuery.trim() || 
-        (batch.username && batch.username.toLowerCase().includes(lowerQuery)) ||
-        (batch.country && batch.country.toLowerCase().includes(lowerQuery));
-      return matchesStatus && matchesSearch;
-    });
-  }, [allBatches, adminStatusFilter, adminSearchQuery]);
-
-  const adminStats = useMemo(() => {
-    const pendingCount = allBatches.filter(b => b.status === 'pending').length;
-    const approvedCount = allBatches.filter(b => b.status === 'approved').length;
-    const rejectedCount = allBatches.filter(b => b.status === 'rejected').length;
-    return { pendingCount, approvedCount, rejectedCount, total: allBatches.length };
-  }, [allBatches]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#f0f4f8] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4 p-8 bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-          <div className="w-10 h-10 border-4 border-[#10b981] border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-sm font-bold text-slate-600 tracking-wide">Loading Profile...</span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-[#f0f4f8] font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col justify-between">
-      <div>
-        <Navbar activeCategory setActiveCategory="{(category:"> {
-            if (onSelectCategory) onSelectCategory(category);
-            onBack(); 
-          }}
-          resetSearch={() => {}}
-          CATEGORIES={CATEGORIES}
-          EmeraldFolderIcon={EmeraldFolderIcon}
-          currentUser={activeUsername} 
-          handleLogout={handleLogoutAction}
-          setShowAddModal={() => setShowAddModal(true)}
-          setShowLoginModal={() => setShowLoginModal(true)}
-          setShowRulesModal={() => {
-            window.history.pushState({}, '', '/rules');
-            window.dispatchEvent(new Event('popstate'));
-          }}
-        />
-
-        <main className="max-w-7xl mx-auto px-6 lg:px-8 pt-8 pb-16">
-          <div className="bg-white rounded-[40px] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)] p-6 md:p-8 lg:p-10 flex flex-col lg:flex-row gap-8 lg:gap-12 min-h-[75vh]">
-            
-            {/* LEFT SIDEBAR */}
-            <div className="w-full lg:w-[260px] shrink-0 space-y-8">
-              <div className="flex flex-col items-center text-center">
-                
-                <div 
-                  className="relative group cursor-pointer mb-4 w-[88px] h-[88px]"
-                  onClick={() => setShowAvatarModal(true)}
-                  title="Click to change avatar"
-                >
-                  <div className="w-full h-full rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 border-4 border-white transition-all duration-300 group-hover:scale-105 relative z-10">
-                    {userProfile?.avatar_url ? (
-                      <img src={userProfile.avatar_url} alt="Profile Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <User size="{40}" strokeWidth="{2.2}"/>
-                    )}
-                  </div>
-
-                  {/* Panggilan AvatarBorderVip */}
-                  {userProfile?.is_premium && (
-                    <AvatarBorderVip borderUrl="{userProfile?.vip_border_url}" isPremium="{userProfile?.is_premium}"/>
-                  )}
-                  
-                  {/* Animasi Border Progress */}
-                  <AnimationBorder progress="{uploadProgress}"/>
-                </div>
-
-                <div className="flex flex-col items-center w-full mt-2">
-                  <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                    {activeUsername || 'User'}
-                    {unlockedBadges.length > 0 && (
-                      <img 
-                        src={unlockedBadges[unlockedBadges.length - 1].iconUrl} 
-                        alt={unlockedBadges[unlockedBadges.length - 1].title} 
-                        title={unlockedBadges[unlockedBadges.length - 1].title}
-                        className="w-6 h-6 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform"
-                      />
-                    )}
-                  </h1>
-
-                  <div className="mt-1.5 flex items-center gap-2 flex-wrap justify-center">
-                    {userProfile?.is_admin && (
-                      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-white bg-[#fbbf24] px-3 py-1 rounded-full shadow-sm">
-                        <ShieldCheck size="{12}"/> Admin
-                      </span>
-                    )}
-                    <span className="text-[10px] text-slate-500 font-semibold bg-slate-100 px-3 py-1 rounded-full">
-                      Level {Math.floor(stats.totalUploads / 3) + 1}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sidebar Navigation */}
-              <div className="space-y-2">
-                <div className="mb-4">
-                  <button className="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl text-sm font-bold bg-[#10b981] text-white shadow-lg shadow-emerald-500/30 transition-all border-none cursor-default pointer-events-none">
-                    <div className="w-5 h-5 flex items-center justify-center bg-white/20 rounded-md">
-                      <LayoutDashboard size="{14}"/>
-                    </div>
-                    Main Menu
-                  </button>
-                </div>
-
-                <button
-                  onClick={() => setActiveTab('overview')}
-                  className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
-                    activeTab === 'overview' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
-                >
-                  <LayoutDashboard ''} 'overview' 'text-[#10b981]' : ? className="{activeTab" size="{18}"/> 
-                  Statistics
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('collections')}
-                  className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
-                    activeTab === 'collections' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
-                >
-                  <FolderHeart ''} 'collections' 'text-[#10b981]' : ? className="{activeTab" size="{18}"/> 
-                  Collections
-                  <div className="ml-auto w-2 h-2 rounded-full bg-[#f97316]"></div>
-                </button>
-                
-                <button
-                  onClick={() => setActiveTab('request')}
-                  className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
-                    activeTab === 'request' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
-                >
-                  <Send ''} 'request' 'text-[#10b981]' : ? className="{activeTab" size="{18}"/> 
-                  Request Batch
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('settings')}
-                  className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
-                    activeTab === 'settings' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
-                >
-                  <Settings ''} 'settings' 'text-[#10b981]' : ? className="{activeTab" size="{18}"/> 
-                  Settings
-                </button>
-
-                {userProfile?.is_admin && (
-                  <button
-                    onClick={() => {
-                      setActiveTab('admin');
-                      fetchAllBatches();
-                      fetchAllRequests();
-                    }}
-                    className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
-                      activeTab === 'admin' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                    }`}
-                  >
-                    <ShieldCheck ''} 'admin' 'text-[#fbbf24]' : ? className="{activeTab" size="{18}"/> 
-                    Admin Panel
-                    {adminStats.pendingCount > 0 && (
-                      <div className="ml-auto w-2 h-2 rounded-full bg-[#10b981]"></div>
-                    )}
-                  </button>
-                )}
-
-                <div className="pt-4 mt-2 border-t border-slate-100">
-                  <button
-                    onClick={handleLogoutAction}
-                    className="w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium text-slate-500 hover:bg-red-50 hover:text-red-500 transition-all border-none cursor-pointer"
-                  >
-                    <LogOut size="{18}"/> Logout
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* RIGHT CONTENT AREA */}
-            <div className="flex-1 lg:pl-6 space-y-8">
-              
-              {activeTab === 'overview' && (
-                <div className="space-y-8 animate-in fade-in duration-300">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-                    <div className="bg-[#3b82f6] p-6 rounded-[32px] shadow-[0_12px_24px_-8px_rgba(59,130,246,0.4)] flex flex-col justify-between text-white relative overflow-hidden transition-transform hover:-translate-y-1">
-                      <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-                      <div className="flex justify-between items-start mb-4 relative z-10">
-                        <span className="text-sm font-medium text-blue-100">Total Folders</span>
-                        <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                          <Folder className="text-white" size="{18}"/>
-                        </div>
-                      </div>
-                      <div className="relative z-10">
-                        <div className="text-3xl font-bold">{stats.totalUploads}</div>
-                        <div className="text-[10px] mt-1 text-blue-100 flex items-center gap-1">
-                          <TrendingUp size="{12}"/> Active Progress
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-[#84cc16] p-6 rounded-[32px] shadow-[0_12px_24px_-8px_rgba(132,204,22,0.4)] flex flex-col justify-between text-white relative overflow-hidden transition-transform hover:-translate-y-1">
-                      <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-                      <div className="flex justify-between items-start mb-4 relative z-10">
-                        <span className="text-sm font-medium text-green-100">Total Videos</span>
-                        <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                          <Video className="text-white" size="{18}"/>
-                        </div>
-                      </div>
-                      <div className="relative z-10">
-                        <div className="text-3xl font-bold">{stats.totalVideos}</div>
-                        <div className="text-[10px] mt-1 text-green-100 flex items-center gap-1">
-                          <CheckCircle2 size="{12}"/> Successfully Uploaded
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.06)] flex flex-col justify-between transition-transform hover:-translate-y-1">
-                      <div className="flex justify-between items-start mb-4">
-                        <span className="text-sm font-medium text-slate-500">Total Size</span>
-                        <div className="p-2 bg-slate-50 rounded-xl text-slate-400">
-                          <HardDrive size="{18}"/>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-3xl font-bold text-slate-800">{stats.totalSizeDisplay}</div>
-                        <div className="text-[10px] mt-1 text-slate-400">Size Uploaded</div>
-                      </div>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.06)] flex flex-col justify-between transition-transform hover:-translate-y-1">
-                      <div className="flex justify-between items-start mb-4">
-                        <span className="text-sm font-medium text-slate-500">Total Downloads</span>
-                        <div className="p-2 bg-slate-50 rounded-xl text-slate-400">
-                          <MousePointerClick size="{18}"/>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-3xl font-bold text-slate-800">{stats.totalClicks}</div>
-                        <div className="text-[10px] mt-1 text-slate-400">Inbound click traffic</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* BADGES SECTION */}
-                  <div className="bg-white rounded-[32px] p-6 sm:p-8 border border-slate-100 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.04)]">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                      <div>
-                        <h2 className="text-lg font-bold text-slate-800">Achievement Badges</h2>
-                        <p className="text-xs text-slate-500 mt-1">Badges unlock automatically based on contributions</p>
-                      </div>
-                      <span className="text-xs font-bold text-[#10b981] bg-emerald-50 px-4 py-2 rounded-full">
-                        {unlockedBadges.length} / {BADGES.length} Unlocked
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      {BADGES.map((badge) => {
-                        const unlocked = badge.isUnlocked(stats);
-                        const progress = badge.getCurrentProgress(stats);
-                        const percent = Math.min(Math.round((progress / badge.target) * 100), 100);
-                        const isLegend = badge.id === 'legend';
-
-                        return (
-                          <div 
-                            key={badge.id}
-                            className={`relative p-5 rounded-[24px] transition-all duration-300 flex flex-col justify-between h-full ${
-                              unlocked 
-                                ? (isLegend 
-                                    ? 'bg-gradient-to-b from-yellow-50 to-amber-100/50 border border-amber-200 shadow-[0_8px_24px_-8px_rgba(251,191,36,0.4)] scale-[1.02] hover:-translate-y-1' 
-                                    : 'bg-gradient-to-b from-white to-blue-50/30 border border-blue-100 shadow-[0_4px_16px_-8px_rgba(59,130,246,0.2)] hover:-translate-y-1') 
-                                : 'bg-slate-50 border border-slate-100 opacity-80'
-                            } ${isLegend ? 'md:col-span-2 max-w-[380px] mx-auto w-full' : 'w-full'}`}
-                          >
-                            <div className="flex items-center justify-between mb-4">
-                              <span className={`text-[10px] font-bold px-3 py-1.5 rounded-full ${
-                                unlocked 
-                                  ? (isLegend ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') 
-                                  : 'bg-slate-200 text-slate-500'
-                              }`}>
-                                {badge.tier}
-                              </span>
-                              {unlocked ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#84cc16]">
-                                  <Sparkles size="{12}"/> Active
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400">
-                                  <Lock size="{12}"/> Locked
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="flex flex-col items-center mb-4 text-center">
-                              <div className="relative w-24 h-24 mb-3 flex items-center justify-center">
-                                <img 
-                                  src={badge.iconUrl} 
-                                  alt={badge.title} 
-                                  className={`w-20 h-20 object-contain transition-all duration-300 ${
-                                    unlocked ? (isLegend ? 'drop-shadow-2xl scale-125 hover:scale-150' : 'drop-shadow-lg hover:scale-110') : 'grayscale opacity-40'
-                                  }`}
-                                />
-                              </div>
-                              <h3 className={`text-sm font-bold mt-2 ${isLegend && unlocked ? 'text-amber-600 text-base' : 'text-slate-800'}`}>
-                                {badge.title}
-                              </h3>
-                              <p className="text-[10px] text-slate-500 font-medium leading-relaxed mt-1 px-4">
-                                {badge.description}
-                              </p>
-                            </div>
-
-                            <div className="mt-auto">
-                              <div className="flex justify-between items-center text-[10px] font-bold mb-1.5">
-                                <span className="text-slate-400">Target</span>
-                                <span className={unlocked ? (isLegend ? 'text-amber-500' : 'text-[#10b981]') : 'text-slate-500'}>
-                                  {badge.target} {badge.unit}
-                                </span>
-                              </div>
-                              
-                              <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                <div 
-                                  className={`h-full transition-all duration-500 rounded-full ${unlocked ? (isLegend ? 'bg-amber-500' : 'bg-[#10b981]') : 'bg-slate-300'}`}
-                                  style={{ width: `${percent}%` }}
-                                ></div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'collections' && (
-                <div className="animate-in fade-in duration-300">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                    <div>
-                      <h2 className="text-xl font-bold text-slate-800">Batch Collections</h2>
-                      <p className="text-xs text-slate-500 mt-1">List of uploaded video folders</p>
-                    </div>
-                    
-                    <div className="relative w-full md:w-64">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size="{16}"/>
-                      <input 
-                        type="text" 
-                        placeholder="Search collections..." 
-                        value={collectionSearchQuery}
-                        onChange={(e) => setCollectionSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-full focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium text-slate-700 transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  {filteredBatches.length > 0 ? (
-                    <div className="space-y-4">
-                      {filteredBatches.map((batch) => (
-                        <div 
-                          key={batch.id} 
-                          className="p-5 rounded-[24px] bg-white border border-slate-100 shadow-[0_4px_16px_-10px_rgba(0,0,0,0.05)] hover:shadow-md transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="p-3 bg-slate-50 rounded-2xl">
-                              <EmeraldFolderIcon className="w-10 h-10 flex-shrink-0" country="{batch.country}"/>
-                            </div>
-                            <div>
-                              <h3 className="text-sm font-bold text-slate-800">{batch.username}</h3>
-                              <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-500 font-medium flex-wrap">
-                                <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md font-semibold">{batch.country}</span>
-                                <span>•</span>
-                                <span>{batch.video_count} Videos</span>
-                                <span>•</span>
-                                <span>{batch.size_file || `${batch.size_gb || 0} GB`}</span>
-                                <span>•</span>
-                                <span>{batch.download_count ?? 0} Downloads</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                            {batch.status === 'approved' ? (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#84cc16]/10 text-[#84cc16]">
-                                <CheckCircle2 size="{14}"/> Approved
-                              </span>
-                            ) : batch.status === 'rejected' ? (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-red-50 text-red-500">
-                                <XCircle size="{14}"/> Rejected
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-orange-50 text-orange-500">
-                                <Clock size="{14}"/> Pending
-                              </span>
-                            )}
-
-                            <div className="flex items-center gap-1 ml-2">
-                              <button
-                                onClick={() => setEditingBatch(batch)}
-                                className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
-                                title="Edit Folder"
-                              >
-                                <Edit2 size="{16}"/>
-                              </button>
-
-                              <button
-                                onClick={() => handleDeleteBatch(batch.id)}
-                                disabled={deletingId === batch.id}
-                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all disabled:opacity-50"
-                                title="Delete Folder"
-                              >
-                                {deletingId === batch.id ? (
-                                  <Loader2 className="animate-spin text-red-500" size="{16}"/>
-                                ) : (
-                                  <Trash2 size="{16}"/>
-                                )}
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-20 flex flex-col items-center justify-center text-center bg-slate-50/50 rounded-[32px] border border-dashed border-slate-200">
-                      <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mb-4 text-slate-300">
-                        <Folder size="{28}"/>
-                      </div>
-                      <h3 className="text-sm font-bold text-slate-700 mb-1">No Collections</h3>
-                      <p className="text-xs text-slate-400 font-medium max-w-xs">
-                        {collectionSearchQuery ? 'No matches for your search.' : 'Folders you upload will appear here.'}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              {activeTab === 'request' && (
-                <div className="animate-in fade-in duration-300">
-                  <div className="mb-8">
-                    <h2 className="text-xl font-bold text-slate-800">Request Batch</h2>
-                    <p className="text-xs text-slate-500 mt-1">Submit a request to archive specific TikTok profiles</p>
-                  </div>
-                  <Suspense <div className="py-12 flex flex-col items-center justify-center bg-white rounded-[32px] border border-slate-100 text-center shadow-sm" fallback="{">
-                      <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-3"/>
-                      <span className="text-sm font-bold text-slate-600">Loading Form Request...</span>
-                    </div>
-                  }>
-                    <CustomBatchRequest currentUser="{userProfile}"/>
-                  </Suspense>
-                </div>
-              )}
-
-              {activeTab === 'settings' && (
-                <div className="animate-in fade-in duration-300 max-w-2xl">
-                  <h2 className="text-xl font-bold text-slate-800 mb-1">Profile Settings</h2>
-                  <p className="text-xs text-slate-500 mb-8">Customize your appearance and account information</p>
-
-                  <div className="p-6 bg-slate-50 rounded-[32px] flex flex-col sm:flex-row items-center gap-6 mb-6">
-                    <div className="relative w-[88px] h-[88px] flex-shrink-0">
-                      <div className="w-full h-full rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-md relative z-10">
-                        {userProfile?.avatar_url ? (
-                          <img src={userProfile.avatar_url} alt="Avatar Preview" className="w-full h-full object-cover" />
-                        ) : (
-                          <User size="{36}"/>
-                        )}
-                      </div>
-                      
-                      {/* Avatar Border Preview */}
-                      {userProfile?.is_premium && (
-                        <AvatarBorderVip borderUrl="{userProfile?.vip_border_url}" isPremium="{userProfile?.is_premium}"/>
-                      )}
-                      
-                      {/* Animasi Border Progress */}
-                      <AnimationBorder progress="{uploadProgress}"/>
-                    </div>
-
-                    <div className="text-center sm:text-left space-y-3">
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-800">Character Avatar</h3>
-                        <p className="text-[11px] text-slate-500 mt-1">Choose an avatar to represent yourself.</p>
-                      </div>
-                      <button
-                        onClick={() => setShowAvatarModal(true)}
-                        className="inline-flex items-center gap-2 px-5 py-2 bg-white text-slate-700 text-xs font-bold rounded-full shadow-sm border border-slate-200 hover:border-[#10b981] hover:text-[#10b981] transition-all"
-                      >
-                        <Sparkles size="{14}"/> Change Avatar
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* ===== WADAH KUMPULAN AVATAR BORDER VIP ===== */}
-                  <div className="p-6 bg-slate-50 rounded-[32px] mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                          <Crown className="text-amber-500" size="{18}"/> VIP Avatar Border Selector
-                        </h3>
-                        <p className="text-[11px] text-slate-500 mt-1">
-                          Pilih bingkai avatar eksklusif untuk profil Anda (Khusus Akun Premium).
-                        </p>
-                      </div>
-                      {!userProfile?.is_premium && (
-                        <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full flex items-center gap-1">
-                          <Lock size="{12}"/> Requires Premium
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      {VIP_BORDERS.map((url, index) => {
-                        const isSelected = userProfile?.vip_border_url === url;
-                        const isPremium = !!userProfile?.is_premium;
-
-                        return (
-                          <div
-                            key={index}
-                            onClick={() => handleSelectVipBorder(url)}
-                            className={`relative p-4 rounded-2xl border-2 flex flex-col items-center justify-center transition-all cursor-pointer ${
-                              isSelected && isPremium
-                                ? 'bg-amber-50/60 border-amber-400 shadow-md scale-105'
-                                : 'bg-white border-slate-200 hover:border-amber-300'
-                            } ${!isPremium ? 'opacity-60 cursor-not-allowed' : ''}`}
-                          >
-                            <div className="relative w-16 h-16 mb-2 flex items-center justify-center">
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white relative z-10">
-                                {userProfile?.avatar_url ? (
-                                  <img src={userProfile.avatar_url} alt="User Avatar" className="w-full h-full object-cover" />
-                                ) : (
-                                  <User size="{24}"/>
-                                )}
-                              </div>
-                              <AvatarBorderVip borderUrl="{url}" className="absolute top-[-16px] left-1/2 -translate-x-1/2 ml-[1px] w-[80px] h-auto max-w-none object-contain z-20 pointer-events-none" isPremium="{true}"/>
-                            </div>
-
-                            <span className="text-xs font-bold text-slate-700 mt-1">VIP Border {index + 1}</span>
-
-                            {isSelected && isPremium && (
-                              <span className="absolute top-2 right-2 bg-amber-500 text-white rounded-full p-0.5 shadow-sm">
-                                <Check size="{12}"/>
-                              </span>
-                            )}
-
-                            {!isPremium && (
-                              <span className="absolute top-2 right-2 text-slate-400">
-                                <Lock size="{12}"/>
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 mb-2 uppercase tracking-wider">Username</label>
-                      <div className="flex gap-3">
-                        <input 
-                          type="text" 
-                          value={usernameInput}
-                          onChange={(e) => setUsernameInput(e.target.value)}
-                          placeholder="Enter your username"
-                          className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] focus:bg-white transition-all"
-                        />
-                        <button
-                          onClick={handleUpdateUsername}
-                          disabled={updatingUsername || usernameInput.trim() === activeUsername}
-                          className="px-6 py-3.5 bg-[#10b981] hover:bg-[#059669] disabled:opacity-50 text-white text-sm font-bold rounded-2xl shadow-md shadow-emerald-500/20 transition-all flex-shrink-0 flex items-center justify-center min-w-[100px]"
-                        >
-                          {updatingUsername ? <Loader2 className="animate-spin" size="{16}"/> : 'Save'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'admin' && userProfile?.is_admin && (
-                <div className="animate-in fade-in duration-300">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                    <div>
-                      <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                        <ShieldCheck className="text-[#fbbf24]" size="{24}"/> Moderation Panel
-                      </h2>
-                      <p className="text-xs text-slate-500 mt-1">Manage uploads and user requests</p>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        if (adminTab === 'uploads') fetchAllBatches();
-                        else fetchAllRequests();
-                      }}
-                      className="px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-full transition-all flex items-center gap-2"
-                    >
-                      <Loader2 ""} "animate-spin" : ? className="{actionLoadingId" size="{14}"/> Reload
-                    </button>
-                  </div>
-
-                  {/* Toggle Between Uploads and Requests */}
-                  <div className="flex gap-3 mb-6 p-1 bg-slate-100 rounded-xl w-fit">
-                    <button
-                      onClick={() => setAdminTab('uploads')}
-                      className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
-                        adminTab === 'uploads' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                      }`}
-                    >
-                      Creator Uploads
-                    </button>
-                    <button
-                      onClick={() => setAdminTab('requests')}
-                      className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
-                        adminTab === 'requests' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                      }`}
-                    >
-                      User Requests
-                    </button>
-                  </div>
-
-                  {/* ===== TAB: CREATOR UPLOADS ===== */}
-                  {adminTab === 'uploads' && (
-                    <>
-                      <div className="flex overflow-x-auto gap-3 pb-2 mb-6 [&::-webkit-scrollbar]:hidden">
-                        <button 
-                          onClick={() => setAdminStatusFilter('pending')}
-                          className={`px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 ${
-                            adminStatusFilter === 'pending' ? 'bg-[#fbbf24] text-white shadow-md shadow-amber-500/20' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
-                          }`}
-                        >
-                          <Clock size="{14}"/> Pending ({adminStats.pendingCount})
-                        </button>
-                        <button 
-                          onClick={() => setAdminStatusFilter('approved')}
-                          className={`px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 ${
-                            adminStatusFilter === 'approved' ? 'bg-[#84cc16] text-white shadow-md shadow-green-500/20' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
-                          }`}
-                        >
-                          <CheckCircle2 size="{14}"/> Approved ({adminStats.approvedCount})
-                        </button>
-                        <button 
-                          onClick={() => setAdminStatusFilter('rejected')}
-                          className={`px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 ${
-                            adminStatusFilter === 'rejected' ? 'bg-red-500 text-white shadow-md shadow-red-500/20' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
-                          }`}
-                        >
-                          <XCircle size="{14}"/> Rejected ({adminStats.rejectedCount})
-                        </button>
-                        <button 
-                          onClick={() => setAdminStatusFilter('all')}
-                          className={`px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 ${
-                            adminStatusFilter === 'all' ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
-                          }`}
-                        >
-                          <Folder size="{14}"/> All ({adminStats.total})
-                        </button>
-                      </div>
-
-                      <div className="relative mb-6">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size="{16}"/>
-                        <input 
-                          type="text" 
-                          placeholder="Search creator or region..." 
-                          value={adminSearchQuery}
-                          onChange={(e) => setAdminSearchQuery(e.target.value)}
-                          className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-full focus:outline-none focus:ring-2 focus:ring-[#fbbf24]/30 focus:border-[#fbbf24] text-sm font-medium transition-all"
-                        />
-                      </div>
-
-                      {filteredAdminBatches.length > 0 ? (
-                        <div className="space-y-4">
-                          {filteredAdminBatches.map((batch) => (
-                            <div 
-                              key={batch.id} 
-                              className="p-5 rounded-[24px] bg-white border border-slate-100 shadow-[0_4px_16px_-10px_rgba(0,0,0,0.05)] flex flex-col gap-4"
-                            >
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                <div className="flex items-center gap-4">
-                                  <div className="p-2 bg-slate-50 rounded-2xl">
-                                    <EmeraldFolderIcon className="w-10 h-10 flex-shrink-0" country="{batch.country}"/>
-                                  </div>
-                                  <div>
-                                    <div className="flex items-center gap-2">
-                                      <h3 className="text-sm font-bold text-slate-800">{batch.username}</h3>
-                                      <span className="text-[10px] px-2 py-0.5 rounded-md font-semibold bg-blue-50 text-blue-600">
-                                        {batch.country}
-                                      </span>
-                                    </div>
-                                    <p className="text-[11px] text-slate-500 font-medium mt-1">
-                                      {batch.video_count} Videos • {batch.size_file || `${batch.size_gb || 0} GB`} • {batch.download_count ?? 0} Downloads
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div>
-                                  {batch.status === 'approved' && (
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#84cc16]/10 text-[#84cc16]">
-                                      <CheckCircle2 size="{13}"/> Approved
-                                    </span>
-                                  )}
-                                  {batch.status === 'rejected' && (
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-red-50 text-red-500">
-                                      <XCircle size="{13}"/> Rejected
-                                    </span>
-                                  )}
-                                  {batch.status === 'pending' && (
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-500">
-                                      <Clock size="{13}"/> Pending
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="flex flex-wrap gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-100 text-[11px]">
-                                {batch.tiktok_url && (
-                                  <a href={batch.tiktok_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg text-slate-600 hover:text-blue-500 transition-colors shadow-sm">
-                                    <ExternalLink size="{12}"/> TikTok Profile
-                                  </a>
-                                )}
-                                {batch.gdrive_url && (
-                                  <a href={batch.gdrive_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg text-slate-600 hover:text-green-600 transition-colors shadow-sm">
-                                    <ExternalLink size="{12}"/> Google Drive
-                                  </a>
-                                )}
-                                {batch.terabox_url && (
-                                  <a href={batch.terabox_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg text-slate-600 hover:text-teal-600 transition-colors shadow-sm">
-                                    <ExternalLink size="{12}"/> TeraBox
-                                  </a>
-                                )}
-                                {batch.video_url && (
-                                  <a href={batch.video_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg text-slate-600 hover:text-orange-500 transition-colors shadow-sm">
-                                    <ExternalLink size="{12}"/> Preview
-                                  </a>
-                                )}
-                              </div>
-
-                              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-50">
-                                <div className="flex items-center gap-2">
-                                  <button
-                                    onClick={() => handleUpdateStatus(batch.id, 'approved')}
-                                    disabled={actionLoadingId === batch.id || batch.status === 'approved'}
-                                    className="px-4 py-2 bg-[#84cc16] hover:bg-[#65a30d] disabled:opacity-50 text-white text-[11px] font-bold rounded-full transition-all shadow-sm shadow-green-500/20 flex items-center gap-1.5"
-                                  >
-                                    {actionLoadingId === batch.id ? <Loader2 className="animate-spin" size="{14}"/> : <Check size="{14}"/>}
-                                    Approve
-                                  </button>
-
-                                  <button
-                                    onClick={() => handleUpdateStatus(batch.id, 'rejected')}
-                                    disabled={actionLoadingId === batch.id || batch.status === 'rejected'}
-                                    className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-[11px] font-bold rounded-full transition-all shadow-sm shadow-red-500/20 flex items-center gap-1.5"
-                                  >
-                                    {actionLoadingId === batch.id ? <Loader2 className="animate-spin" size="{14}"/> : <X size="{14}"/>}
-                                    Reject
-                                  </button>
-                                </div>
-
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={() => setEditingBatch(batch)}
-                                    className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
-                                    title="Edit Batch"
-                                  >
-                                    <Edit2 size="{16}"/>
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteBatch(batch.id)}
-                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                                    title="Delete Batch"
-                                  >
-                                    <Trash2 size="{16}"/>
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="py-16 text-center bg-slate-50/50 rounded-[32px] border border-dashed border-slate-200">
-                          <AlertCircle className="mx-auto text-slate-300 mb-3" size="{32}"/>
-                          <p className="text-sm font-bold text-slate-600">No data found</p>
-                          <p className="text-[11px] text-slate-400 mt-1">Change filter or adjust your search.</p>
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                  {/* ===== TAB: USER REQUESTS ===== */}
-                  {adminTab === 'requests' && (
-                    <div className="space-y-4">
-                      {adminRequests.length > 0 ? adminRequests.map((req: any) => (
-                        <div key={req.id} className="p-5 rounded-[24px] bg-white border border-slate-100 shadow-[0_4px_16px_-10px_rgba(0,0,0,0.05)] flex flex-col gap-4">
-                          <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center border border-slate-200">
-                                {req.profiles?.avatar_url ? (
-                                  <img src={req.profiles.avatar_url} className="w-full h-full object-cover" alt="User" />
-                                ) : (
-                                  <User className="text-slate-400" size="{20}"/>
-                                )}
-                              </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <h3 className="text-sm font-bold text-slate-800">{req.profiles?.username || 'Unknown User'}</h3>
-                                  {req.is_priority && (
-                                    <span title="VIP Request" className="flex">
-                                      <Crown className="text-yellow-500" size="{14}"/>
-                                    </span>
-                                  )}
-                                </div>
-                                <a href={req.target_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-blue-500 hover:underline flex items-center gap-1 mt-1">
-                                  <Link2 size="{12}"/> {req.target_url}
-                                </a>
-                              </div>
-                            </div>
-                            
-                            {/* Status Label */}
-                            <div className="flex flex-col items-end gap-1">
-                              {req.status === 'completed' && (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#84cc16]/10 text-[#84cc16]">
-                                  <CheckCircle2 size="{13}"/> Completed
-                                </span>
-                              )}
-                              {req.status === 'rejected' && (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-red-50 text-red-500">
-                                  <XCircle size="{13}"/> Rejected
-                                </span>
-                              )}
-                              {(req.status === 'pending' || req.status === 'processing') && (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-500">
-                                  <Clock size="{13}"/> {req.status === 'processing' ? 'Processing' : 'Pending'}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Admin Action Buttons with Result URL Input */}
-                          <div className="flex flex-col gap-3 pt-3 border-t border-slate-50">
-                            {req.result_url && (
-                              <a href={req.result_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-[#10b981] hover:underline flex items-center gap-1 w-fit bg-emerald-50 px-2 py-1 rounded">
-                                <ExternalLink size="{12}"/> Result: {req.result_url}
-                              </a>
-                            )}
-                            
-                            {req.status !== 'completed' && req.status !== 'rejected' && (
-                              <input 
-                                type="url"
-                                placeholder="Enter Result URL (required to Complete)"
-                                value={requestResultUrls[String(req.id)] || ''}
-                                onChange={(e) => handleResultUrlChange(req.id, e.target.value)}
-                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981]"
-                              />
-                            )}
-
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleUpdateRequestStatus(req.id, 'processing')}
-                                disabled={actionLoadingId === `req_${req.id}` || req.status === 'processing'}
-                                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-[11px] font-bold rounded-full transition-all shadow-sm flex items-center gap-1.5"
-                              >
-                                Process
-                              </button>
-                              <button
-                                onClick={() => {
-                                  if (!requestResultUrls[String(req.id)] && !req.result_url) {
-                                    handleShowToast("Please enter a result URL first", "error");
-                                    return;
-                                  }
-                                  handleUpdateRequestStatus(req.id, 'completed', requestResultUrls[String(req.id)])
-                                }}
-                                disabled={actionLoadingId === `req_${req.id}` || req.status === 'completed'}
-                                className="px-4 py-2 bg-[#84cc16] hover:bg-[#65a30d] disabled:opacity-50 text-white text-[11px] font-bold rounded-full transition-all shadow-sm flex items-center gap-1.5"
-                              >
-                                Complete
-                              </button>
-                              <button
-                                onClick={() => handleUpdateRequestStatus(req.id, 'rejected')}
-                                disabled={actionLoadingId === `req_${req.id}` || req.status === 'rejected'}
-                                className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white text-[11px] font-bold rounded-full transition-all shadow-sm flex items-center gap-1.5"
-                              >
-                                Reject
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )) : (
-                        <div className="py-16 text-center bg-slate-50/50 rounded-[32px] border border-dashed border-slate-200">
-                          <AlertCircle className="mx-auto text-slate-300 mb-3" size="{32}"/>
-                          <p className="text-sm font-bold text-slate-600">No incoming requests yet</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                </div>
-              )}
-
-            </div>
-          </div>
-        </main>
-      </div>
-
-      <Footer onSelectCountry="{(category:"> {
-        if (onSelectCategory) onSelectCategory(category);
-        onBack();
-      }} />
-
-      {/* Modal Edit Batch */}
-      {editingBatch && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setEditingBatch(null)}></div>
+    <div className="min-h-screen bg-white text-slate-800 font-sans antialiased selection:bg-[#10b981]/20 selection:text-[#10b981]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
           
-          <div className="relative w-full max-w-2xl bg-white rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-slate-100 flex items-start justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-slate-800">Edit Collection</h2>
-                <p className="mt-1 text-xs font-medium text-slate-500">Update batch information.</p>
-              </div>
-              <button onClick={() => setEditingBatch(null)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-colors cursor-pointer">
-                <X size="{20}"/>
-              </button>
-            </div>
+          {/* SIDEBAR NAVIGATION & USER INFO */}
+          <ProfileSidebar 
+            userProfile={userProfile}
+            activeUsername={userProfile?.username || 'User'}
+            unlockedBadges={unlockedBadges}
+            stats={stats}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            setShowAvatarModal={setShowAvatarModal}
+            handleLogoutAction={handleLogoutAction}
+            fetchAllBatches={fetchAllBatches}
+            fetchAllRequests={fetchAllRequests}
+          />
+
+          {/* MAIN CONTENT AREA */}
+          <div className="flex-1 w-full lg:pl-6 space-y-8">
+            {activeTab === 'overview' && (
+              <ProfileOverview 
+                stats={stats} 
+                badges={BADGES} 
+                unlockedBadges={unlockedBadges} 
+              />
+            )}
+
+            {activeTab === 'collections' && (
+              <ProfileCollections 
+                filteredBatches={filteredBatches}
+                collectionSearchQuery={collectionSearchQuery}
+                setCollectionSearchQuery={setCollectionSearchQuery}
+                setEditingBatch={setEditingBatch}
+                handleDeleteBatch={handleDeleteBatch}
+                deletingId={deletingId}
+              />
+            )}
             
-            <form onSubmit={handleUpdateBatchSubmit} className="p-6 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Username</label>
-                  <input required type="text" name="username" value={editingBatch.username || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
+            {activeTab === 'request' && (
+              <div className="animate-in fade-in duration-300">
+                <div className="mb-8">
+                  <h2 className="text-xl font-bold text-slate-800">Request Batch</h2>
+                  <p className="text-xs text-slate-500 mt-1">Submit a request to archive specific TikTok profiles</p>
                 </div>
-                
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Region</label>
-                  <select name="country" value={editingBatch.country || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium">
-                    {selectableCategories.map((cat: string) => (
-                      <option key={cat} value={cat}>{cat}</option>
+                <Suspense fallback={<div className="py-12 flex justify-center"><Loader2 className="animate-spin text-[#10b981]" size={28} /></div>}>
+                  <CustomBatchRequest currentUser={userProfile} />
+                </Suspense>
+              </div>
+            )}
+
+            {activeTab === 'settings' && (
+              <ProfileSettings 
+                userProfile={userProfile}
+                stats={stats}
+                usernameInput={usernameInput}
+                setUsernameInput={setUsernameInput}
+                handleUpdateUsername={handleUpdateUsername}
+                updatingUsername={updatingUsername}
+                activeUsername={userProfile?.username || ''}
+                setShowAvatarModal={setShowAvatarModal}
+                handleSelectVipBorder={handleSelectVipBorder}
+              />
+            )}
+
+            {activeTab === 'admin' && userProfile?.is_admin && (
+              <div className="animate-in fade-in duration-300 space-y-8">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <ShieldCheck className="text-amber-500" size={24} /> Admin Control Panel
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1">Manage platform submissions and user requests</p>
+                </div>
+
+                <div className="bg-slate-50 rounded-[32px] p-6 border border-slate-100">
+                  <h3 className="text-sm font-bold text-slate-800 mb-4">All Uploaded Batches ({allBatches.length})</h3>
+                  <div className="space-y-3">
+                    {allBatches.map(b => (
+                      <div key={b.id} className="bg-white p-4 rounded-2xl flex items-center justify-between text-xs">
+                        <div>
+                          <span className="font-bold text-slate-800">{b.username}</span>
+                          <span className="text-slate-400 ml-2">({b.country})</span>
+                        </div>
+                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-600 font-bold rounded-full">{b.status}</span>
+                      </div>
                     ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Video Count</label>
-                  <input required type="number" name="video_count" value={editingBatch.video_count || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Size</label>
-                  <input required type="text" name="size_file" value={editingBatch.size_file || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
-                </div>
-
-                <div className="space-y-1.5 md:col-span-2">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Downloads</label>
-                  <input type="number" name="download_count" value={editingBatch.download_count ?? 0} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
-                </div>
-
-                <div className="space-y-1.5 md:col-span-2">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">TikTok Link</label>
-                  <input required={!editingBatch.is_banned} type="url" name="tiktok_url" value={editingBatch.tiktok_url || ''} onChange={handleEditChange} disabled={editingBatch.is_banned} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] disabled:opacity-50 text-sm font-medium" />
-                  
-                  <div className="flex items-center gap-2 mt-3 pl-1">
-                    <input type="checkbox" name="is_banned" id="edit_is_banned" checked={editingBatch.is_banned || false} onChange={handleEditChange} className="w-4 h-4 rounded border-slate-300 text-red-500 focus:ring-red-500 cursor-pointer" />
-                    <label htmlFor="edit_is_banned" className="text-xs font-bold text-slate-600 cursor-pointer select-none">
-                      Mark Account as Banned
-                    </label>
                   </div>
                 </div>
-
-                <div className="space-y-1.5 md:col-span-2">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Google Drive Link</label>
-                  <input type="url" name="gdrive_url" value={editingBatch.gdrive_url || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
-                </div>
               </div>
+            )}
+          </div>
 
-              <div className="mt-8 pt-5 flex justify-end gap-3">
-                <button type="button" onClick={() => setEditingBatch(null)} className="px-6 py-3 rounded-full font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors text-xs">
-                  Cancel
-                </button>
-                <button type="submit" disabled={isUpdatingBatch} className="px-6 py-3 rounded-full font-bold text-white bg-[#10b981] hover:bg-[#059669] transition-colors flex items-center gap-2 disabled:opacity-70 shadow-md shadow-emerald-500/20 text-xs">
-                  {isUpdatingBatch ? "Saving..." : <><Save size="{16}"/> Save</>}
-                </button>
-              </div>
-            </form>
+        </div>
+      </div>
+
+      {/* MODAL PILIH / UBAH AVATAR (Jika diperlukan) */}
+      {showAvatarModal && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-[32px] p-6 max-w-md w-full shadow-xl relative animate-in zoom-in-95 duration-200">
+            <button 
+              onClick={() => setShowAvatarModal(false)}
+              className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-600 rounded-full bg-slate-50"
+            >
+              <X size={18} />
+            </button>
+            <h3 className="text-lg font-bold text-slate-800 mb-2">Change Avatar</h3>
+            <p className="text-xs text-slate-500 mb-6">Masukkan link gambar avatar baru Anda (URL langsung gambar).</p>
+            
+            <input 
+              type="text" 
+              placeholder="https://example.com/avatar.jpg"
+              id="avatarUrlInput"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium mb-4 focus:outline-none focus:ring-2 focus:ring-[#10b981]/20"
+            />
+            
+            <button 
+              onClick={async () => {
+                const inputVal = (document.getElementById('avatarUrlInput') as HTMLInputElement)?.value;
+                if (!inputVal) return;
+                try {
+                  const { error } = await supabase.from('profiles').update({ avatar_url: inputVal }).eq('id', userProfile.id);
+                  if (error) throw error;
+                  setUserProfile({ ...userProfile, avatar_url: inputVal });
+                  setShowAvatarModal(false);
+                  alert('Avatar updated successfully!');
+                } catch (err: any) {
+                  alert('Failed to update avatar: ' + err.message);
+                }
+              }}
+              className="w-full py-3.5 bg-[#10b981] hover:bg-[#059669] text-white text-sm font-bold rounded-2xl transition-all shadow-md shadow-emerald-500/20"
+            >
+              Save Avatar
+            </button>
           </div>
         </div>
       )}
-
-      {showAvatarModal && (
-        <Suspense fallback="{null}">
-          <AvatarModal currentAvatar="{userProfile?.avatar_url}" onClose="{()"> setShowAvatarModal(false)}
-            onSelectAvatar={handleUpdateAvatar} 
-          />
-        </Suspense>
-      )}
-
-      {showAddModal && (
-        <Suspense fallback="{null}">
-          <PostModal onClose="{()"> setShowAddModal(false)}
-            onSuccess={() => {
-              fetchUserData(false);
-              if (userProfile?.is_admin) fetchAllBatches();
-              setShowAddModal(false);
-            }}
-            currentUser={activeUsername || ''}
-            showToast={handleShowToast}
-            CATEGORIES={CATEGORIES}
-          />
-        </Suspense>
-      )}
-
-      {showLoginModal && (
-        <Suspense fallback="{null}">
-          <LoginModal onClose="{()"> setShowLoginModal(false)}
-            onSuccess={() => {
-              fetchUserData(false);
-              setShowLoginModal(false);
-            }}
-            showToast={handleShowToast}
-          />
-        </Suspense>
-      )}
-
-      <Toast isVisible="{toastConfig.isVisible}" message="{toastConfig.message}" type="{toastConfig.type}"/>
     </div>
   );
 }
