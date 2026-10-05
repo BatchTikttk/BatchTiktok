@@ -169,7 +169,7 @@ const fetchApprovedBatches = async () => {
 };
 
 // PERBAIKAN 3: Destrukturisasi props dari App.tsx (isUserPremium, onOpenUpgradeModal, dll)
-export default function Home({ onCheckAccess, isUserPremium, onOpenUpgradeModal }: HomeProps) {
+export default function Home({ isUserPremium, onOpenUpgradeModal }: HomeProps) { 
   // 3. Integrasi SWR (Deduping interval diubah ke 10 menit)
   const { data: batches = [], mutate, error: swrError } = useSWR('approved_batches', fetchApprovedBatches, {
     dedupingInterval: 600000, 
