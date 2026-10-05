@@ -53,14 +53,14 @@ const BORDER_COLLECTION: BorderItem[] = [
     id: `border-${index + 1}`,
     name: filename,
     imageUrl: url,
-    requiredProgress: (index + 1) * 10 // Kelipatan 10 upload (10, 20, 30, dst)
+    requiredProgress: (index + 1) * 10 // Kelipatan 10 upload
   };
 });
 
 interface AnimationBorderProps {
-  userProgress?: number; // Total upload video user saat ini
+  userProgress?: number;
   equippedBorderUrl?: string | null;
-  userAvatarUrl?: string | null; // Properti baru untuk menerima foto avatar pengguna
+  userAvatarUrl?: string | null;
   onSelectBorder?: (borderUrl: string | null) => void;
 }
 
@@ -139,9 +139,9 @@ const AnimationBorder = ({
                   </div>
                 )}
 
-                {/* Preview Avatar & Border (Proporsional 1:1, Max size disesuaikan agar tidak kebesaran) */}
+                {/* Preview Avatar & Border (Proporsional 1:1) */}
                 <div className="relative w-24 h-24 sm:w-28 sm:h-28 my-2 flex items-center justify-center aspect-square">
-                  {/* Gambar Animasi Border Original 288x288 px */}
+                  {/* Gambar Animasi Border Original */}
                   <img
                     src={border.imageUrl}
                     alt={border.name}
@@ -150,13 +150,13 @@ const AnimationBorder = ({
                     }`}
                   />
 
-                  {/* Placeholder Avatar Lingkaran di Tengah (Sekarang menampilkan foto avatar jika ada) */}
-                  <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center text-slate-400 text-xs font-bold">
+                  {/* FOTO AVATAR KARAKTER: Ukuran diperbesar ke 85% & di-zoom dengan scale-125 */}
+                  <div className="w-[85%] h-[85%] rounded-full bg-slate-200 overflow-hidden flex items-center justify-center text-slate-400 text-xs font-bold">
                     {userAvatarUrl ? (
                       <img
                         src={userAvatarUrl}
                         alt="User Avatar"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover scale-125"
                       />
                     ) : (
                       <span>User</span>
@@ -211,4 +211,3 @@ const AnimationBorder = ({
 };
 
 export default AnimationBorder;
-
