@@ -14,9 +14,8 @@ export const VIP_BORDERS = [
 
 export default function AvatarBorderVip({ 
   borderUrl, 
-  // Menggunakan top-1/2 dan left-1/2 dikombinasikan dengan translate agar titik pusat bingkai benar-benar di tengah
-  // max-w-none mencegah bingkai terdistorsi oleh batasan ukuran parent
-  className = "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[52%] w-[135%] h-[135%] max-w-none pointer-events-none z-20 object-contain" 
+  // Ukuran diperkecil ke 120% agar lebih pas/zoom-out sedikit, posisi presisi tetap dipertahankan
+  className = "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[52%] w-[120%] h-[120%] max-w-none pointer-events-none z-20 object-contain" 
 }: AvatarBorderVipProps) {
   if (!borderUrl) return null;
 
