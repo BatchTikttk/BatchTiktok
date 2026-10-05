@@ -28,12 +28,14 @@ import {
   MousePointerClick,
   Send,
   Crown,
-  Link2
+  Link2,
+  Trophy // Tambahan icon Trophy untuk tab Progress
 } from 'lucide-react';
 import { EmeraldFolderIcon } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import AvatarBorderVip, { VIP_BORDERS } from '../components/AvatarBorderVip';
+import AnimationBorder from '../components/AnimationBorder'; // Import komponen Animation Border
 
 // Lazy load heavy components
 const PostModal = lazy(() => import('../components/PostModal'));
@@ -147,7 +149,8 @@ export default function Profile({
   const [usernameInput, setUsernameInput] = useState('');
   const [updatingUsername, setUpdatingUsername] = useState(false);
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'request' | 'settings' | 'admin'>('overview');
+  // Penambahan 'progress' ke dalam union type activeTab
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'request' | 'settings' | 'admin' | 'progress'>('overview');
   const [collectionSearchQuery, setCollectionSearchQuery] = useState('');
   
   const [adminStatusFilter, setAdminStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
@@ -227,7 +230,7 @@ export default function Profile({
       }
       
       if (cachedProfile && cachedBatches) {
-        setLoading(false); // SWR: Tampilkan cache langsung, loading screen di bypass
+        setLoading(false); 
       } else {
         setLoading(true);
       }
@@ -377,7 +380,6 @@ export default function Profile({
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
-    // Toggle border: jika diklik ulang maka lepas border
     const newBorderUrl = userProfile?.vip_border_url === borderUrl ? null : borderUrl;
 
     const { error } = await supabase
@@ -386,11 +388,28 @@ export default function Profile({
       .eq('id', session.user.id);
 
     if (error) {
-      // Tampilkan error spesifik dari Supabase
       handleShowToast(`Gagal: ${error.message}`, "error");
     } else {
       setUserProfile((prev: any) => ({ ...prev, vip_border_url: newBorderUrl }));
       handleShowToast(newBorderUrl ? "Bingkai VIP berhasil dipasang!" : "Bingkai VIP dilepas!", "success");
+    }
+  };
+
+  // Fungsi Memilih / Melepas Animation Border Umum
+  const handleSelectAnimationBorder = async (borderUrl: string | null) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ animation_border_url: borderUrl })
+      .eq('id', session.user.id);
+
+    if (error) {
+      handleShowToast(`Gagal: ${error.message}`, "error");
+    } else {
+      setUserProfile((prev: any) => ({ ...prev, animation_border_url: borderUrl }));
+      handleShowToast(borderUrl ? "Animasi Border berhasil dipasang!" : "Animasi Border dilepas!", "success");
     }
   };
 
@@ -624,13 +643,19 @@ export default function Profile({
                     )}
                   </div>
 
-                  {/* Panggilan AvatarBorderVip */}
-                  {userProfile?.is_premium && (
+                  {/* Prioritas: VIP Border -> Jika tidak ada, tampilkan Animation Border (Umum) */}
+                  {userProfile?.is_premium && userProfile?.vip_border_url ? (
                     <AvatarBorderVip 
                       isPremium={userProfile?.is_premium} 
                       borderUrl={userProfile?.vip_border_url} 
                     />
-                  )}
+                  ) : userProfile?.animation_border_url ? (
+                    <img 
+                      src={userProfile.animation_border_url} 
+                      alt="Animation Border" 
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[125%] h-[125%] max-w-none object-contain z-20 pointer-events-none transition-all duration-300 group-hover:scale-105" 
+                    />
+                  ) : null}
                 </div>
 
                 <div className="flex flex-col items-center w-full mt-2">
@@ -689,6 +714,17 @@ export default function Profile({
                   <FolderHeart size={18} className={activeTab === 'collections' ? 'text-[#10b981]' : ''} /> 
                   Collections
                   <div className="ml-auto w-2 h-2 rounded-full bg-[#f97316]"></div>
+                </button>
+                
+                {/* TAB PROGRESS / ANIMATION BORDER */}
+                <button
+                  onClick={() => setActiveTab('progress')}
+                  className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
+                    activeTab === 'progress' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                  }`}
+                >
+                  <Trophy size={18} className={activeTab === 'progress' ? 'text-[#10b981]' : ''} /> 
+                  Progress
                 </button>
                 
                 <button
@@ -996,6 +1032,23 @@ export default function Profile({
                 </div>
               )}
               
+              {/* === TAB PROGRESS (ANIMATION BORDER) === */}
+              {activeTab === 'progress' && (
+                <div className="animate-in fade-in duration-300">
+                  <div className="mb-8">
+                    <h2 className="text-xl font-bold text-slate-800">Progress & Achievement</h2>
+                    <p className="text-xs text-slate-500 mt-1">Kumpulkan dan lengkapi border animasi Anda berdasarkan total upload video.</p>
+                  </div>
+                  
+                  {/* Memanggil Komponen Animation Border */}
+                  <AnimationBorder 
+                    userProgress={stats.totalUploads} 
+                    equippedBorderUrl={userProfile?.animation_border_url} 
+                    onSelectBorder={handleSelectAnimationBorder} 
+                  />
+                </div>
+              )}
+
               {activeTab === 'request' && (
                 <div className="animate-in fade-in duration-300">
                   <div className="mb-8">
@@ -1028,13 +1081,19 @@ export default function Profile({
                         )}
                       </div>
                       
-                      {/* Avatar Border Preview */}
-                      {userProfile?.is_premium && (
+                      {/* Avatar Border Preview (Mengutamakan VIP Border dibanding Animation Border umum) */}
+                      {userProfile?.is_premium && userProfile?.vip_border_url ? (
                         <AvatarBorderVip 
                           isPremium={userProfile?.is_premium} 
                           borderUrl={userProfile?.vip_border_url} 
                         />
-                      )}
+                      ) : userProfile?.animation_border_url ? (
+                        <img 
+                          src={userProfile.animation_border_url} 
+                          alt="Animation Border" 
+                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[125%] h-[125%] max-w-none object-contain z-20 pointer-events-none" 
+                        />
+                      ) : null}
                     </div>
 
                     <div className="text-center sm:text-left space-y-3">
@@ -1533,14 +1592,25 @@ export default function Profile({
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Google Drive Link</label>
                   <input type="url" name="gdrive_url" value={editingBatch.gdrive_url || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
                 </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">TeraBox Link</label>
+                  <input type="url" name="terabox_url" value={editingBatch.terabox_url || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Preview Video Link</label>
+                  <input type="url" name="video_url" value={editingBatch.video_url || ''} onChange={handleEditChange} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] text-sm font-medium" />
+                </div>
               </div>
 
-              <div className="mt-8 pt-5 flex justify-end gap-3">
-                <button type="button" onClick={() => setEditingBatch(null)} className="px-6 py-3 rounded-full font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors text-xs">
+              <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-slate-100 sticky bottom-0 bg-white">
+                <button type="button" onClick={() => setEditingBatch(null)} className="px-6 py-3 rounded-2xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-colors">
                   Cancel
                 </button>
-                <button type="submit" disabled={isUpdatingBatch} className="px-6 py-3 rounded-full font-bold text-white bg-[#10b981] hover:bg-[#059669] transition-colors flex items-center gap-2 disabled:opacity-70 shadow-md shadow-emerald-500/20 text-xs">
-                  {isUpdatingBatch ? "Saving..." : <><Save size={16} /> Save</>}
+                <button type="submit" disabled={isUpdatingBatch} className="px-8 py-3 rounded-2xl text-sm font-bold text-white bg-[#10b981] hover:bg-[#059669] disabled:opacity-50 transition-colors shadow-lg shadow-emerald-500/30 flex items-center gap-2">
+                  {isUpdatingBatch ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                  Save Changes
                 </button>
               </div>
             </form>
@@ -1548,44 +1618,18 @@ export default function Profile({
         </div>
       )}
 
-      {showAvatarModal && (
-        <Suspense fallback={null}>
-          <AvatarModal 
-            currentAvatar={userProfile?.avatar_url} 
+      {/* Upload/Login Modals (Lazy Loaded) */}
+      <Suspense fallback={null}>
+        {showAddModal && <PostModal onClose={() => setShowAddModal(false)} />}
+        {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
+        {showAvatarModal && (
+          <AvatarModal
             onClose={() => setShowAvatarModal(false)}
-            onSelectAvatar={handleUpdateAvatar} 
+            onSelect={handleUpdateAvatar}
+            currentAvatarUrl={userProfile?.avatar_url}
           />
-        </Suspense>
-      )}
-
-      {showAddModal && (
-        <Suspense fallback={null}>
-          <PostModal 
-            onClose={() => setShowAddModal(false)}
-            onSuccess={() => {
-              fetchUserData(false);
-              if (userProfile?.is_admin) fetchAllBatches();
-              setShowAddModal(false);
-            }}
-            currentUser={activeUsername || ''}
-            showToast={handleShowToast}
-            CATEGORIES={CATEGORIES}
-          />
-        </Suspense>
-      )}
-
-      {showLoginModal && (
-        <Suspense fallback={null}>
-          <LoginModal 
-            onClose={() => setShowLoginModal(false)}
-            onSuccess={() => {
-              fetchUserData(false);
-              setShowLoginModal(false);
-            }}
-            showToast={handleShowToast}
-          />
-        </Suspense>
-      )}
+        )}
+      </Suspense>
 
       <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
     </div>
