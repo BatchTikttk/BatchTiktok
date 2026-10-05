@@ -4,7 +4,6 @@ import {
   Scale, BarChart2, Home, Globe, Trophy, Crown 
 } from 'lucide-react';
 import { supabase } from '../supabase';
-import AvatarBorderVip from './AvatarBorderVip'; // Import komponen border VIP
 
 // Komponen helper untuk menampilkan bendera di Navbar
 const RegionFlag = ({ country, className = "w-4 h-4" }: { country: string, className?: string }) => {
@@ -77,6 +76,7 @@ const RegionFlag = ({ country, className = "w-4 h-4" }: { country: string, class
   );
 };
 
+// Mendefinisikan tipe data (TypeScript Interface) dengan benar agar Deploy tidak gagal
 interface NavbarProps {
   activeCategory?: string;
   setActiveCategory: (category: string) => void;
@@ -113,8 +113,6 @@ export default function Navbar({
   const [isRegionOpen, setIsRegionOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isPremium, setIsPremium] = useState<boolean>(false);
-  const [vipBorderUrl, setVipBorderUrl] = useState<string | null>(null);
-  const [animationBorderUrl, setAnimationBorderUrl] = useState<string | null>(null);
 
   const regions = CATEGORIES.filter((c: string) => c !== 'Home');
 
@@ -137,8 +135,6 @@ export default function Navbar({
       if (!session) {
         setAvatarUrl(null);
         setIsPremium(false);
-        setVipBorderUrl(null);
-        setAnimationBorderUrl(null);
         return;
       }
 
@@ -146,15 +142,13 @@ export default function Navbar({
 
       const { data } = await supabase
         .from('profiles')
-        .select('avatar_url, is_premium, vip_border_url, animation_border_url')
+        .select('avatar_url, is_premium')
         .eq('id', userId)
         .single();
 
       if (data) {
         if (data.avatar_url) setAvatarUrl(data.avatar_url);
         if (data.is_premium !== undefined) setIsPremium(data.is_premium);
-        if (data.vip_border_url !== undefined) setVipBorderUrl(data.vip_border_url);
-        if (data.animation_border_url !== undefined) setAnimationBorderUrl(data.animation_border_url);
       }
 
       channel = supabase
@@ -169,11 +163,12 @@ export default function Navbar({
           },
           (payload) => {
             if (payload.new) {
-              const newData = payload.new as any;
-              if (newData.avatar_url) setAvatarUrl(newData.avatar_url);
-              if (newData.is_premium !== undefined) setIsPremium(newData.is_premium);
-              if (newData.vip_border_url !== undefined) setVipBorderUrl(newData.vip_border_url);
-              if (newData.animation_border_url !== undefined) setAnimationBorderUrl(newData.animation_border_url);
+              if ((payload.new as any).avatar_url) {
+                setAvatarUrl((payload.new as any).avatar_url);
+              }
+              if ((payload.new as any).is_premium !== undefined) {
+                setIsPremium((payload.new as any).is_premium);
+              }
             }
           }
         )
@@ -349,32 +344,15 @@ export default function Navbar({
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="px-4 py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold text-slate-600 flex items-center gap-2.5 transition-all border-none cursor-pointer"
                 >
-                  <div className="relative w-7 h-7 flex-shrink-0 flex items-center justify-center">
-                    <div className="w-full h-full rounded-full bg-emerald-50 text-emerald-600 overflow-hidden flex items-center justify-center relative z-10">
-                      {avatarUrl ? (
-                        <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-                      ) : typeof currentUser === 'object' && currentUser?.user_metadata?.avatar_url ? (
-                        <img src={currentUser.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                      ) : (
-                        <User size={18} />
-                      )}
-                    </div>
-
-                    {/* Rendering Border VIP atau Animation Border di Navbar */}
-                    {isPremium && vipBorderUrl ? (
-                      <AvatarBorderVip 
-                        isPremium={isPremium} 
-                        borderUrl={vipBorderUrl} 
-                      />
-                    ) : animationBorderUrl ? (
-                      <img 
-                        src={animationBorderUrl} 
-                        alt="Animated Border" 
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] max-w-none object-contain z-20 pointer-events-none drop-shadow-sm" 
-                      />
-                    ) : null}
+                  <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                    ) : typeof currentUser === 'object' && currentUser?.user_metadata?.avatar_url ? (
+                      <img src={currentUser.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={18} />
+                    )}
                   </div>
-
                   <span>@{displayUser}</span>
                   <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -439,4 +417,120 @@ export default function Navbar({
             )}
 
             <button 
-              className="md:hidden p-2.5 text-slate-500 hover:text-slate-8
+              className="md:hidden p-2.5 text-slate-500 hover:text-slate-800 bg-white rounded-xl shadow-sm border-none cursor-pointer z-50"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {isMobileMenuOpen && (
+        <div className="md:hidden absolute top-20 left-0 right-0 bg-white mx-4 mt-2 p-4 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex flex-col gap-2 border-none z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+          
+          <button
+            onClick={() => handleGoToHome('Home')}
+            className={`px-4 py-3 rounded-2xl text-left text-sm font-bold transition-all border-none cursor-pointer flex items-center gap-2 ${
+              activeCategory === 'Home' && window.location.pathname === '/'
+                ? 'bg-emerald-50 text-emerald-600' 
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <Home size={18} />
+            Home
+          </button>
+
+          <div className="flex flex-col gap-1 px-2 pt-1 pb-1">
+            <span className="px-2 py-1 text-[11px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><Globe size={12} /> Region</span>
+            {regions.map((region: string) => (
+              <button
+                key={region}
+                onClick={() => handleGoToHome(region)}
+                className={`px-4 py-2.5 rounded-2xl text-left text-sm font-bold transition-all border-none cursor-pointer flex items-center gap-2.5 ${
+                  activeCategory === region && window.location.pathname === '/'
+                    ? 'bg-emerald-50 text-emerald-600' 
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                }`}
+              >
+                <RegionFlag country={region} className="w-5 h-5" />
+                {region}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={handleGoToTopContributors}
+            className={`px-4 py-3 rounded-2xl text-left text-sm font-bold transition-all border-none cursor-pointer flex items-center gap-2 ${
+              isTopContributorsActive
+                ? 'bg-emerald-50 text-emerald-600' 
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <Trophy size={18} />
+            Top Contributors
+          </button>
+
+          <div className="border-t border-slate-100 mt-2 pt-2 flex flex-col gap-2">
+            <button 
+              onClick={handleGoToRules} 
+              className={`px-4 py-3 flex items-center gap-2 text-left text-sm font-bold hover:bg-slate-50 transition-colors rounded-2xl border-none bg-transparent cursor-pointer ${
+                isRulesActive ? 'text-emerald-600 bg-emerald-50' : 'text-slate-600'
+              }`}
+            >
+              <Scale size={18} className="text-emerald-500" /> Posting Rules
+            </button>
+
+            {currentUser ? (
+              <>
+                <div className="px-4 py-2 mb-1 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={20} />
+                    )}
+                  </div>
+                  <div>
+                    <span className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Signed in as</span>
+                    <span className="block text-sm font-bold text-slate-800">@{displayUser}</span>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={handleGoToProfile}
+                  className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-colors rounded-2xl border-none bg-transparent cursor-pointer"
+                >
+                  <BarChart2 size={18} /> User Profile
+                </button>
+
+                <button 
+                  onClick={handleGoToUpgrade}
+                  className={`px-4 py-3 flex items-center gap-2 text-left text-sm font-bold transition-colors rounded-2xl border-none bg-transparent cursor-pointer ${
+                    isPremium ? 'text-amber-600 bg-amber-50/60' : 'text-amber-500 hover:bg-amber-50'
+                  }`}
+                >
+                  <Crown size={18} /> {isPremium ? 'VIP User' : 'Upgrade VIP'}
+                </button>
+
+                <button onClick={() => {setShowAddModal(true); setIsMobileMenuOpen(false);}} className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors rounded-2xl border-none cursor-pointer">
+                  <Plus size={18} /> Add New Collection
+                </button>
+
+                <div className="border-t border-slate-100 my-1"></div>
+
+                <button onClick={() => {handleLogout(); setIsMobileMenuOpen(false);}} className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-red-500 hover:bg-red-50 transition-colors rounded-2xl border-none cursor-pointer">
+                  <LogOut size={18} /> Logout
+                </button>
+              </>
+            ) : (
+              <button onClick={() => {setShowLoginModal(true); setIsMobileMenuOpen(false);}} className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-emerald-600 hover:bg-emerald-50 rounded-2xl transition-colors border-none cursor-pointer">
+                <LogIn size={18} /> Sign In
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+}
