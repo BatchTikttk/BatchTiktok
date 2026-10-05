@@ -14,8 +14,8 @@ export const VIP_BORDERS = [
 
 export default function AvatarBorderVip({ 
   borderUrl, 
-  // Ukuran diperkecil ke 120% agar lebih pas/zoom-out sedikit, posisi presisi tetap dipertahankan
-  className = "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[52%] w-[120%] h-[120%] max-w-none pointer-events-none z-20 object-contain" 
+  // Ukuran diperbesar ke 145% agar lingkaran dalam border pas berada di luar tepi foto avatar
+  className = "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[52%] w-[145%] h-[145%] max-w-none pointer-events-none z-20 object-contain" 
 }: AvatarBorderVipProps) {
   if (!borderUrl) return null;
 
