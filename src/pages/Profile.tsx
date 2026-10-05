@@ -391,7 +391,7 @@ export default function Profile({
       handleShowToast(`Gagal: ${error.message}`, "error");
     } else {
       setUserProfile((prev: any) => ({ ...prev, vip_border_url: newBorderUrl }));
-      handleShowToast(newBorderUrl ? "Bingkai VIP berhasil dipasang!" : "Bingkai VIP dilepas!", "success");
+      handleShowToast(newBorderUrl ? "VIP frame successfully applied.!" : "VIP frame removed!", "success");
     }
   };
 
