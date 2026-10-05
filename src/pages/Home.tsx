@@ -27,11 +27,10 @@ interface CreatorCardProps {
   data: any;
   onOpenPreview: (item: any) => void;
   uploaderCount: number;
-  onCheckAccess: (isExclusive: boolean, uploadedBy: string, onSuccess: () => void) => void;
 }
 
 interface HomeProps {
-  onCheckAccess: (isExclusive: boolean, uploadedBy: string, onSuccess: () => void) => void;
+  // onCheckAccess dihapus dari props utama karena tidak lagi membatasi klik preview folder
 }
 
 const Toast = ({ message, isVisible, type = 'success' }: ToastProps) => (
@@ -41,7 +40,7 @@ const Toast = ({ message, isVisible, type = 'success' }: ToastProps) => (
   </div>
 );
 
-const CreatorCard = ({ data, onOpenPreview, uploaderCount, onCheckAccess }: CreatorCardProps) => {
+const CreatorCard = ({ data, onOpenPreview, uploaderCount }: CreatorCardProps) => {
   const getAchievementBadge = (count: number) => {
     if (data.uploader_is_admin) return null; 
     
@@ -58,7 +57,7 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, onCheckAccess }: Crea
 
   return (
     <div 
-      onClick={() => onCheckAccess(data.is_exclusive, data.uploaded_by, () => onOpenPreview(data))} 
+      onClick={() => onOpenPreview(data)} 
       className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative"
     >
       <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
@@ -165,7 +164,7 @@ const fetchApprovedBatches = async () => {
   });
 };
 
-export default function Home({ onCheckAccess }: HomeProps) {
+export default function Home({}: HomeProps) {
   // 3. Integrasi SWR (Deduping interval diubah ke 10 menit)
   const { data: batches = [], mutate, error: swrError } = useSWR('approved_batches', fetchApprovedBatches, {
     dedupingInterval: 600000, // Caching 10 menit (10 * 60 * 1000 ms)
@@ -467,7 +466,6 @@ export default function Home({ onCheckAccess }: HomeProps) {
                     data={batch} 
                     onOpenPreview={setPreviewItem} 
                     uploaderCount={uploaderCounts[batch.uploaded_by] || 0} 
-                    onCheckAccess={onCheckAccess}
                   />
                 ))
               ) : (
@@ -541,7 +539,7 @@ export default function Home({ onCheckAccess }: HomeProps) {
         {showAddModal && (
           <PostModal 
             onClose={() => setShowAddModal(false)}
-            onSuccess={() => mutate()} // Cukup trigger mutate SWR
+            onSuccess={() => mutate()} 
             currentUser={currentUser}
             showToast={showToast}
             CATEGORIES={CATEGORIES}

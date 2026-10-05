@@ -1,21 +1,30 @@
 import { useState, useEffect } from 'react';
-import { X, Cloud, Box, Download, User, Volume2, VolumeX, Crown } from 'lucide-react';
+import { X, Cloud, Box, Download, User, Volume2, VolumeX, Crown, Lock } from 'lucide-react';
 import { EmeraldFolderIcon } from './SharedIcons'; 
 import { supabase } from '../supabase';
 
 const MOCK_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
 const BANNED_LOGO_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/BannedLogo.webp";
 
-// Interface TypeScript menggunakan any agar fleksibel dan tidak error saat build
 interface PreviewModalProps {
   item: any;
   onClose: () => void;
   onDownload: (source: string, url: string, id: any) => void;
   uploaderCount?: number;
   onSelectCreator?: (creatorName: string) => void;
+  isUserPremium?: boolean;
+  onOpenUpgradeModal?: () => void;
 }
 
-const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCreator }: PreviewModalProps) => {
+const PreviewModal = ({ 
+  item, 
+  onClose, 
+  onDownload, 
+  uploaderCount = 0, 
+  onSelectCreator,
+  isUserPremium = false,
+  onOpenUpgradeModal
+}: PreviewModalProps) => {
   const [isMuted, setIsMuted] = useState<boolean>(true);
   
   const [uploaderAvatar, setUploaderAvatar] = useState<string | null>(
@@ -37,7 +46,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
 
   const badge = getAchievementBadge(uploaderCount);
 
-  // Handler navigasi ke Halaman Detail Kreator
   const handleCreatorClick = (creatorName?: string) => {
     const targetName = creatorName || item?.username || item?.uploaded_by;
     if (!targetName) return;
@@ -52,7 +60,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
     }
   };
 
-  // Handler klik download untuk insert ke download_count
   const handleDownloadClick = async (source: string, url: string, id: any) => {
     onDownload(source, url, id);
     
@@ -116,8 +123,11 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
         if (profileData.avatar_url !== undefined) setUploaderAvatar(profileData.avatar_url);
         if (profileData.is_admin !== undefined) setUploaderIsAdmin(profileData.is_admin);
 
+        // PERBAIKAN: Gunakan nama channel yang unik untuk menghindari error 'already subscribed'
+        const uniqueChannelName = `profile_${profileData.id}_${Date.now()}`;
+        
         channel = supabase
-          .channel(`public:profiles:uploader_${profileData.id}`)
+          .channel(uniqueChannelName)
           .on(
             'postgres_changes',
             {
@@ -169,11 +179,9 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
 
   const tikTokEmbedUrl = isTikTokLink ? getTikTokEmbedUrl(videoUrl) : null;
   
-  // Smart logic untuk sinkronisasi link exclusive_url & download_url tanpa merubah struktur UI
   let finalGdriveLink = item.gdrive_url || '';
   let finalTeraboxLink = item.terabox_url || '';
 
-  // Fallback map data exclusive_url atau download_url jika terisi dari database
   if (item.is_exclusive && item.exclusive_url) {
     if (item.exclusive_url.includes('drive.google')) finalGdriveLink = item.exclusive_url;
     else if (item.exclusive_url.includes('tera')) finalTeraboxLink = item.exclusive_url;
@@ -186,6 +194,8 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
 
   const hasGdrive = Boolean(finalGdriveLink && finalGdriveLink.trim() !== '');
   const hasTerabox = Boolean(finalTeraboxLink && finalTeraboxLink.trim() !== '');
+
+  const isLocked = item.is_exclusive && !isUserPremium;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
@@ -250,7 +260,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
         <div className="flex-1 p-6 sm:p-8 flex flex-col bg-white overflow-y-auto">
           <div className="mb-6 flex items-start gap-4">
             
-            {/* Folder Container - Otomatis ganti warna & memakai mahkota jika is_exclusive */}
             <div 
               className="flex-shrink-0 pt-1 relative drop-shadow-sm" 
               title={item.is_exclusive ? "TikTok Exclusive Collection" : ""}
@@ -293,7 +302,6 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
                 
                 <span className="text-slate-300 text-sm">•</span>
                 
-                {/* Area uploader yang dapat diklik untuk navigasi */}
                 <div 
                   onClick={() => handleCreatorClick(item.uploaded_by || item.username)}
                   className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 cursor-pointer hover:opacity-80 transition-opacity"
@@ -374,53 +382,88 @@ const PreviewModal = ({ item, onClose, onDownload, uploaderCount = 0, onSelectCr
 
           <div className="mt-auto">
             <h3 className="text-sm font-bold text-slate-700 mb-3">Official Download Mirrors</h3>
-            <div className="space-y-3">
-              <button 
-                disabled={!hasGdrive}
-                onClick={() => hasGdrive && handleDownloadClick('Google Drive', finalGdriveLink, item.id)} 
-                className={`w-full p-4 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] transition-all flex items-center justify-between border border-slate-100 ${hasGdrive ? 'bg-white hover:bg-blue-50/50 hover:shadow-md group cursor-pointer' : 'bg-slate-50 opacity-60 cursor-not-allowed grayscale'}`}
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className={`p-2.5 rounded-xl transition-colors ${hasGdrive ? 'bg-blue-50 text-blue-500 group-hover:bg-blue-500 group-hover:text-white' : 'bg-slate-200 text-slate-400'}`}>
-                    <Cloud size={22} />
-                  </div>
-                  <div className="text-left">
-                    <div className={`font-bold transition-colors ${hasGdrive ? 'text-slate-800 group-hover:text-blue-600' : 'text-slate-500'}`}>Google Drive</div>
-                    <div className="text-xs text-slate-400 font-medium">
-                      {hasGdrive 
-                        ? (item.is_exclusive ? 'Exclusive Direct Link • VIP Speed' : 'High Speed • Single ZIP Archive') 
-                        : 'Link Unavailable'}
+            
+            {isLocked ? (
+              <div className="w-full p-5 rounded-2xl bg-gradient-to-br from-slate-50 to-amber-50/50 border border-amber-200/60 flex items-center justify-between shadow-[0_4px_15px_rgb(0,0,0,0.02)] relative overflow-hidden group">
+                <div className="flex flex-col z-10">
+                  <span className="text-sm font-bold text-slate-800">Premium Access Required</span>
+                  <span className="text-xs text-slate-500 mt-1">Upgrade to premium to access this file</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      
+                      // Buka modal upgrade di parent component
+                      if (onOpenUpgradeModal) {
+                        onOpenUpgradeModal();
+                      }
+                      
+                      // Beri sedikit jeda waktu sebelum menutup PreviewModal
+                      // agar State di Parent Component sempat terupdate
+                      setTimeout(() => {
+                        if (onClose) onClose();
+                      }, 50);
+                    }}
+                    className="mt-3.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg transition-colors w-max shadow-sm cursor-pointer z-20 relative pointer-events-auto"
+                  >
+                    Upgrade Now
+                  </button>
+                </div>
+                {/* Ikon Gembok (Lock) di sisi kanan */}
+                <div className="absolute right-6 z-0 transition-transform group-hover:scale-110 duration-300">
+                  <Lock size={48} className="text-amber-500/20" strokeWidth={1.5} />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <button 
+                  disabled={!hasGdrive}
+                  onClick={() => hasGdrive && handleDownloadClick('Google Drive', finalGdriveLink, item.id)} 
+                  className={`w-full p-4 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] transition-all flex items-center justify-between border border-slate-100 ${hasGdrive ? 'bg-white hover:bg-blue-50/50 hover:shadow-md group cursor-pointer' : 'bg-slate-50 opacity-60 cursor-not-allowed grayscale'}`}
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className={`p-2.5 rounded-xl transition-colors ${hasGdrive ? 'bg-blue-50 text-blue-500 group-hover:bg-blue-500 group-hover:text-white' : 'bg-slate-200 text-slate-400'}`}>
+                      <Cloud size={22} />
+                    </div>
+                    <div className="text-left">
+                      <div className={`font-bold transition-colors ${hasGdrive ? 'text-slate-800 group-hover:text-blue-600' : 'text-slate-500'}`}>Google Drive</div>
+                      <div className="text-xs text-slate-400 font-medium">
+                        {hasGdrive 
+                          ? (item.is_exclusive ? 'Exclusive Direct Link • VIP Speed' : 'High Speed • Single ZIP Archive') 
+                          : 'Link Unavailable'}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className={`p-2 rounded-xl transition-all ${hasGdrive ? 'bg-slate-50 text-slate-400 group-hover:bg-blue-500 group-hover:text-white' : 'bg-slate-200 text-slate-400'}`}>
-                  <Download size={18} />
-                </div>
-              </button>
+                  <div className={`p-2 rounded-xl transition-all ${hasGdrive ? 'bg-slate-50 text-slate-400 group-hover:bg-blue-500 group-hover:text-white' : 'bg-slate-200 text-slate-400'}`}>
+                    <Download size={18} />
+                  </div>
+                </button>
 
-              <button 
-                disabled={!hasTerabox}
-                onClick={() => hasTerabox && handleDownloadClick('TeraBox', finalTeraboxLink, item.id)} 
-                className={`w-full p-4 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] transition-all flex items-center justify-between border border-slate-100 ${hasTerabox ? 'bg-white hover:bg-cyan-50/50 hover:shadow-md group cursor-pointer' : 'bg-slate-50 opacity-60 cursor-not-allowed grayscale'}`}
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className={`p-2.5 rounded-xl transition-colors ${hasTerabox ? 'bg-cyan-50 text-cyan-600 group-hover:bg-cyan-500 group-hover:text-white' : 'bg-slate-200 text-slate-400'}`}>
-                    <Box size={22} />
-                  </div>
-                  <div className="text-left">
-                    <div className={`font-bold transition-colors ${hasTerabox ? 'text-slate-800 group-hover:text-cyan-600' : 'text-slate-500'}`}>TeraBox Cloud</div>
-                    <div className="text-xs text-slate-400 font-medium">
-                      {hasTerabox 
-                        ? (item.is_exclusive ? 'Exclusive Direct Link • VIP Speed' : 'Unlimited Cloud Mirror • Free Download') 
-                        : 'Link Unavailable'}
+                <button 
+                  disabled={!hasTerabox}
+                  onClick={() => hasTerabox && handleDownloadClick('TeraBox', finalTeraboxLink, item.id)} 
+                  className={`w-full p-4 rounded-2xl shadow-[0_4px_15px_rgb(0,0,0,0.02)] transition-all flex items-center justify-between border border-slate-100 ${hasTerabox ? 'bg-white hover:bg-cyan-50/50 hover:shadow-md group cursor-pointer' : 'bg-slate-50 opacity-60 cursor-not-allowed grayscale'}`}
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className={`p-2.5 rounded-xl transition-colors ${hasTerabox ? 'bg-cyan-50 text-cyan-600 group-hover:bg-cyan-500 group-hover:text-white' : 'bg-slate-200 text-slate-400'}`}>
+                      <Box size={22} />
+                    </div>
+                    <div className="text-left">
+                      <div className={`font-bold transition-colors ${hasTerabox ? 'text-slate-800 group-hover:text-cyan-600' : 'text-slate-500'}`}>TeraBox Cloud</div>
+                      <div className="text-xs text-slate-400 font-medium">
+                        {hasTerabox 
+                          ? (item.is_exclusive ? 'Exclusive Direct Link • VIP Speed' : 'Unlimited Cloud Mirror • Free Download') 
+                          : 'Link Unavailable'}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className={`p-2 rounded-xl transition-all ${hasTerabox ? 'bg-slate-50 text-slate-400 group-hover:bg-cyan-500 group-hover:text-white' : 'bg-slate-200 text-slate-400'}`}>
-                  <Download size={18} />
-                </div>
-              </button>
-            </div>
+                  <div className={`p-2 rounded-xl transition-all ${hasTerabox ? 'bg-slate-50 text-slate-400 group-hover:bg-cyan-500 group-hover:text-white' : 'bg-slate-200 text-slate-400'}`}>
+                    <Download size={18} />
+                  </div>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
