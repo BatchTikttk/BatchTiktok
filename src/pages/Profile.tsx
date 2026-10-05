@@ -1042,11 +1042,11 @@ export default function Profile({
                   
                   {/* Memanggil Komponen Animation Border */}
                   <AnimationBorder 
-                    userProgress={stats.totalUploads} 
-                    equippedBorderUrl={userProfile?.animation_border_url} 
-                    userAvatarUrl={userProfile?.avatar_url}
-                    onSelectBorder={handleSelectAnimationBorder} 
-                  />
+  userProgress={userProfile?.is_admin ? 999999 : stats.totalUploads} 
+  equippedBorderUrl={userProfile?.animation_border_url} 
+  userAvatarUrl={userProfile?.avatar_url}
+  onSelectBorder={handleSelectAnimationBorder} 
+/>
                 </div>
               )}
 
