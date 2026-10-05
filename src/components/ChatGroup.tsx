@@ -23,6 +23,7 @@ interface UserProfile {
   is_admin: boolean;
   is_premium: boolean;
   vip_border_url?: string | null;
+  animation_border_url?: string | null; // Tambahan field animasi border
 }
 
 interface UserStats {
@@ -120,9 +121,10 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
   };
 
   const fetchProfiles = async () => {
+    // Menambahkan column animation_border_url
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, is_admin, is_premium, vip_border_url');
+      .select('id, username, avatar_url, is_admin, is_premium, vip_border_url, animation_border_url');
     
     if (!error && data) {
       setProfiles(data);
@@ -360,7 +362,8 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                 return (
                   <div key={msg.id} className={`flex gap-2 sm:gap-3 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                     
-                    <div className="flex-shrink-0 mt-1 relative w-8 h-8 sm:w-9 sm:h-9 flex justify-center">
+                    {/* Container Avatar & Borders */}
+                    <div className="flex-shrink-0 mt-1 relative w-8 h-8 sm:w-9 sm:h-9 flex justify-center items-center">
                       <div className="w-full h-full relative z-10 rounded-full overflow-hidden shadow-sm border border-slate-200 flex items-center justify-center bg-slate-200">
                         {senderProfile?.avatar_url ? (
                           <img
@@ -382,13 +385,20 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                         />
                       )}
 
-                      {senderProfile?.is_premium && senderProfile?.vip_border_url && (
+                      {/* Rendering Border (Memprioritaskan animation_border_url jika ada) */}
+                      {senderProfile?.animation_border_url ? (
+                        <img
+                          src={senderProfile.animation_border_url}
+                          alt="Animated Border"
+                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[135%] h-[135%] max-w-none object-contain z-20 pointer-events-none drop-shadow-sm"
+                        />
+                      ) : senderProfile?.is_premium && senderProfile?.vip_border_url ? (
                         <AvatarBorderVip
                           isPremium={senderProfile.is_premium}
                           borderUrl={senderProfile.vip_border_url}
                           className="absolute top-[-6px] sm:top-[-7px] left-1/2 -translate-x-1/2 w-[42px] sm:w-[48px] h-auto max-w-none object-contain z-20 pointer-events-none drop-shadow-sm"
                         />
-                      )}
+                      ) : null}
                     </div>
 
                     <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[80%] sm:max-w-[75%]`}>
