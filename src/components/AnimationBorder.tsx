@@ -94,7 +94,7 @@ const AnimationBorder = ({
             <span>Animated Avatar Border Collection</span>
           </h3>
           <p className="text-xs text-slate-500 mt-1">
-            Every 10 uploaded videos will unlock one new animated avatar border.
+            Every 10 uploaded File will unlock one new animated avatar border.
           </p>
         </div>
 

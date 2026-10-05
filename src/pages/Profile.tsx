@@ -1037,7 +1037,7 @@ export default function Profile({
                 <div className="animate-in fade-in duration-300">
                   <div className="mb-8">
                     <h2 className="text-xl font-bold text-slate-800">Progress & Achievement</h2>
-                    <p className="text-xs text-slate-500 mt-1">Collect and complete your animated borders based on your total video uploads.</p>
+                    <p className="text-xs text-slate-500 mt-1">Collect and complete your animated borders based on your total File uploads.</p>
                   </div>
                   
                   {/* Memanggil Komponen Animation Border */}
