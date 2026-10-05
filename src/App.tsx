@@ -230,7 +230,6 @@ export default function App() {
       <Home 
         onCheckAccess={handleExclusiveAccess}
         isUserPremium={isPremiumUser}
-        currentUser={currentUser} // <-- Pastikan dikirim agar Home/PreviewModal bisa mendeteksi uploader
         onOpenUpgradeModal={() => {
           if (!currentUser) {
             setShowLoginModal(true);
