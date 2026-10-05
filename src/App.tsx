@@ -205,7 +205,9 @@ export default function App() {
 
     return (
       <Home 
-        onCheckAccess={handleExclusiveAccess} 
+        onCheckAccess={handleExclusiveAccess}
+        isUserPremium={isPremiumUser}
+        onOpenUpgradeModal={() => setIsUpgradeModalOpen(true)}
       />
     );
   };
