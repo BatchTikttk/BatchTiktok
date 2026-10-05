@@ -29,10 +29,11 @@ interface CreatorCardProps {
   uploaderCount: number;
 }
 
-// PERBAIKAN 1: Tambahkan props yang dikirim oleh App.tsx agar tidak terjadi error TypeScript
+// PERBAIKAN 1: Tambahkan properti currentUser ke dalam antarmuka HomeProps
 interface HomeProps {
-  onCheckAccess?: any; // Dibiarkan ada agar App.tsx tidak error saat di-build
+  onCheckAccess?: any; 
   isUserPremium?: boolean;
+  currentUser?: string | null; 
   onOpenUpgradeModal?: () => void;
 }
 
@@ -59,7 +60,6 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: CreatorCardProps) =
   const badge = getAchievementBadge(uploaderCount);
 
   return (
-    // PERBAIKAN 2: Klik selalu membuka PreviewModal tanpa halangan, logika warna & ikon tetap berjalan
     <div 
       onClick={() => onOpenPreview(data)} 
       className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative"
@@ -168,9 +168,8 @@ const fetchApprovedBatches = async () => {
   });
 };
 
-// PERBAIKAN 3: Destrukturisasi props dari App.tsx (isUserPremium, onOpenUpgradeModal, dll)
-export default function Home({ isUserPremium, onOpenUpgradeModal }: HomeProps) { 
-  // 3. Integrasi SWR (Deduping interval diubah ke 10 menit)
+// PERBAIKAN 2: Terima prop currentUser (dengan alias propCurrentUser)
+export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: propCurrentUser, onCheckAccess }: HomeProps) { 
   const { data: batches = [], mutate, error: swrError } = useSWR('approved_batches', fetchApprovedBatches, {
     dedupingInterval: 600000, 
     revalidateOnFocus: false,
@@ -179,7 +178,8 @@ export default function Home({ isUserPremium, onOpenUpgradeModal }: HomeProps) {
   const [activeCategory, setActiveCategory] = useState('Home');
   const [searchQuery, setSearchQuery] = useState('');
   
-  const [currentUser, setCurrentUser] = useState<string | null>(null);
+  // State lokal jika sewaktu-waktu prop tidak di-pass
+  const [localCurrentUser, setLocalCurrentUser] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   
@@ -192,6 +192,9 @@ export default function Home({ isUserPremium, onOpenUpgradeModal }: HomeProps) {
 
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 16;
+
+  // PERBAIKAN 3: Gunakan propCurrentUser dari App.tsx jika tersedia, jika tidak gunakan state lokal
+  const currentUser = propCurrentUser !== undefined ? propCurrentUser : localCurrentUser;
 
   useEffect(() => {
     if (swrError) showToast(swrError.message, 'error');
@@ -244,7 +247,9 @@ export default function Home({ isUserPremium, onOpenUpgradeModal }: HomeProps) {
         .eq('id', session.user.id)
         .single();
         
-      if (data) setCurrentUser(data.username);
+      if (data) setLocalCurrentUser(data.username);
+    } else {
+      setLocalCurrentUser(null);
     }
   };
 
@@ -255,7 +260,7 @@ export default function Home({ isUserPremium, onOpenUpgradeModal }: HomeProps) {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setCurrentUser(null);
+    setLocalCurrentUser(null);
     showToast("You have been logged out.", "info");
   };
 
@@ -527,9 +532,8 @@ export default function Home({ isUserPremium, onOpenUpgradeModal }: HomeProps) {
 
       <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
       
-      {/* 5. Bungkus dengan Suspense */}
       <Suspense fallback={null}>
-        {/* PERBAIKAN 4: Teruskan isUserPremium & onOpenUpgradeModal ke PreviewModal */}
+        {/* PERBAIKAN 4: Meneruskan currentUser dari App.tsx ke PreviewModal agar status uploader terdeteksi */}
         {previewItem && (
           <PreviewModal 
             item={previewItem} 
@@ -537,6 +541,7 @@ export default function Home({ isUserPremium, onOpenUpgradeModal }: HomeProps) {
             onDownload={handleDownloadInitiate}
             uploaderCount={uploaderCounts[previewItem.uploaded_by] || 0} 
             isUserPremium={isUserPremium}
+            currentUser={currentUser} 
             onOpenUpgradeModal={onOpenUpgradeModal}
           />
         )}
