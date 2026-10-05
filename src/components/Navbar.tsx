@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Menu, X, Plus, LogIn, LogOut, User, ChevronDown, 
-  Scale, BarChart2, Home, Globe, Trophy, MapPin, Crown 
+  Scale, BarChart2, Home, Globe, Trophy, Crown 
 } from 'lucide-react';
 import { supabase } from '../supabase';
 
@@ -232,7 +232,6 @@ export default function Navbar({
     setIsDropdownOpen(false);
     setIsMobileMenuOpen(false);
     
-    // Jika sudah premium, tombol bisa dibiarkan tidak melakukan apa-apa atau mengarah ke modal info VIP
     if (isPremium) return; 
 
     if (onOpenUpgrade) {
@@ -305,7 +304,6 @@ export default function Navbar({
                             : 'text-slate-600 hover:text-emerald-600 hover:bg-emerald-50'
                         }`}
                       >
-                        {/* Mengganti MapPin dengan icon bendera yang menyesuaikan nama region */}
                         <RegionFlag country={region} className="w-[18px] h-[18px]" />
                         {region}
                       </button>
@@ -371,7 +369,6 @@ export default function Navbar({
                         <BarChart2 size={18} /> User Profile
                       </button>
 
-                      {/* PERUBAHAN: Menyesuaikan teks & tampilan jika is_premium bernilai true */}
                       <button
                         onClick={handleGoToUpgrade}
                         className={`w-full px-4 py-3.5 flex items-center gap-3 text-sm font-bold transition-colors text-left border-none bg-transparent cursor-pointer ${
@@ -455,7 +452,6 @@ export default function Navbar({
                     : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
                 }`}
               >
-                {/* Mengganti MapPin dengan bendera juga di tampilan Mobile */}
                 <RegionFlag country={region} className="w-5 h-5" />
                 {region}
               </button>
@@ -507,7 +503,6 @@ export default function Navbar({
                   <BarChart2 size={18} /> User Profile
                 </button>
 
-                {/* PERUBAHAN: Menyesuaikan teks untuk tampilan mobile menu */}
                 <button 
                   onClick={handleGoToUpgrade}
                   className={`px-4 py-3 flex items-center gap-2 text-left text-sm font-bold transition-colors rounded-2xl border-none bg-transparent cursor-pointer ${
