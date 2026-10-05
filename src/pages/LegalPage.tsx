@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShieldAlert, BookOpen, UserCheck, Mail, ArrowLeft, RefreshCcw, Globe } from 'lucide-react';
+import { ShieldAlert, BookOpen, UserCheck, Mail, ArrowLeft, RefreshCcw, Globe, LogIn } from 'lucide-react';
 
 const LegalPage = () => {
   const [lang, setLang] = useState<'en' | 'id'>('en');
@@ -11,9 +11,9 @@ const LegalPage = () => {
 
   const T = {
     en: {
-      toggleBtn: "ID", // Dibuat lebih singkat agar rapi di pojok
+      toggleBtn: "ID",
       title: "Legal, Terms & Disclaimer",
-      subtitle: "Please read this information carefully. By accessing or using BatchTikTok, you agree to comply with the terms stated below.",
+      subtitle: "Please read this information carefully. By accessing, logging into, or using BatchTikTok, you agree to comply with the terms stated below.",
       t1_title: "1. Platform Purpose & Disclaimer",
       t1_p1: "BatchTikTok is a community-driven archiving tool designed to curate and structure publicly available links to regional content (specifically TikTok videos).",
       t1_p2: "We do not host, store, or upload any video files on our servers. All content remains on the original hosting platforms (e.g., Google Drive, Terabox, MediaFire). The platform merely acts as a directory or catalog of links submitted by users.",
@@ -30,12 +30,14 @@ const LegalPage = () => {
       t4_p2: "Because our product is a digital service providing immediate access to premium features (such as ad-free downloads and global chat), we do not offer refunds once a transaction is completed and the account is upgraded. If you experience technical issues or accidental double-billing, please contact our support team immediately.",
       t5_title: "5. Contact Information",
       t5_p1: "If you have any questions, legal concerns, billing issues, or wish to submit a removal request, please contact the administrators directly via the platform or our support email: moekzigzag777@gmail.com",
+      t6_title: "6. Account Registration & Login",
+      t6_p1: "By creating an account and logging into our platform, you explicitly agree to these Terms of Service and our Privacy Policy. You are solely responsible for maintaining the confidentiality of your login credentials and for all activities that occur under your account.",
       backBtn: "Return to Home"
     },
     id: {
       toggleBtn: "EN",
       title: "Legal, Syarat & Penafian",
-      subtitle: "Harap baca informasi ini dengan saksama. Dengan mengakses atau menggunakan BatchTikTok, Anda setuju untuk mematuhi ketentuan yang tercantum di bawah ini.",
+      subtitle: "Harap baca informasi ini dengan saksama. Dengan mengakses, melakukan login, atau menggunakan BatchTikTok, Anda setuju untuk mematuhi ketentuan yang tercantum di bawah ini.",
       t1_title: "1. Tujuan Platform & Penafian",
       t1_p1: "BatchTikTok adalah alat pengarsipan berbasis komunitas yang dirancang untuk mengkurasi dan menyusun tautan publik ke konten regional (khususnya video TikTok).",
       t1_p2: "Kami tidak meng-host, menyimpan, atau mengunggah file video apa pun di server kami. Semua konten tetap berada di platform hosting aslinya (mis. Google Drive, Terabox, MediaFire). Platform ini murni bertindak sebagai direktori atau katalog tautan yang dikirimkan oleh pengguna.",
@@ -52,6 +54,8 @@ const LegalPage = () => {
       t4_p2: "Karena produk kami adalah layanan digital yang memberikan akses langsung ke fitur premium (seperti unduhan tanpa iklan dan obrolan global), kami tidak menawarkan pengembalian dana setelah transaksi selesai dan akun ditingkatkan. Jika Anda mengalami masalah teknis atau penagihan ganda yang tidak disengaja, harap segera hubungi tim dukungan kami.",
       t5_title: "5. Informasi Kontak",
       t5_p1: "Jika Anda memiliki pertanyaan, masalah hukum, masalah penagihan, atau ingin mengirimkan permintaan penghapusan, silakan hubungi administrator langsung melalui platform atau email dukungan kami: moekzigzag777@gmail.com",
+      t6_title: "6. Pendaftaran Akun & Login",
+      t6_p1: "Dengan membuat akun dan melakukan login ke platform kami, Anda secara eksplisit menyetujui Ketentuan Layanan ini dan Kebijakan Privasi kami. Anda bertanggung jawab penuh untuk menjaga kerahasiaan kredensial login Anda dan untuk semua aktivitas yang terjadi di bawah akun Anda.",
       backBtn: "Kembali ke Beranda"
     }
   };
@@ -59,10 +63,9 @@ const LegalPage = () => {
   const content = T[lang];
 
   return (
-    // Menambahkan class "relative" pada container utama layar
     <div className="relative min-h-screen bg-[#F8FAFC] pt-24 pb-16 px-6 sm:px-8 font-sans">
       
-      {/* Tombol Toggle Bahasa: Sekarang menggunakan absolute positioning agar melayang di pojok kanan atas */}
+      {/* Tombol Toggle Bahasa */}
       <div className="absolute top-6 right-6 sm:top-8 sm:right-8 z-50 animate-in fade-in duration-500">
         <button 
           onClick={() => setLang(lang === 'en' ? 'id' : 'en')}
@@ -74,7 +77,7 @@ const LegalPage = () => {
         </button>
       </div>
 
-      {/* Kontainer Utama Konten - Sekarang bebas dari tombol */}
+      {/* Kontainer Utama Konten */}
       <div className="max-w-4xl mx-auto mt-4 sm:mt-0">
         
         {/* Header Section */}
@@ -147,6 +150,17 @@ const LegalPage = () => {
               <h3 className="font-bold text-slate-800 text-lg">{content.t5_title}</h3>
               <div className="text-slate-600 mt-2 leading-relaxed font-medium space-y-3">
                 <p>{content.t5_p1}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Bagian Ke-6: Pendaftaran Akun & Login */}
+          <div className="flex gap-5 p-6 sm:p-8 rounded-3xl bg-blue-50/50 border-none shadow-sm hover:shadow-md transition-shadow">
+            <LogIn className="text-blue-600 shrink-0 mt-0.5" size={28} />
+            <div>
+              <h3 className="font-bold text-slate-800 text-lg">{content.t6_title}</h3>
+              <div className="text-slate-600 mt-2 leading-relaxed font-medium space-y-3">
+                <p>{content.t6_p1}</p>
               </div>
             </div>
           </div>
