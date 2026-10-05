@@ -7,6 +7,7 @@ import { supabase } from '../supabase';
 interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenLoginModal?: () => void; // Prop opsional untuk memicu modal login
 }
 
 const CONTENT = {
@@ -34,7 +35,7 @@ declare global {
   }
 }
 
-export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
+export default function UpgradeModal({ isOpen, onClose, onOpenLoginModal }: UpgradeModalProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   // Load Midtrans Snap.js script ketika modal dibuka
@@ -67,11 +68,19 @@ export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
       // 1. Ambil data user yang sedang login saat ini di Supabase
       const { data: { user }, error: userError } = await supabase.auth.getUser();
 
+      // LOGIKA CERDAS: Jika user BELUM LOGIN
       if (userError || !user) {
-        throw new Error('Anda harus login terlebih dahulu sebelum melakukan upgrade.');
+        onClose(); // Tutup modal upgrade
+        if (onOpenLoginModal) {
+          onOpenLoginModal(); // Buka modal login
+        } else {
+          // Fallback event jika prop tidak ditransfer secara eksplisit
+          window.dispatchEvent(new CustomEvent('openLoginModal'));
+        }
+        return;
       }
 
-      // 2. Memanggil Supabase Edge Function 'midtrans-payment' dengan membawa amount dan user_id
+      // 2. Jika user SUDAH LOGIN: Memanggil Supabase Edge Function 'midtrans-payment'
       const { data, error } = await supabase.functions.invoke('midtrans-payment', {
         body: { 
           amount: 50000,
