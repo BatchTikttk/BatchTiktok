@@ -409,7 +409,7 @@ export default function Profile({
       handleShowToast(`Gagal: ${error.message}`, "error");
     } else {
       setUserProfile((prev: any) => ({ ...prev, animation_border_url: borderUrl }));
-      handleShowToast(borderUrl ? "Animasi Border berhasil dipasang!" : "Animasi Border dilepas!", "success");
+      handleShowToast(borderUrl ? "Animation border successfully equipped!" : "Animation border removed successfully!", "success");
     }
   };
 
@@ -1037,7 +1037,7 @@ export default function Profile({
                 <div className="animate-in fade-in duration-300">
                   <div className="mb-8">
                     <h2 className="text-xl font-bold text-slate-800">Progress & Achievement</h2>
-                    <p className="text-xs text-slate-500 mt-1">Kumpulkan dan lengkapi border animasi Anda berdasarkan total upload video.</p>
+                    <p className="text-xs text-slate-500 mt-1">Collect and complete your animated borders based on your total video uploads.</p>
                   </div>
                   
                   {/* Memanggil Komponen Animation Border */}

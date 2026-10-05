@@ -91,10 +91,10 @@ const AnimationBorder = ({
         <div>
           <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-amber-500" />
-            <span>Koleksi Animasi Border Avatar</span>
+            <span>Animated Avatar Border Collection</span>
           </h3>
           <p className="text-xs text-slate-500 mt-1">
-            Setiap kelipatan 10 video upload akan membuka 1 animasi border avatar baru.
+            Every 10 uploaded videos will unlock one new animated avatar border.
           </p>
         </div>
 
@@ -184,7 +184,7 @@ const AnimationBorder = ({
                     <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full inline-block ${
                       isEquipped ? 'bg-emerald-500 text-white' : 'bg-emerald-100 text-emerald-700'
                     }`}>
-                      {isEquipped ? 'Terpasang' : 'Gunakan'}
+                      {isEquipped ? 'Slected' : 'Use'}
                     </span>
                   ) : (
                     <div className="w-full flex flex-col gap-1">
@@ -211,3 +211,4 @@ const AnimationBorder = ({
 };
 
 export default AnimationBorder;
+
