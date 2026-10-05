@@ -370,7 +370,7 @@ export default function Profile({
   // Fungsi Memilih / Melepas Avatar Border VIP
   const handleSelectVipBorder = async (borderUrl: string) => {
     if (!userProfile?.is_premium) {
-      handleShowToast("Fitur ini khusus untuk pengguna Premium VIP!", "error");
+      handleShowToast("This feature is exclusively for Premium VIP users!", "error");
       return;
     }
 
