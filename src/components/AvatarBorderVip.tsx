@@ -1,5 +1,3 @@
-import React from 'react';
-
 export interface AvatarBorderVipProps {
   isPremium?: boolean;
   borderUrl?: string;
