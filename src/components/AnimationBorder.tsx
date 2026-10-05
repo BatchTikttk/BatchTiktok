@@ -60,12 +60,14 @@ const BORDER_COLLECTION: BorderItem[] = [
 interface AnimationBorderProps {
   userProgress?: number; // Total upload video user saat ini
   equippedBorderUrl?: string | null;
+  userAvatarUrl?: string | null; // Properti baru untuk menerima foto avatar pengguna
   onSelectBorder?: (borderUrl: string | null) => void;
 }
 
 const AnimationBorder = ({
   userProgress = 0,
   equippedBorderUrl = null,
+  userAvatarUrl = null,
   onSelectBorder,
 }: AnimationBorderProps) => {
   const [activeBorder, setActiveBorder] = useState<string | null>(equippedBorderUrl);
@@ -148,9 +150,17 @@ const AnimationBorder = ({
                     }`}
                   />
 
-                  {/* Placeholder Avatar Lingkaran di Tengah */}
+                  {/* Placeholder Avatar Lingkaran di Tengah (Sekarang menampilkan foto avatar jika ada) */}
                   <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center text-slate-400 text-xs font-bold">
-                    User
+                    {userAvatarUrl ? (
+                      <img
+                        src={userAvatarUrl}
+                        alt="User Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>User</span>
+                    )}
                   </div>
 
                   {/* Overlay Icon Lock Jika Terkunci */}
