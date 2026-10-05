@@ -147,7 +147,8 @@ export default function Profile({
   const [usernameInput, setUsernameInput] = useState('');
   const [updatingUsername, setUpdatingUsername] = useState(false);
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'request' | 'settings' | 'admin'>('overview');
+  // Menambahkan tab 'vip-borders' ke dalam union state
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'request' | 'vip-borders' | 'settings' | 'admin'>('overview');
   const [collectionSearchQuery, setCollectionSearchQuery] = useState('');
   
   const [adminStatusFilter, setAdminStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
@@ -227,7 +228,7 @@ export default function Profile({
       }
       
       if (cachedProfile && cachedBatches) {
-        setLoading(false); // SWR: Tampilkan cache langsung, loading screen di bypass
+        setLoading(false); 
       } else {
         setLoading(true);
       }
@@ -367,7 +368,6 @@ export default function Profile({
     }
   };
 
-  // Fungsi Memilih / Melepas Avatar Border VIP
   const handleSelectVipBorder = async (borderUrl: string) => {
     if (!userProfile?.is_premium) {
       handleShowToast("This feature is exclusively for Premium VIP users!", "error");
@@ -377,7 +377,6 @@ export default function Profile({
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
-    // Toggle border: jika diklik ulang maka lepas border
     const newBorderUrl = userProfile?.vip_border_url === borderUrl ? null : borderUrl;
 
     const { error } = await supabase
@@ -386,7 +385,6 @@ export default function Profile({
       .eq('id', session.user.id);
 
     if (error) {
-      // Tampilkan error spesifik dari Supabase
       handleShowToast(`Gagal: ${error.message}`, "error");
     } else {
       setUserProfile((prev: any) => ({ ...prev, vip_border_url: newBorderUrl }));
@@ -702,6 +700,16 @@ export default function Profile({
                 </button>
 
                 <button
+                  onClick={() => setActiveTab('vip-borders')}
+                  className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
+                    activeTab === 'vip-borders' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                  }`}
+                >
+                  <Crown size={18} className={activeTab === 'vip-borders' ? 'text-[#10b981]' : ''} /> 
+                  Progress VIP
+                </button>
+
+                <button
                   onClick={() => setActiveTab('settings')}
                   className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
                     activeTab === 'settings' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
@@ -746,6 +754,7 @@ export default function Profile({
               
               {activeTab === 'overview' && (
                 <div className="space-y-8 animate-in fade-in duration-300">
+                  {/* (Konten Overview Tetap Sama) */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
                     <div className="bg-[#3b82f6] p-6 rounded-[32px] shadow-[0_12px_24px_-8px_rgba(59,130,246,0.4)] flex flex-col justify-between text-white relative overflow-hidden transition-transform hover:-translate-y-1">
                       <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
@@ -806,7 +815,6 @@ export default function Profile({
                     </div>
                   </div>
 
-                  {/* BADGES SECTION */}
                   <div className="bg-white rounded-[32px] p-6 sm:p-8 border border-slate-100 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.04)]">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                       <div>
@@ -898,6 +906,7 @@ export default function Profile({
 
               {activeTab === 'collections' && (
                 <div className="animate-in fade-in duration-300">
+                  {/* (Konten Collections Tetap Sama) */}
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
                       <h2 className="text-xl font-bold text-slate-800">Batch Collections</h2>
@@ -1013,6 +1022,78 @@ export default function Profile({
                 </div>
               )}
 
+              {/* TAB BARU: PROGRESS YOR BORDER AVATAR ANIMATION */}
+              {activeTab === 'vip-borders' && (
+                <div className="animate-in fade-in duration-300">
+                  <div className="flex items-center justify-between mb-8">
+                    <div>
+                      <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <Crown className="text-amber-500" size={24} /> Progress Yor Border Avatar Animation
+                      </h2>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Pilih puluhan bingkai eksklusif untuk profil Anda (Khusus Akun Premium).
+                      </p>
+                    </div>
+                    {!userProfile?.is_premium && (
+                      <span className="text-xs font-bold text-amber-700 bg-amber-100 px-4 py-2 rounded-full flex items-center gap-1 shadow-sm">
+                        <Lock size={14} /> Requires Premium
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="bg-slate-50 p-6 md:p-8 rounded-[32px] border border-slate-100">
+                    {/* Responsive grid for 30+ items: 2 cols on mobile, up to 5 cols on large screens */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                      {VIP_BORDERS.map((url, index) => {
+                        const isSelected = userProfile?.vip_border_url === url;
+                        const isPremium = !!userProfile?.is_premium;
+
+                        return (
+                          <div
+                            key={index}
+                            onClick={() => handleSelectVipBorder(url)}
+                            className={`relative p-5 rounded-3xl border-2 flex flex-col items-center justify-center transition-all cursor-pointer ${
+                              isSelected && isPremium
+                                ? 'bg-amber-50/60 border-amber-400 shadow-md scale-105'
+                                : 'bg-white border-slate-200 hover:border-amber-300 hover:-translate-y-1'
+                            } ${!isPremium ? 'opacity-60 cursor-not-allowed' : ''}`}
+                          >
+                            <div className="relative w-16 h-16 md:w-20 md:h-20 mb-3 flex items-center justify-center">
+                              <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white relative z-10 shadow-sm">
+                                {userProfile?.avatar_url ? (
+                                  <img src={userProfile.avatar_url} alt="User Avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                  <User size={28} />
+                                )}
+                              </div>
+                              <AvatarBorderVip 
+                                isPremium={true} 
+                                borderUrl={url} 
+                                className="absolute top-[-20%] left-1/2 -translate-x-1/2 ml-[1px] w-[110%] h-auto max-w-none object-contain z-20 pointer-events-none" 
+                              />
+                            </div>
+
+                            <span className="text-[11px] md:text-xs font-bold text-slate-700 mt-2 text-center w-full truncate">Border {index + 1}</span>
+
+                            {isSelected && isPremium && (
+                              <span className="absolute top-3 right-3 bg-amber-500 text-white rounded-full p-1 shadow-sm">
+                                <Check size={12} />
+                              </span>
+                            )}
+
+                            {!isPremium && (
+                              <span className="absolute top-3 right-3 text-slate-400 bg-slate-100 p-1 rounded-full">
+                                <Lock size={12} />
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {activeTab === 'settings' && (
                 <div className="animate-in fade-in duration-300 max-w-2xl">
                   <h2 className="text-xl font-bold text-slate-800 mb-1">Profile Settings</h2>
@@ -1051,73 +1132,6 @@ export default function Profile({
                     </div>
                   </div>
 
-                  {/* ===== WADAH KUMPULAN AVATAR BORDER VIP ===== */}
-                  <div className="p-6 bg-slate-50 rounded-[32px] mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                          <Crown size={18} className="text-amber-500" /> VIP Avatar Border Selector
-                        </h3>
-                        <p className="text-[11px] text-slate-500 mt-1">
-                          Pilih bingkai avatar eksklusif untuk profil Anda (Khusus Akun Premium).
-                        </p>
-                      </div>
-                      {!userProfile?.is_premium && (
-                        <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full flex items-center gap-1">
-                          <Lock size={12} /> Requires Premium
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      {VIP_BORDERS.map((url, index) => {
-                        const isSelected = userProfile?.vip_border_url === url;
-                        const isPremium = !!userProfile?.is_premium;
-
-                        return (
-                          <div
-                            key={index}
-                            onClick={() => handleSelectVipBorder(url)}
-                            className={`relative p-4 rounded-2xl border-2 flex flex-col items-center justify-center transition-all cursor-pointer ${
-                              isSelected && isPremium
-                                ? 'bg-amber-50/60 border-amber-400 shadow-md scale-105'
-                                : 'bg-white border-slate-200 hover:border-amber-300'
-                            } ${!isPremium ? 'opacity-60 cursor-not-allowed' : ''}`}
-                          >
-                            <div className="relative w-16 h-16 mb-2 flex items-center justify-center">
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white relative z-10">
-                                {userProfile?.avatar_url ? (
-                                  <img src={userProfile.avatar_url} alt="User Avatar" className="w-full h-full object-cover" />
-                                ) : (
-                                  <User size={24} />
-                                )}
-                              </div>
-                              <AvatarBorderVip 
-                                isPremium={true} 
-                                borderUrl={url} 
-                                className="absolute top-[-16px] left-1/2 -translate-x-1/2 ml-[1px] w-[80px] h-auto max-w-none object-contain z-20 pointer-events-none" 
-                              />
-                            </div>
-
-                            <span className="text-xs font-bold text-slate-700 mt-1">VIP Border {index + 1}</span>
-
-                            {isSelected && isPremium && (
-                              <span className="absolute top-2 right-2 bg-amber-500 text-white rounded-full p-0.5 shadow-sm">
-                                <Check size={12} />
-                              </span>
-                            )}
-
-                            {!isPremium && (
-                              <span className="absolute top-2 right-2 text-slate-400">
-                                <Lock size={12} />
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
                   <div className="space-y-4">
                     <div>
                       <label className="block text-[11px] font-bold text-slate-500 mb-2 uppercase tracking-wider">Username</label>
@@ -1144,6 +1158,7 @@ export default function Profile({
 
               {activeTab === 'admin' && userProfile?.is_admin && (
                 <div className="animate-in fade-in duration-300">
+                  {/* (Konten Admin Tetap Sama) */}
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div>
                       <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
