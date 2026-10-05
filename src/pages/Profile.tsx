@@ -1044,6 +1044,7 @@ export default function Profile({
                   <AnimationBorder 
                     userProgress={stats.totalUploads} 
                     equippedBorderUrl={userProfile?.animation_border_url} 
+                    userAvatarUrl={userProfile?.avatar_url}
                     onSelectBorder={handleSelectAnimationBorder} 
                   />
                 </div>
@@ -1118,7 +1119,7 @@ export default function Profile({
                           <Crown size={18} className="text-amber-500" /> VIP Avatar Border Selector
                         </h3>
                         <p className="text-[11px] text-slate-500 mt-1">
-                          Pilih bingkai avatar eksklusif untuk profil Anda (Khusus Akun Premium).
+                          Choose an exclusive avatar frame for your profile (Premium accounts only).
                         </p>
                       </div>
                       {!userProfile?.is_premium && (
