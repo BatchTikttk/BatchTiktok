@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import useSWR from 'swr';
 import { supabase } from '../supabase';
 import { 
   Search, CheckCircle2, Play, XCircle, ChevronLeft, ChevronRight, Check,
@@ -7,10 +8,12 @@ import {
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import LoginModal from "../components/LoginModal";
-import PostModal from "../components/PostModal";
-import PreviewModal from "../components/PreviewModal";
 import { EmeraldFolderIcon } from "../components/SharedIcons"; 
+
+// 1. Lazy Load Modals
+const LoginModal = lazy(() => import("../components/LoginModal"));
+const PostModal = lazy(() => import("../components/PostModal"));
+const PreviewModal = lazy(() => import("../components/PreviewModal"));
 
 export const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
@@ -132,8 +135,43 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount, onCheckAccess }: Crea
   );
 };
 
+// 2. Fetcher Data untuk SWR
+const fetchApprovedBatches = async () => {
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, username, avatar_url, is_admin');
+  
+  const { data: batchesData, error } = await supabase
+    .from('batches')
+    .select('*')
+    .eq('status', 'approved') 
+    .order('created_at', { ascending: false });
+  
+  if (error) throw new Error('Failed to load data from database');
+
+  return (batchesData || []).map((batch: any) => {
+    const uploaderProfile = profiles?.find(
+      (p: any) => (batch.user_id && p.id === batch.user_id) ||
+           (p.username && batch.uploaded_by && p.username.toLowerCase() === batch.uploaded_by.toLowerCase())
+    );
+    
+    return {
+      ...batch,
+      uploaded_by: uploaderProfile?.username || batch.uploaded_by,
+      avatar_url: uploaderProfile?.avatar_url || null,
+      uploader_avatar: uploaderProfile?.avatar_url || null,
+      uploader_is_admin: uploaderProfile?.is_admin || false 
+    };
+  });
+};
+
 export default function Home({ onCheckAccess }: HomeProps) {
-  const [batches, setBatches] = useState<any[]>([]);
+  // 3. Integrasi SWR (Deduping interval diubah ke 10 menit)
+  const { data: batches = [], mutate, error: swrError } = useSWR('approved_batches', fetchApprovedBatches, {
+    dedupingInterval: 600000, // Caching 10 menit (10 * 60 * 1000 ms)
+    revalidateOnFocus: false, // Hindari fetch berlebih saat pindah tab
+  });
+
   const [activeCategory, setActiveCategory] = useState('Home');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -151,14 +189,29 @@ export default function Home({ onCheckAccess }: HomeProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 16;
 
+  // Tampilkan toast jika fetcher SWR gagal
+  useEffect(() => {
+    if (swrError) showToast(swrError.message, 'error');
+  }, [swrError]);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [activeCategory, searchQuery]);
 
+  // Jaga previewItem selalu update saat realtime mendeteksi perubahan
   useEffect(() => {
-    fetchBatches();
+    if (previewItem && batches.length > 0) {
+      const updatedItem = batches.find((b: any) => b.id === previewItem.id);
+      if (updatedItem && JSON.stringify(updatedItem) !== JSON.stringify(previewItem)) {
+        setPreviewItem(updatedItem);
+      }
+    }
+  }, [batches, previewItem]);
+
+  useEffect(() => {
     checkUser();
 
+    // Update real-time subscription untuk menggunakan SWR mutate
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -166,63 +219,20 @@ export default function Home({ onCheckAccess }: HomeProps) {
         { event: '*', schema: 'public', table: 'profiles' },
         () => {
           checkUser();
-          fetchBatches(); 
+          mutate(); 
         }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'batches' },
-        () => {
-          fetchBatches();
-        }
+        () => mutate()
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
-
-  const fetchBatches = async () => {
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, username, avatar_url, is_admin');
-    
-    const { data: batchesData, error } = await supabase
-      .from('batches')
-      .select('*')
-      .eq('status', 'approved') 
-      .order('created_at', { ascending: false });
-    
-    if (error) {
-      showToast('Failed to load data from database', 'error');
-    } else {
-      const realtimeBatches = (batchesData || []).map((batch: any) => {
-        const uploaderProfile = profiles?.find(
-          (p: any) => (batch.user_id && p.id === batch.user_id) ||
-               (p.username && batch.uploaded_by && p.username.toLowerCase() === batch.uploaded_by.toLowerCase())
-        );
-        
-        return {
-          ...batch,
-          uploaded_by: uploaderProfile?.username || batch.uploaded_by,
-          avatar_url: uploaderProfile?.avatar_url || null,
-          uploader_avatar: uploaderProfile?.avatar_url || null,
-          uploader_is_admin: uploaderProfile?.is_admin || false 
-        };
-      });
-
-      setBatches(realtimeBatches);
-      
-      setPreviewItem((prev: any) => {
-        if (prev) {
-          const updatedItem = realtimeBatches.find((b: any) => b.id === prev.id);
-          return updatedItem || prev;
-        }
-        return prev;
-      });
-    }
-  };
+  }, [mutate]);
 
   const checkUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -517,32 +527,35 @@ export default function Home({ onCheckAccess }: HomeProps) {
 
       <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
       
-      {previewItem && (
-        <PreviewModal 
-          item={previewItem} 
-          onClose={() => setPreviewItem(null)} 
-          onDownload={handleDownloadInitiate}
-          uploaderCount={uploaderCounts[previewItem.uploaded_by] || 0} 
-        />
-      )}
+      {/* 5. Bungkus dengan Suspense */}
+      <Suspense fallback={null}>
+        {previewItem && (
+          <PreviewModal 
+            item={previewItem} 
+            onClose={() => setPreviewItem(null)} 
+            onDownload={handleDownloadInitiate}
+            uploaderCount={uploaderCounts[previewItem.uploaded_by] || 0} 
+          />
+        )}
 
-      {showAddModal && (
-        <PostModal 
-          onClose={() => setShowAddModal(false)}
-          onSuccess={fetchBatches}
-          currentUser={currentUser}
-          showToast={showToast}
-          CATEGORIES={CATEGORIES}
-        />
-      )}
+        {showAddModal && (
+          <PostModal 
+            onClose={() => setShowAddModal(false)}
+            onSuccess={() => mutate()} // Cukup trigger mutate SWR
+            currentUser={currentUser}
+            showToast={showToast}
+            CATEGORIES={CATEGORIES}
+          />
+        )}
 
-      {showLoginModal && (
-        <LoginModal 
-          onClose={() => setShowLoginModal(false)}
-          onSuccess={checkUser}
-          showToast={showToast}
-        />
-      )}
+        {showLoginModal && (
+          <LoginModal 
+            onClose={() => setShowLoginModal(false)}
+            onSuccess={checkUser}
+            showToast={showToast}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }
