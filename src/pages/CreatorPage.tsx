@@ -90,7 +90,6 @@ interface CreatorCardProps {
 }
 
 const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorBadge, isAdmin }) => {
-  // Card sekarang langsung membuka modal layaknya Homepage
   return (
     <div 
       onClick={() => onOpenPreview(data)} 
@@ -170,7 +169,6 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorB
   );
 };
 
-// 2. Fetcher SWR di luar komponen
 const fetchCreatorData = async (username: string) => {
   if (!username) return { profile: null, batches: [] };
 
@@ -233,12 +231,11 @@ export default function CreatorPage({
 
   const currentUser = propCurrentUser !== undefined ? propCurrentUser : localCurrentUser;
 
-  // 3. Integrasi SWR (Deduping interval diset ke 10 menit)
   const { data: creatorData, isLoading: loading, mutate } = useSWR(
     username ? `creator_page_${username}` : null,
     () => fetchCreatorData(username),
     {
-      dedupingInterval: 600000, // Cache 10 menit
+      dedupingInterval: 600000, 
       revalidateOnFocus: false,
     }
   );
@@ -265,7 +262,6 @@ export default function CreatorPage({
   useEffect(() => {
     if (!username) return;
 
-    // 4. Update real-time subscription untuk menggunakan mutate()
     const profileSubscription = supabase
       .channel(`creator-profile-updates-${username}`)
       .on(
@@ -394,12 +390,19 @@ export default function CreatorPage({
               )}
             </div>
 
-            {creatorProfile?.is_premium && (
+            {/* Menampilkan VIP Border jika ada, atau Animation Border (Progress) jika tidak ada VIP */}
+            {creatorProfile?.vip_border_url ? (
               <AvatarBorderVip 
                 borderUrl={creatorProfile?.vip_border_url} 
                 isPremium={creatorProfile?.is_premium} 
               />
-            )}
+            ) : creatorProfile?.animation_border_url ? (
+              <img 
+                src={creatorProfile.animation_border_url} 
+                alt="Animated Border" 
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] max-w-none object-contain z-20 pointer-events-none drop-shadow-sm"
+              />
+            ) : null}
           </div>
           
           <div className="flex-1 text-center md:text-left z-10">
@@ -465,7 +468,6 @@ export default function CreatorPage({
         )}
       </main>
 
-      {/* 5. Meneruskan state currentUser dan status VIP layaknya di Homepage */}
       <Suspense fallback={null}>
         {previewItem && (
           <PreviewModal 
