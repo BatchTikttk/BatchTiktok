@@ -74,7 +74,11 @@ export default function App() {
     if (hash === '#upgrade' || path === '/upgrade') {
       window.history.replaceState({}, '', '/');
       setCurrentPath('/');
-      setIsUpgradeModalOpen(true);
+      if (!currentUser) {
+        setShowLoginModal(true);
+      } else {
+        setIsUpgradeModalOpen(true);
+      }
     } else if (hash === '#profile') {
       window.history.replaceState({}, '', '/profile');
       setCurrentPath('/profile');
@@ -99,7 +103,11 @@ export default function App() {
     const handlePopState = () => {
       const currentLoc = window.location.pathname;
       if (currentLoc === '/upgrade' || window.location.hash === '#upgrade') {
-        setIsUpgradeModalOpen(true);
+        if (!currentUser) {
+          setShowLoginModal(true);
+        } else {
+          setIsUpgradeModalOpen(true);
+        }
         window.history.replaceState({}, '', '/');
         setCurrentPath('/');
       } else {
@@ -109,19 +117,36 @@ export default function App() {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  }, [currentUser]); // Tambahkan currentUser sebagai dependency agar nilainya selalu up-to-date
 
   // Tambahan: Global Event Listener agar modal bisa dipanggil dari komponen manapun dengan CustomEvent
   useEffect(() => {
-    const handleOpenModal = () => setIsUpgradeModalOpen(true);
+    const handleOpenModal = () => {
+      if (!currentUser) {
+        setShowLoginModal(true);
+      } else {
+        setIsUpgradeModalOpen(true);
+      }
+    };
     window.addEventListener('openUpgradeModal', handleOpenModal);
     return () => window.removeEventListener('openUpgradeModal', handleOpenModal);
+  }, [currentUser]);
+
+  // Tambahan: Global Event Listener untuk memanggil Login Modal jika dibutuhkan dari komponen lain
+  useEffect(() => {
+    const handleOpenLogin = () => setShowLoginModal(true);
+    window.addEventListener('openLoginModal', handleOpenLogin as EventListener);
+    return () => window.removeEventListener('openLoginModal', handleOpenLogin as EventListener);
   }, []);
 
   const navigateTo = (path: string) => {
     // Intercept path upgrade agar memunculkan modal alih-alih berpindah halaman
     if (path === '/upgrade' || path === '#upgrade') {
-      setIsUpgradeModalOpen(true);
+      if (!currentUser) {
+        setShowLoginModal(true);
+      } else {
+        setIsUpgradeModalOpen(true);
+      }
       return;
     }
     window.history.pushState({}, '', path);
@@ -207,7 +232,13 @@ export default function App() {
       <Home 
         onCheckAccess={handleExclusiveAccess}
         isUserPremium={isPremiumUser}
-        onOpenUpgradeModal={() => setIsUpgradeModalOpen(true)}
+        onOpenUpgradeModal={() => {
+          if (!currentUser) {
+            setShowLoginModal(true);
+          } else {
+            setIsUpgradeModalOpen(true);
+          }
+        }}
       />
     );
   };
@@ -236,6 +267,7 @@ export default function App() {
       <UpgradeModal 
         isOpen={isUpgradeModalOpen} 
         onClose={() => setIsUpgradeModalOpen(false)} 
+        onOpenLoginModal={() => setShowLoginModal(true)}
       />
     </div>
   );
