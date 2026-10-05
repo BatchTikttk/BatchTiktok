@@ -99,7 +99,6 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: CreatorCardProps) =
         className="relative mb-5 mt-2 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
         title={data.is_banned ? "Account Banned" : data.is_exclusive ? "TikTok Exclusive Collection" : ""}
       >
-        {/* Mengirimkan data.is_banned ke prop isBanned pada ikon folder */}
         <EmeraldFolderIcon 
           country={data.country} 
           isExclusive={data.is_exclusive} 
@@ -143,7 +142,7 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: CreatorCardProps) =
   );
 };
 
-// 2. Fetcher Data untuk SWR
+// 2. Fetcher Data untuk SWR (Tetap memfilter status 'approved' di database)
 const fetchApprovedBatches = async () => {
   const { data: profiles } = await supabase
     .from('profiles')
@@ -183,6 +182,7 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
   const [searchQuery, setSearchQuery] = useState('');
   
   const [localCurrentUser, setLocalCurrentUser] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   
@@ -245,13 +245,17 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
     if (session) {
       const { data } = await supabase
         .from('profiles')
-        .select('username')
+        .select('username, is_admin')
         .eq('id', session.user.id)
         .single();
         
-      if (data) setLocalCurrentUser(data.username);
+      if (data) {
+        setLocalCurrentUser(data.username);
+        setIsAdmin(!!data.is_admin);
+      }
     } else {
       setLocalCurrentUser(null);
+      setIsAdmin(false);
     }
   };
 
@@ -263,6 +267,7 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setLocalCurrentUser(null);
+    setIsAdmin(false);
     showToast("You have been logged out.", "info");
   };
 
@@ -554,6 +559,7 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
             currentUser={currentUser}
             showToast={showToast}
             CATEGORIES={CATEGORIES}
+            isAdmin={isAdmin}
           />
         )}
 
