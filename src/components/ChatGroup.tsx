@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase';
-import { Send, MessageSquare, X, User, Loader2, LogIn, Smile } from 'lucide-react';
+// Tambahan icon Volume2 dan VolumeX dari lucide-react
+import { Send, MessageSquare, X, User, Loader2, LogIn, Smile, Volume2, VolumeX } from 'lucide-react';
 import AvatarBorderVip from './AvatarBorderVip';
 
 interface ChatGroupProps {
@@ -69,7 +70,6 @@ const BADGES = [
   },
 ];
 
-// Map Emoticon 3D WebP Bergerak
 const EMOJI_MAP: Record<string, string> = {
   '😀': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f600/512.webp',
   '😂': 'https://fonts.gstatic.com/s/e/notoemoji/latest/1f602/512.webp',
@@ -97,7 +97,31 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
   const [loading, setLoading] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   
+  // State untuk mute suara
+  const [isMuted, setIsMuted] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Referensi yang dijaga agar bisa dibaca di dalam listener realtime
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isMutedRef = useRef(isMuted);
+  const currentUserRef = useRef(currentUser);
+
+  // Inisialisasi audio saat komponen dimuat pertama kali
+  useEffect(() => {
+    // Anda bisa mengganti URL ini dengan file lokal di folder public, misal: '/sounds/pop.mp3'
+    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3');
+    audioRef.current.volume = 0.6; // Set volume 60% agar tidak terlalu mengagetkan
+  }, []);
+
+  // Update ref saat state berubah
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+  }, [isMuted]);
+
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -110,8 +134,6 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
     
     if (!error && data) {
       setProfiles(data);
-    } else if (error) {
-      console.error('Failed to fetch profiles in ChatGroup:', error.message);
     }
   };
 
@@ -174,6 +196,16 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
         (payload) => {
           const newMsg = payload.new as Message;
           setMessages((prev) => [...prev, newMsg]);
+
+          // Logika Pemutaran Suara Notifikasi
+          if (!isMutedRef.current && audioRef.current) {
+            const currentLoggedUser = currentUserRef.current;
+            // Mainkan suara HANYA jika pesan berasal dari orang lain (atau jika kita belum login)
+            if (!currentLoggedUser || newMsg.username.toLowerCase() !== currentLoggedUser.toLowerCase()) {
+              audioRef.current.currentTime = 0; // Reset audio ke awal agar bisa bunyi berturut-turut cepat
+              audioRef.current.play().catch(e => console.log('Autoplay audio dihentikan browser:', e));
+            }
+          }
         }
       )
       .on(
@@ -292,12 +324,23 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-50 transition-colors cursor-pointer"
-            >
-              <X size={18} />
-            </button>
+            
+            {/* Tombol Mute Suara dan Tombol Close */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setIsMuted(!isMuted)}
+                className={`p-2 rounded-full transition-colors cursor-pointer ${isMuted ? 'text-rose-400 hover:bg-rose-50' : 'text-slate-400 hover:text-emerald-500 hover:bg-slate-50'}`}
+                title={isMuted ? "Unmute Sounds" : "Mute Sounds"}
+              >
+                {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
           </div>
 
           <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50/50 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
