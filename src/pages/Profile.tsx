@@ -1624,14 +1624,9 @@ export default function Profile({
         {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
         {showAvatarModal && (
           <AvatarModal
-  // Ganti fungsi penutup ini dengan state yang Anda pakai untuk menutup modal
   onClose={() => setShowAvatarModal(false)} 
-  
-  // Ganti ini dengan lokasi URL avatar dari currentUser Anda (contoh: currentUser?.avatar_url)
-  currentAvatar={currentUser?.avatar} 
-  
-  // Gunakan fungsi handleUpdateAvatar yang sudah Anda deklarasikan
-  onSelectAvatar={handleUpdateAvatar} 
+  currentAvatar={currentUser} 
+  onSelectAvatar={handleUpdateAvatar}
 />
         )}
       </Suspense>
