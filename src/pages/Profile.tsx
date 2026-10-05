@@ -1624,10 +1624,10 @@ export default function Profile({
         {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
         {showAvatarModal && (
           <AvatarModal
-            onClose={() => setShowAvatarModal(false)}
-            onSelect={handleUpdateAvatar}
-            currentAvatarUrl={userProfile?.avatar_url}
-          />
+  onClose={handleClose}
+  currentAvatar={currentUrl} // Ubah dari currentAvatarUrl menjadi currentAvatar
+  onSelectAvatar={handleSelect} // Ubah dari onSelect menjadi onSelectAvatar
+/>
         )}
       </Suspense>
 
