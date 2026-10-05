@@ -29,8 +29,11 @@ interface CreatorCardProps {
   uploaderCount: number;
 }
 
+// PERBAIKAN 1: Tambahkan props yang dikirim oleh App.tsx agar tidak terjadi error TypeScript
 interface HomeProps {
-  // onCheckAccess dihapus dari props utama karena tidak lagi membatasi klik preview folder
+  onCheckAccess?: any; // Dibiarkan ada agar App.tsx tidak error saat di-build
+  isUserPremium?: boolean;
+  onOpenUpgradeModal?: () => void;
 }
 
 const Toast = ({ message, isVisible, type = 'success' }: ToastProps) => (
@@ -56,6 +59,7 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: CreatorCardProps) =
   const badge = getAchievementBadge(uploaderCount);
 
   return (
+    // PERBAIKAN 2: Klik selalu membuka PreviewModal tanpa halangan, logika warna & ikon tetap berjalan
     <div 
       onClick={() => onOpenPreview(data)} 
       className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative"
@@ -164,11 +168,12 @@ const fetchApprovedBatches = async () => {
   });
 };
 
-export default function Home({}: HomeProps) {
+// PERBAIKAN 3: Destrukturisasi props dari App.tsx (isUserPremium, onOpenUpgradeModal, dll)
+export default function Home({ onCheckAccess, isUserPremium, onOpenUpgradeModal }: HomeProps) {
   // 3. Integrasi SWR (Deduping interval diubah ke 10 menit)
   const { data: batches = [], mutate, error: swrError } = useSWR('approved_batches', fetchApprovedBatches, {
-    dedupingInterval: 600000, // Caching 10 menit (10 * 60 * 1000 ms)
-    revalidateOnFocus: false, // Hindari fetch berlebih saat pindah tab
+    dedupingInterval: 600000, 
+    revalidateOnFocus: false,
   });
 
   const [activeCategory, setActiveCategory] = useState('Home');
@@ -188,7 +193,6 @@ export default function Home({}: HomeProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 16;
 
-  // Tampilkan toast jika fetcher SWR gagal
   useEffect(() => {
     if (swrError) showToast(swrError.message, 'error');
   }, [swrError]);
@@ -197,7 +201,6 @@ export default function Home({}: HomeProps) {
     setCurrentPage(1);
   }, [activeCategory, searchQuery]);
 
-  // Jaga previewItem selalu update saat realtime mendeteksi perubahan
   useEffect(() => {
     if (previewItem && batches.length > 0) {
       const updatedItem = batches.find((b: any) => b.id === previewItem.id);
@@ -210,7 +213,6 @@ export default function Home({}: HomeProps) {
   useEffect(() => {
     checkUser();
 
-    // Update real-time subscription untuk menggunakan SWR mutate
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -527,12 +529,15 @@ export default function Home({}: HomeProps) {
       
       {/* 5. Bungkus dengan Suspense */}
       <Suspense fallback={null}>
+        {/* PERBAIKAN 4: Teruskan isUserPremium & onOpenUpgradeModal ke PreviewModal */}
         {previewItem && (
           <PreviewModal 
             item={previewItem} 
             onClose={() => setPreviewItem(null)} 
             onDownload={handleDownloadInitiate}
             uploaderCount={uploaderCounts[previewItem.uploaded_by] || 0} 
+            isUserPremium={isUserPremium}
+            onOpenUpgradeModal={onOpenUpgradeModal}
           />
         )}
 
