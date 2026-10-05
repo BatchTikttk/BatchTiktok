@@ -87,24 +87,13 @@ interface CreatorCardProps {
   onOpenPreview: (item: BatchItem) => void;
   creatorBadge: BadgeItem | null;
   isAdmin: boolean;
-  onCheckAccess: (isExclusive: boolean | undefined, action: () => void) => void;
-  currentUser: any; 
 }
 
-const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorBadge, isAdmin, onCheckAccess, currentUser }) => {
-  const handleCardClick = () => {
-    const isOwner = currentUser && (currentUser.id === data.user_id);
-
-    if (isOwner) {
-      onOpenPreview(data);
-    } else {
-      onCheckAccess(Boolean(data.is_exclusive), () => onOpenPreview(data));
-    }
-  };
-
+const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorBadge, isAdmin }) => {
+  // Card sekarang langsung membuka modal layaknya Homepage
   return (
     <div 
-      onClick={handleCardClick} 
+      onClick={() => onOpenPreview(data)} 
       className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative"
     >
       <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
@@ -140,7 +129,7 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorB
 
       <div 
         className="mb-5 mt-2 relative transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
-        title={data.is_exclusive ? "TikTok Exclusive Collection" : ""}
+        title={data.is_banned ? "Account Banned" : data.is_exclusive ? "TikTok Exclusive Collection" : ""}
       >
         <EmeraldFolderIcon country={data.country} isExclusive={data.is_exclusive} isBanned={data.is_banned} />
         
@@ -226,9 +215,23 @@ const fetchCreatorData = async (username: string) => {
   return { profile: profileData, batches: mappedBatches };
 };
 
-export default function CreatorPage({ username, onCheckAccess }: { username: string, onCheckAccess: any }) {
-  const [currentUser, setCurrentUser] = useState<any>(null); 
+interface CreatorPageProps {
+  username: string;
+  isUserPremium?: boolean;
+  onOpenUpgradeModal?: () => void;
+  currentUser?: any; 
+}
+
+export default function CreatorPage({ 
+  username, 
+  isUserPremium, 
+  onOpenUpgradeModal, 
+  currentUser: propCurrentUser 
+}: CreatorPageProps) {
+  const [localCurrentUser, setLocalCurrentUser] = useState<any>(null); 
   const [previewItem, setPreviewItem] = useState<BatchItem | null>(null);
+
+  const currentUser = propCurrentUser !== undefined ? propCurrentUser : localCurrentUser;
 
   // 3. Integrasi SWR (Deduping interval diset ke 10 menit)
   const { data: creatorData, isLoading: loading, mutate } = useSWR(
@@ -248,14 +251,16 @@ export default function CreatorPage({ username, onCheckAccess }: { username: str
   };
 
   useEffect(() => {
+    if (propCurrentUser !== undefined) return;
+    
     let isMounted = true;
     const fetchCurrentUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (isMounted) setCurrentUser(user);
+      if (isMounted) setLocalCurrentUser(user);
     };
     fetchCurrentUser();
     return () => { isMounted = false; };
-  }, []);
+  }, [propCurrentUser]);
 
   useEffect(() => {
     if (!username) return;
@@ -451,10 +456,8 @@ export default function CreatorPage({ username, onCheckAccess }: { username: str
               <CreatorCard 
                 key={batch.id} 
                 data={batch}
-                creatorBadge={highestBadge} 
-                currentUser={currentUser} 
+                creatorBadge={highestBadge}
                 isAdmin={!!creatorProfile?.is_admin} 
-                onCheckAccess={onCheckAccess} 
                 onOpenPreview={setPreviewItem}
               />
             ))}
@@ -462,14 +465,17 @@ export default function CreatorPage({ username, onCheckAccess }: { username: str
         )}
       </main>
 
-      {/* 5. Suspense untuk Lazy Loading PreviewModal */}
+      {/* 5. Meneruskan state currentUser dan status VIP layaknya di Homepage */}
       <Suspense fallback={null}>
         {previewItem && (
           <PreviewModal 
             item={previewItem} 
             onClose={() => setPreviewItem(null)} 
             onDownload={handleDownloadInitiate}
-            uploaderCount={batches.length} 
+            uploaderCount={batches.length}
+            isUserPremium={isUserPremium}
+            currentUser={currentUser} 
+            onOpenUpgradeModal={onOpenUpgradeModal}
           />
         )}
       </Suspense>
