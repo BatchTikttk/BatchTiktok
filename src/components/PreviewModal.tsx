@@ -13,6 +13,7 @@ interface PreviewModalProps {
   uploaderCount?: number;
   onSelectCreator?: (creatorName: string) => void;
   isUserPremium?: boolean;
+  currentUser?: string | null; // TAMBAHAN: Prop untuk mengecek user yang sedang login
   onOpenUpgradeModal?: () => void;
 }
 
@@ -23,6 +24,7 @@ const PreviewModal = ({
   uploaderCount = 0, 
   onSelectCreator,
   isUserPremium = false,
+  currentUser = null, // TAMBAHAN: Default null
   onOpenUpgradeModal
 }: PreviewModalProps) => {
   const [isMuted, setIsMuted] = useState<boolean>(true);
@@ -123,7 +125,6 @@ const PreviewModal = ({
         if (profileData.avatar_url !== undefined) setUploaderAvatar(profileData.avatar_url);
         if (profileData.is_admin !== undefined) setUploaderIsAdmin(profileData.is_admin);
 
-        // PERBAIKAN: Gunakan nama channel yang unik untuk menghindari error 'already subscribed'
         const uniqueChannelName = `profile_${profileData.id}_${Date.now()}`;
         
         channel = supabase
@@ -195,7 +196,11 @@ const PreviewModal = ({
   const hasGdrive = Boolean(finalGdriveLink && finalGdriveLink.trim() !== '');
   const hasTerabox = Boolean(finalTeraboxLink && finalTeraboxLink.trim() !== '');
 
-  const isLocked = item.is_exclusive && !isUserPremium;
+  // LOGIKA BARU: Cek apakah user yang sedang login adalah uploader dari item ini
+  const isUploader = currentUser && item.uploaded_by && currentUser.toLowerCase() === item.uploaded_by.toLowerCase();
+  
+  // LOGIKA BARU: Item terkunci JIKA eksklusif, BUKAN user premium, DAN BUKAN uploader
+  const isLocked = item.is_exclusive && !isUserPremium && !isUploader;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
