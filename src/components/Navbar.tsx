@@ -5,6 +5,77 @@ import {
 } from 'lucide-react';
 import { supabase } from '../supabase';
 
+// Komponen helper untuk menampilkan bendera di Navbar
+const RegionFlag = ({ country, className = "w-4 h-4" }: { country: string, className?: string }) => {
+  const clipId = `nav-flag-${country.toLowerCase().replace(/\s+/g, '-')}`;
+  
+  let flagContent = null;
+  switch (country) {
+    case 'Indonesia':
+      flagContent = (
+        <>
+          <rect x="0" y="0" width="24" height="12" fill="#EF4444" />
+          <rect x="0" y="12" width="24" height="12" fill="#FFFFFF" />
+        </>
+      );
+      break;
+    case 'Thailand':
+      flagContent = (
+        <>
+          <rect x="0" y="0" width="24" height="24" fill="#EF4444" />
+          <rect x="0" y="4.3" width="24" height="15.4" fill="#FFFFFF" />
+          <rect x="0" y="7.7" width="24" height="8.6" fill="#1E3A8A" />
+        </>
+      );
+      break;
+    case 'Taiwan':
+      flagContent = (
+        <>
+          <rect x="0" y="0" width="24" height="24" fill="#EF4444" />
+          <rect x="0" y="0" width="12" height="12" fill="#1E3A8A" />
+          <circle cx="6" cy="6" r="3.5" fill="#FFFFFF" />
+        </>
+      );
+      break;
+    case 'Philippines':
+      flagContent = (
+        <>
+          <rect x="0" y="0" width="24" height="12" fill="#1D4ED8" />
+          <rect x="0" y="12" width="24" height="12" fill="#EF4444" />
+          <polygon points="0,0 0,24 13.2,12" fill="#FFFFFF" />
+          <circle cx="4.3" cy="12" r="3.6" fill="#FACC15" />
+        </>
+      );
+      break;
+    case 'Vietnam':
+      flagContent = (
+        <>
+          <rect x="0" y="0" width="24" height="24" fill="#EF4444" />
+          <polygon 
+            points="12,4.8 13.6,9.4 18.8,9.4 14.6,12.4 16.2,17.8 12,14.7 7.8,17.8 9.4,12.4 5.2,9.4 10.4,9.4" 
+            fill="#FACC15" 
+          />
+        </>
+      );
+      break;
+    default:
+      return <Globe className={className} />;
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className={`${className} rounded-full overflow-hidden flex-shrink-0 drop-shadow-sm`}>
+      <circle cx="12" cy="12" r="12" fill="#FFFFFF" />
+      <clipPath id={clipId}>
+        <circle cx="12" cy="12" r="11.5" />
+      </clipPath>
+      <g clipPath={`url(#${clipId})`}>
+        {flagContent}
+      </g>
+      <circle cx="12" cy="12" r="11.5" fill="none" stroke="#E2E8F0" strokeWidth="1" />
+    </svg>
+  );
+};
+
 // Mendefinisikan tipe data (TypeScript Interface) dengan benar agar Deploy tidak gagal
 interface NavbarProps {
   activeCategory?: string;
@@ -228,13 +299,14 @@ export default function Navbar({
                       <button
                         key={region}
                         onClick={() => handleGoToHome(region)}
-                        className={`w-full px-5 py-2.5 text-left text-sm font-bold transition-colors border-none bg-transparent cursor-pointer flex items-center gap-2 ${
+                        className={`w-full px-5 py-2.5 text-left text-sm font-bold transition-colors border-none bg-transparent cursor-pointer flex items-center gap-2.5 ${
                           activeCategory === region && window.location.pathname === '/'
                             ? 'text-emerald-600 bg-emerald-50/50' 
                             : 'text-slate-600 hover:text-emerald-600 hover:bg-emerald-50'
                         }`}
                       >
-                        <MapPin size={14} />
+                        {/* Mengganti MapPin dengan icon bendera yang menyesuaikan nama region */}
+                        <RegionFlag country={region} className="w-[18px] h-[18px]" />
                         {region}
                       </button>
                     ))}
@@ -377,13 +449,14 @@ export default function Navbar({
               <button
                 key={region}
                 onClick={() => handleGoToHome(region)}
-                className={`px-4 py-2.5 rounded-2xl text-left text-sm font-bold transition-all border-none cursor-pointer flex items-center gap-2 ${
+                className={`px-4 py-2.5 rounded-2xl text-left text-sm font-bold transition-all border-none cursor-pointer flex items-center gap-2.5 ${
                   activeCategory === region && window.location.pathname === '/'
                     ? 'bg-emerald-50 text-emerald-600' 
                     : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
                 }`}
               >
-                <MapPin size={16} />
+                {/* Mengganti MapPin dengan bendera juga di tampilan Mobile */}
+                <RegionFlag country={region} className="w-5 h-5" />
                 {region}
               </button>
             ))}

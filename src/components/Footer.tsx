@@ -1,12 +1,83 @@
-import { ShieldCheck, FolderHeart, Scale, Shield } from 'lucide-react';
+import { ShieldCheck, FolderHeart, Scale, Shield, Globe } from 'lucide-react';
 import { EmeraldFolderIcon } from './SharedIcons';
+
+// Komponen helper bendera untuk footer (serasi dengan Navbar)
+const FooterFlag = ({ country, className = "w-4 h-4" }: { country: string, className?: string }) => {
+  const clipId = `footer-flag-${country.toLowerCase().replace(/\s+/g, '-')}`;
+  
+  let flagContent = null;
+  switch (country) {
+    case 'Indonesia':
+      flagContent = (
+        <>
+          <rect x="0" y="0" width="24" height="12" fill="#EF4444" />
+          <rect x="0" y="12" width="24" height="12" fill="#FFFFFF" />
+        </>
+      );
+      break;
+    case 'Thailand':
+      flagContent = (
+        <>
+          <rect x="0" y="0" width="24" height="24" fill="#EF4444" />
+          <rect x="0" y="4.3" width="24" height="15.4" fill="#FFFFFF" />
+          <rect x="0" y="7.7" width="24" height="8.6" fill="#1E3A8A" />
+        </>
+      );
+      break;
+    case 'Taiwan':
+      flagContent = (
+        <>
+          <rect x="0" y="0" width="24" height="24" fill="#EF4444" />
+          <rect x="0" y="0" width="12" height="12" fill="#1E3A8A" />
+          <circle cx="6" cy="6" r="3.5" fill="#FFFFFF" />
+        </>
+      );
+      break;
+    case 'Philippines':
+      flagContent = (
+        <>
+          <rect x="0" y="0" width="24" height="12" fill="#1D4ED8" />
+          <rect x="0" y="12" width="24" height="12" fill="#EF4444" />
+          <polygon points="0,0 0,24 13.2,12" fill="#FFFFFF" />
+          <circle cx="4.3" cy="12" r="3.6" fill="#FACC15" />
+        </>
+      );
+      break;
+    case 'Vietnam':
+      flagContent = (
+        <>
+          <rect x="0" y="0" width="24" height="24" fill="#EF4444" />
+          <polygon 
+            points="12,4.8 13.6,9.4 18.8,9.4 14.6,12.4 16.2,17.8 12,14.7 7.8,17.8 9.4,12.4 5.2,9.4 10.4,9.4" 
+            fill="#FACC15" 
+          />
+        </>
+      );
+      break;
+    default:
+      return <Globe className={className} />;
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className={`${className} rounded-full overflow-hidden flex-shrink-0 drop-shadow-sm`}>
+      <circle cx="12" cy="12" r="12" fill="#FFFFFF" />
+      <clipPath id={clipId}>
+        <circle cx="12" cy="12" r="11.5" />
+      </clipPath>
+      <g clipPath={`url(#${clipId})`}>
+        {flagContent}
+      </g>
+      <circle cx="12" cy="12" r="11.5" fill="none" stroke="#E2E8F0" strokeWidth="1" />
+    </svg>
+  );
+};
 
 interface FooterProps {
   onSelectCountry?: (country: string) => void;
 }
 
 export default function Footer({ onSelectCountry }: FooterProps) {
-  // Menambahkan 'Taiwan' ke dalam daftar kategori
+  // Daftar kategori negara
   const categories = ['Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
   const navigateTo = (path: string) => {
@@ -43,9 +114,10 @@ export default function Footer({ onSelectCountry }: FooterProps) {
                 <li key={country}>
                   <button 
                     onClick={() => onSelectCountry && onSelectCountry(country)}
-                    className="hover:text-emerald-600 transition-colors border-none bg-transparent p-0 text-left cursor-pointer"
+                    className="hover:text-emerald-600 transition-colors border-none bg-transparent p-0 text-left cursor-pointer flex items-center gap-2.5"
                   >
-                    {country}
+                    <FooterFlag country={country} className="w-[18px] h-[18px]" />
+                    <span>{country}</span>
                   </button>
                 </li>
               ))}
