@@ -61,6 +61,7 @@ interface AnimationBorderProps {
   userProgress?: number;
   equippedBorderUrl?: string | null;
   userAvatarUrl?: string | null;
+  isAdmin?: boolean; // Tambahan prop untuk mengecek apakah user adalah admin
   onSelectBorder?: (borderUrl: string | null) => void;
 }
 
@@ -68,6 +69,7 @@ const AnimationBorder = ({
   userProgress = 0,
   equippedBorderUrl = null,
   userAvatarUrl = null,
+  isAdmin = false, // Nilai default false
   onSelectBorder,
 }: AnimationBorderProps) => {
   const [activeBorder, setActiveBorder] = useState<string | null>(equippedBorderUrl);
@@ -100,7 +102,7 @@ const AnimationBorder = ({
 
         <div className="flex items-center gap-2 px-3.5 py-2 bg-emerald-50 rounded-xl border border-emerald-100 text-emerald-700 font-bold text-xs">
           <Trophy size={16} />
-          <span>Progress Upload: {userProgress} Video</span>
+          <span>{isAdmin ? 'Admin Access' : `Progress Upload: ${userProgress} Video`}</span>
         </div>
       </div>
 
@@ -113,7 +115,8 @@ const AnimationBorder = ({
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {BORDER_COLLECTION.map((border) => {
-            const isUnlocked = userProgress >= border.requiredProgress;
+            // Logika utama: Terbuka jika user adalah admin ATAU progress mencukupi
+            const isUnlocked = isAdmin || userProgress >= border.requiredProgress;
             const isEquipped = activeBorder === border.imageUrl;
 
             // Hitung persentase progress (Maksimal 100%)
@@ -184,7 +187,7 @@ const AnimationBorder = ({
                     <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full inline-block ${
                       isEquipped ? 'bg-emerald-500 text-white' : 'bg-emerald-100 text-emerald-700'
                     }`}>
-                      {isEquipped ? 'Slected' : 'Use'}
+                      {isEquipped ? 'Selected' : 'Use'}
                     </span>
                   ) : (
                     <div className="w-full flex flex-col gap-1">
