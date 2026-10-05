@@ -29,7 +29,7 @@ interface CreatorCardProps {
   uploaderCount: number;
 }
 
-// PERBAIKAN 1: Tambahkan properti currentUser ke dalam antarmuka HomeProps
+// Interface tetap memiliki onCheckAccess agar App.tsx tidak error
 interface HomeProps {
   onCheckAccess?: any; 
   isUserPremium?: boolean;
@@ -168,8 +168,8 @@ const fetchApprovedBatches = async () => {
   });
 };
 
-// PERBAIKAN 2: Terima prop currentUser (dengan alias propCurrentUser)
-export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: propCurrentUser, onCheckAccess }: HomeProps) { 
+// PERBAIKAN: Hapus onCheckAccess dari destructuring props (di parameter) agar TypeScript tidak mengeluh TS6133
+export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: propCurrentUser }: HomeProps) { 
   const { data: batches = [], mutate, error: swrError } = useSWR('approved_batches', fetchApprovedBatches, {
     dedupingInterval: 600000, 
     revalidateOnFocus: false,
@@ -178,7 +178,6 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
   const [activeCategory, setActiveCategory] = useState('Home');
   const [searchQuery, setSearchQuery] = useState('');
   
-  // State lokal jika sewaktu-waktu prop tidak di-pass
   const [localCurrentUser, setLocalCurrentUser] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -193,7 +192,6 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 16;
 
-  // PERBAIKAN 3: Gunakan propCurrentUser dari App.tsx jika tersedia, jika tidak gunakan state lokal
   const currentUser = propCurrentUser !== undefined ? propCurrentUser : localCurrentUser;
 
   useEffect(() => {
@@ -533,7 +531,6 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
       <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
       
       <Suspense fallback={null}>
-        {/* PERBAIKAN 4: Meneruskan currentUser dari App.tsx ke PreviewModal agar status uploader terdeteksi */}
         {previewItem && (
           <PreviewModal 
             item={previewItem} 
