@@ -13,7 +13,7 @@ interface PreviewModalProps {
   uploaderCount?: number;
   onSelectCreator?: (creatorName: string) => void;
   isUserPremium?: boolean;
-  currentUser?: string | null; // TAMBAHAN: Prop untuk mengecek user yang sedang login
+  currentUser?: string | null;
   onOpenUpgradeModal?: () => void;
 }
 
@@ -24,7 +24,7 @@ const PreviewModal = ({
   uploaderCount = 0, 
   onSelectCreator,
   isUserPremium = false,
-  currentUser = null, // TAMBAHAN: Default null
+  currentUser = null,
   onOpenUpgradeModal
 }: PreviewModalProps) => {
   const [isMuted, setIsMuted] = useState<boolean>(true);
@@ -190,17 +190,21 @@ const PreviewModal = ({
   } else if (!item.is_exclusive && item.download_url) {
     if (item.download_url.includes('drive.google')) finalGdriveLink = item.download_url;
     else if (item.download_url.includes('tera')) finalTeraboxLink = item.download_url;
-    else if (!finalGdriveLink) finalGdriveLink = item.download_url;
+    else if (!finalGdriveLink) finalGdriveLink = item.exclusive_url || item.download_url;
   }
 
   const hasGdrive = Boolean(finalGdriveLink && finalGdriveLink.trim() !== '');
   const hasTerabox = Boolean(finalTeraboxLink && finalTeraboxLink.trim() !== '');
 
-  // LOGIKA BARU: Cek apakah user yang sedang login adalah uploader dari item ini
-  const isUploader = currentUser && item.uploaded_by && currentUser.toLowerCase() === item.uploaded_by.toLowerCase();
+  // PENGECEKAN UPLOADER: Pengunggah yang sedang login
+  const isUploader = Boolean(
+    currentUser && 
+    ((item.uploaded_by && currentUser.toLowerCase() === item.uploaded_by.toLowerCase()) ||
+     (item.username && currentUser.toLowerCase() === item.username.toLowerCase()))
+  );
   
-  // LOGIKA BARU: Item terkunci JIKA eksklusif, BUKAN user premium, DAN BUKAN uploader
-  const isLocked = item.is_exclusive && !isUserPremium && !isUploader;
+  // STATUS KUNCI: Hanya terkunci jika file eksklusif, BUKAN uploader, DAN BUKAN user premium
+  const isLocked = Boolean(item.is_exclusive && !isUserPremium && !isUploader);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
@@ -399,13 +403,10 @@ const PreviewModal = ({
                       e.preventDefault();
                       e.stopPropagation();
                       
-                      // Buka modal upgrade di parent component
                       if (onOpenUpgradeModal) {
                         onOpenUpgradeModal();
                       }
                       
-                      // Beri sedikit jeda waktu sebelum menutup PreviewModal
-                      // agar State di Parent Component sempat terupdate
                       setTimeout(() => {
                         if (onClose) onClose();
                       }, 50);
@@ -415,7 +416,6 @@ const PreviewModal = ({
                     Upgrade Now
                   </button>
                 </div>
-                {/* Ikon Gembok (Lock) di sisi kanan */}
                 <div className="absolute right-6 z-0 transition-transform group-hover:scale-110 duration-300">
                   <Lock size={48} className="text-amber-500/20" strokeWidth={1.5} />
                 </div>

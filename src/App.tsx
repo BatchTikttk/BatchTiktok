@@ -155,7 +155,7 @@ export default function App() {
   };
 
   // ---------------------------------------------------------
-  // LOGIKA GLOBAL: Penjaga Akses untuk Konten Eksklusif
+  // LOGIKA GLOBAL: Penjaga Akses Konten
   // ---------------------------------------------------------
   const handleExclusiveAccess: any = (
     isExclusive: boolean, 
@@ -166,31 +166,32 @@ export default function App() {
     const uploadedBy = typeof arg2 === 'string' ? arg2 : '';
     const onSuccessCallback = typeof arg2 === 'function' ? arg2 : arg3;
 
-    // 1. Jika bukan eksklusif, berikan akses langsung
+    // 1. UTAMA & UTUH: Jika user yang sedang login adalah pengunggah asli (uploader),
+    // berikan akses langsung TANPA SYARAT (baik file eksklusif maupun biasa)
+    if (uploadedBy && currentUser && currentUser.toLowerCase() === uploadedBy.toLowerCase()) {
+      onSuccessCallback?.();
+      return;
+    }
+
+    // 2. Jika bukan konten eksklusif, berikan akses langsung
     if (!isExclusive) {
       onSuccessCallback?.(); 
       return;
     }
 
-    // 2. Jika belum login sama sekali, arahkan ke modal login
+    // 3. Jika konten eksklusif dan user belum login, arahkan ke modal login
     if (!currentUser) {
       setShowLoginModal(true); 
       return;
     }
 
-    // 3. PENGECUALIAN PENTING: Jika user yang login adalah pengunggah asli konten tersebut
-    if (uploadedBy && currentUser.toLowerCase() === uploadedBy.toLowerCase()) {
-      onSuccessCallback?.();
-      return;
-    }
-
-    // 4. Pengecualian: User memiliki akses Premium aktif
+    // 4. Jika user memiliki akses Premium aktif, berikan akses
     if (isPremiumUser) {
       onSuccessCallback?.();
       return;
     }
 
-    // 5. User biasa (sudah login tapi bukan premium dan bukan pemilik konten) -> Buka Modal Upgrade
+    // 5. User biasa (bukan uploader & bukan premium) -> Buka Modal Upgrade
     setIsUpgradeModalOpen(true);
   };
 
@@ -230,6 +231,7 @@ export default function App() {
       <Home 
         onCheckAccess={handleExclusiveAccess}
         isUserPremium={isPremiumUser}
+        currentUser={currentUser}
         onOpenUpgradeModal={() => {
           if (!currentUser) {
             setShowLoginModal(true);
