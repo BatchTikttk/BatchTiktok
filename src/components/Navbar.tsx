@@ -112,7 +112,7 @@ export default function Navbar({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRegionOpen, setIsRegionOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [isPremium, setIsPremium] = useState<boolean>(false); // State untuk status VIP
+  const [isPremium, setIsPremium] = useState<boolean>(false);
 
   const regions = CATEGORIES.filter((c: string) => c !== 'Home');
 
@@ -326,7 +326,7 @@ export default function Navbar({
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             <button 
               onClick={handleGoToRules}
               className={`p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold flex items-center gap-2 transition-all border-none cursor-pointer ${
@@ -334,7 +334,7 @@ export default function Navbar({
               }`}
               title="Posting Rules"
             >
-              <Scale size={16} className="text-emerald-500" />
+              <Scale className="w-5 h-5 sm:w-4 sm:h-4 text-emerald-500" />
               <span className="hidden sm:inline">Rules</span>
             </button>
 
@@ -408,9 +408,10 @@ export default function Navbar({
             ) : (
               <button 
                 onClick={() => setShowLoginModal(true)}
-                className="px-5 py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold text-slate-600 flex items-center gap-2 transition-all border-none cursor-pointer"
+                className="p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold text-slate-600 flex items-center gap-2 transition-all border-none cursor-pointer"
+                title="Sign In"
               >
-                <LogIn size={16} className="text-emerald-500" />
+                <LogIn className="w-5 h-5 sm:w-4 sm:h-4 text-emerald-500" />
                 <span className="hidden sm:inline">Sign In</span>
               </button>
             )}
@@ -419,7 +420,7 @@ export default function Navbar({
               className="md:hidden p-2.5 text-slate-500 hover:text-slate-800 bg-white rounded-xl shadow-sm border-none cursor-pointer z-50"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
