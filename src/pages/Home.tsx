@@ -348,7 +348,7 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
   );
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col justify-between">
+    <div className="min-h-screen bg-transparent font-sans flex flex-col justify-between">
       
       <div>
         <Navbar 

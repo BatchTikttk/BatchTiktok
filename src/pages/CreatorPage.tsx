@@ -341,7 +341,7 @@ export default function CreatorPage({
   const highestBadge = unlockedBadges.length > 0 ? unlockedBadges[unlockedBadges.length - 1] : null;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pt-8 pb-16 px-6 sm:px-8 font-sans flex flex-col selection:bg-emerald-100 selection:text-emerald-900">
+    <div className="min-h-screen bg-transparent pt-8 pb-16 px-6 sm:px-8 font-sans flex flex-col selection:bg-emerald-100 selection:text-emerald-900">
       <main className="max-w-7xl mx-auto w-full flex-grow animate-in fade-in slide-in-from-bottom-4 duration-500">
         
         <button 

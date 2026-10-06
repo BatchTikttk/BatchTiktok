@@ -201,7 +201,7 @@ const RulesPage = () => {
   ];
 
   return (
-    <div className="relative min-h-screen bg-[#F8FAFC] pt-24 pb-16 px-4 sm:px-8 font-sans">
+    <div className="relative min-h-screen bg-transparent pt-24 pb-16 px-4 sm:px-8 font-sans">
       
       {/* Tombol Toggle Bahasa (Pojok Kanan Atas) */}
       <div className="absolute top-6 right-6 sm:top-8 sm:right-8 z-50 animate-in fade-in duration-500">
