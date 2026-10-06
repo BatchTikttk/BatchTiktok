@@ -214,8 +214,7 @@ export default function App() {
     }
 
     if (currentPath === '/top-contributors') {
-      // PERBAIKAN DI SINI: Menambahkan prop 'username' yang diwajibkan oleh TopContributors.tsx
-      return <TopContributors username={currentUser || 'Guest'} />;
+      return <TopContributors />;
     }
 
     if (currentPath.startsWith('/creator/')) {

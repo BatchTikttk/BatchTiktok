@@ -36,7 +36,6 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import AvatarBorderVip, { VIP_BORDERS } from '../components/AvatarBorderVip';
 import AnimationBorder from '../components/AnimationBorder'; // Import komponen Animation Border
-import WebmContribute from '../components/WebmContribute'; // Import komponen WebmContribute
 
 // Lazy load heavy components
 const PostModal = lazy(() => import('../components/PostModal'));
@@ -389,10 +388,10 @@ export default function Profile({
       .eq('id', session.user.id);
 
     if (error) {
-      handleShowToast(`Failed: ${error.message}`, "error");
+      handleShowToast(`Gagal: ${error.message}`, "error");
     } else {
       setUserProfile((prev: any) => ({ ...prev, vip_border_url: newBorderUrl }));
-      handleShowToast(newBorderUrl ? "VIP frame successfully applied!" : "VIP frame removed!", "success");
+      handleShowToast(newBorderUrl ? "VIP frame successfully applied.!" : "VIP frame removed!", "success");
     }
   };
 
@@ -407,7 +406,7 @@ export default function Profile({
       .eq('id', session.user.id);
 
     if (error) {
-      handleShowToast(`Failed: ${error.message}`, "error");
+      handleShowToast(`Gagal: ${error.message}`, "error");
     } else {
       setUserProfile((prev: any) => ({ ...prev, animation_border_url: borderUrl }));
       handleShowToast(borderUrl ? "Animation border successfully equipped!" : "Animation border removed successfully!", "success");
@@ -1043,11 +1042,11 @@ export default function Profile({
                   
                   {/* Memanggil Komponen Animation Border */}
                   <AnimationBorder 
-                    userProgress={userProfile?.is_admin ? 999999 : stats.totalUploads} 
-                    equippedBorderUrl={userProfile?.animation_border_url} 
-                    userAvatarUrl={userProfile?.avatar_url}
-                    onSelectBorder={handleSelectAnimationBorder} 
-                  />
+  userProgress={userProfile?.is_admin ? 999999 : stats.totalUploads} 
+  equippedBorderUrl={userProfile?.animation_border_url} 
+  userAvatarUrl={userProfile?.avatar_url}
+  onSelectBorder={handleSelectAnimationBorder} 
+/>
                 </div>
               )}
 
@@ -1177,11 +1176,6 @@ export default function Profile({
                         );
                       })}
                     </div>
-                  </div>
-
-                  {/* ===== WEBM CONTRIBUTE ===== */}
-                  <div className="p-6 bg-slate-50 rounded-[32px] mb-6">
-                    <WebmContribute />
                   </div>
 
                   <div className="space-y-4">
@@ -1631,10 +1625,10 @@ export default function Profile({
         {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
         {showAvatarModal && (
           <AvatarModal
-            onClose={() => setShowAvatarModal(false)} 
-            currentAvatar={currentUser} 
-            onSelectAvatar={handleUpdateAvatar}
-          />
+  onClose={() => setShowAvatarModal(false)} 
+  currentAvatar={currentUser} 
+  onSelectAvatar={handleUpdateAvatar}
+/>
         )}
       </Suspense>
 
