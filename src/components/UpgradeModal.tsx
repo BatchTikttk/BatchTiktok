@@ -24,7 +24,7 @@ const CONTENT = {
     'Direct download links (Google Drive & TeraBox) without ads',
     'Priority queue for custom batch requests',
     'Exclusive Border Aavtar VIP',
-    'Daily archive synchronization updates'
+    'Premium card background for the contribution page'
   ]
 };
 
