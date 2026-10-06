@@ -42,7 +42,7 @@ export default function UpgradeModal({ isOpen, onClose, onOpenLoginModal }: Upgr
     if (!isOpen) return;
 
     // Midtrans Sandbox URL
-    const snapScriptUrl = 'https://app.midtrans.com/snap/snap.js';
+    const snapScriptUrl = 'https://app.sandbox.midtrans.com/snap/snap.js';
     
     // Call Client Key from the Vite .env file
     const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY; 
