@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Check, ShieldCheck } from 'lucide-react';
 
-// Import mengarah ke file supabase.ts di dalam folder src
+// Import pointing to the supabase.ts file inside the src folder
 import { supabase } from '../supabase'; 
 
 interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onOpenLoginModal?: () => void; // Prop opsional untuk memicu modal login
+  onOpenLoginModal?: () => void; // Optional prop to trigger the login modal
 }
 
 const CONTENT = {
@@ -20,15 +20,14 @@ const CONTENT = {
   secureNotice: 'Secure & Verified Payment',
   featuresHeader: 'Member Benefits',
   features: [
-    'Akses to all Exclusive Konten',
-    'Direct download links (Google Drive & TeraBox) without ads',
+    'Access to all Exclusive Content',
     'Priority queue for custom batch requests',
-    'Exclusive Border Aavtar VIP',
+    'Exclusive VIP Avatar Border',
     'Premium card background for the contribution page'
   ]
 };
 
-// Deklarasi global object window untuk TypeScript agar tidak error saat memanggil window.snap
+// Global declaration for the window object so TypeScript doesn't throw an error when calling window.snap
 declare global {
   interface Window {
     snap: any;
@@ -38,17 +37,17 @@ declare global {
 export default function UpgradeModal({ isOpen, onClose, onOpenLoginModal }: UpgradeModalProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load Midtrans Snap.js script ketika modal dibuka
+  // Load Midtrans Snap.js script when the modal is opened
   useEffect(() => {
     if (!isOpen) return;
 
-    // URL Sandbox Midtrans
+    // Midtrans Sandbox URL
     const snapScriptUrl = 'https://app.sandbox.midtrans.com/snap/snap.js';
     
-    // Memanggil Client Key dari file .env Vite
+    // Call Client Key from the Vite .env file
     const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY; 
 
-    // Cek agar script tidak di-load berulang kali
+    // Check to ensure the script is not loaded repeatedly
     let scriptTag = document.querySelector(`script[src="${snapScriptUrl}"]`) as HTMLScriptElement;
     
     if (!scriptTag) {
@@ -65,60 +64,60 @@ export default function UpgradeModal({ isOpen, onClose, onOpenLoginModal }: Upgr
   const handlePayment = async () => {
     setIsLoading(true);
     try {
-      // 1. Ambil data user yang sedang login saat ini di Supabase
+      // 1. Get the currently logged-in user data from Supabase
       const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-      // LOGIKA CERDAS: Jika user BELUM LOGIN
+      // SMART LOGIC: If the user is NOT LOGGED IN
       if (userError || !user) {
-        onClose(); // Tutup modal upgrade
+        onClose(); // Close the upgrade modal
         if (onOpenLoginModal) {
-          onOpenLoginModal(); // Buka modal login
+          onOpenLoginModal(); // Open the login modal
         } else {
-          // Fallback event jika prop tidak ditransfer secara eksplisit
+          // Fallback event if the prop is not explicitly passed
           window.dispatchEvent(new CustomEvent('openLoginModal'));
         }
         return;
       }
 
-      // 2. Jika user SUDAH LOGIN: Memanggil Supabase Edge Function 'midtrans-payment'
+      // 2. If the user IS LOGGED IN: Call the Supabase Edge Function 'midtrans-payment'
       const { data, error } = await supabase.functions.invoke('midtrans-payment', {
         body: { 
           amount: 50000,
-          user_id: user.id // Mengirim ID user aktif agar webhook bisa membaca tujuannya
+          user_id: user.id // Send the active user ID so the webhook can read its destination
         }
       });
 
       if (error) {
-        console.error('Error dari Supabase:', error);
-        throw new Error('Gagal memanggil fungsi dari Supabase');
+        console.error('Supabase Error:', error);
+        throw new Error('Failed to invoke function from Supabase');
       }
 
       if (!data?.token) {
-        throw new Error('Token pembayaran tidak ditemukan');
+        throw new Error('Payment token not found');
       }
 
-      // 3. Munculkan popup UI Midtrans
+      // 3. Show the Midtrans UI popup
       window.snap.pay(data.token, {
         onSuccess: function (result: any) {
-          console.log('Pembayaran Sandbox SUKSES:', result);
-          alert('Pembayaran Berhasil! Status akun Anda akan segera diperbarui.');
-          onClose(); // Tutup modal otomatis setelah berhasil
+          console.log('Sandbox Payment SUCCESS:', result);
+          alert('Payment Successful! Your account status will be updated shortly.');
+          onClose(); // Auto-close the modal upon success
         },
         onPending: function (result: any) {
-          console.log('Pembayaran Sandbox PENDING:', result);
-          alert('Menunggu pembayaran diselesaikan.');
+          console.log('Sandbox Payment PENDING:', result);
+          alert('Waiting for the payment to be completed.');
         },
         onError: function (result: any) {
-          console.log('Pembayaran Sandbox GAGAL:', result);
-          alert('Pembayaran gagal.');
+          console.log('Sandbox Payment FAILED:', result);
+          alert('Payment failed.');
         },
         onClose: function () {
-          console.log('User menutup popup tanpa menyelesaikan pembayaran');
+          console.log('User closed the popup without completing the payment');
         }
       });
     } catch (error: any) {
-      console.error('Terjadi kesalahan:', error);
-      alert(error.message || 'Gagal memproses pembayaran. Cek console browser untuk detailnya.');
+      console.error('An error occurred:', error);
+      alert(error.message || 'Failed to process payment. Check the browser console for details.');
     } finally {
       setIsLoading(false);
     }
@@ -132,10 +131,10 @@ export default function UpgradeModal({ isOpen, onClose, onOpenLoginModal }: Upgr
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      {/* Wrapper untuk mengatur posisi tombol Close di luar kartu */}
+      {/* Wrapper to position the Close button outside the card */}
       <div className="relative w-full max-w-xl">
         
-        {/* Tombol Close Polos Tanpa Bulatan Background */}
+        {/* Plain Close Button Without Background Circle */}
         <button 
           onClick={onClose}
           className="absolute -top-10 right-0 md:-right-10 md:-top-2 z-[60] text-zinc-400 hover:text-white bg-transparent border-none p-1 transition-all duration-300 hover:rotate-90 hover:scale-110 cursor-pointer flex items-center justify-center"
@@ -148,7 +147,7 @@ export default function UpgradeModal({ isOpen, onClose, onOpenLoginModal }: Upgr
         {/* Modal Container: Dark Mode Card */}
         <div className="bg-zinc-900 rounded-[2rem] w-full overflow-hidden shadow-2xl relative flex flex-col animate-in fade-in zoom-in-95 duration-200 border border-zinc-800/50">
           
-          {/* Header: Solid Gold (Elegan & Soft) */}
+          {/* Header: Solid Gold (Elegant & Soft) */}
           <div className="bg-amber-600 px-8 py-8 md:py-10 text-center relative">
             <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-2 tracking-tight mt-2">
               {CONTENT.title} <span className="text-amber-200">{CONTENT.titleHighlight}</span>
@@ -196,13 +195,13 @@ export default function UpgradeModal({ isOpen, onClose, onOpenLoginModal }: Upgr
                 </p>
               </div>
 
-              {/* Tombol CTA Update dengan Loading State */}
+              {/* CTA Button with Loading State */}
               <button
                 onClick={handlePayment}
                 disabled={isLoading}
                 className="w-full max-w-md bg-amber-600 hover:bg-amber-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-amber-600/20 text-sm border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Menghubungkan ke Midtrans...' : CONTENT.ctaButton}
+                {isLoading ? 'Connecting to Midtrans...' : CONTENT.ctaButton}
               </button>
               <p className="text-zinc-400 text-xs mt-4 font-medium flex items-center justify-center gap-1.5">
                 <ShieldCheck size={16} className="text-amber-500" />
