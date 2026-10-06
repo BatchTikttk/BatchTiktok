@@ -9,7 +9,7 @@ const PostModal = ({
   showToast, 
   CATEGORIES, 
   onOpenRules,
-  isAdmin = false // Default ke false jika prop tidak dikirimkan
+  isAdmin = false 
 }: any) => {
   const [isLoading, setIsLoading] = useState(false);
   
@@ -54,28 +54,12 @@ const PostModal = ({
 
     const isExclusive = formData.upload_type === 'exclusive';
 
-    // 2. VALIDATION: Filter Shortlinks when Exclusive Upload is selected
-    if (isExclusive) {
-      // Check GDrive direct link
-      if (formData.gdrive_url && !formData.gdrive_url.toLowerCase().includes('drive.google.com')) {
-        showToast("Please enter direct link for Google Drive, no shortlink allowed!", "error");
-        return;
-      }
-
-      // Check TeraBox direct link
-      const validTeraboxDomains = ['terabox.com', 'terabox.app', '1024tera', 'freeterabox', 'mirrobox', 'neobox'];
-      const isTeraboxDirect = !formData.terabox_url || validTeraboxDomains.some(domain => formData.terabox_url.toLowerCase().includes(domain));
-
-      if (!isTeraboxDirect) {
-        showToast("Please enter direct link for TeraBox, no shortlink allowed!", "error");
-        return;
-      }
-    }
+    // (Shortlink validation for Exclusive Upload has been removed. Users can now use shortlinks for both types to monetize.)
 
     setIsLoading(true);
 
     try {
-      // Ambil link utama yang diisi (GDrive atau TeraBox)
+      // Get the primary link filled (GDrive or TeraBox)
       const primaryDownloadLink = formData.gdrive_url || formData.terabox_url || "";
 
       const { error } = await supabase.from('batches').insert([
@@ -87,7 +71,7 @@ const PostModal = ({
           tiktok_url: formData.tiktok_url,
           video_url: formData.video_url,
           
-          // Data disebar sesuai dengan jenis upload-nya
+          // Data is spread according to the upload type
           gdrive_url: formData.gdrive_url,
           terabox_url: formData.terabox_url,
           exclusive_url: isExclusive ? primaryDownloadLink : null,
@@ -95,14 +79,14 @@ const PostModal = ({
           is_banned: formData.is_banned,
           is_exclusive: isExclusive,
           uploaded_by: currentUser,
-          // Mengatur status: Jika admin, langsung 'approved', jika user biasa, 'pending'
+          // Set status: If admin, directly 'approved', if normal user, 'pending'
           status: isAdmin ? 'approved' : 'pending'
         }
       ]);
 
       if (error) throw error;
 
-      // Notifikasi toast yang disesuaikan
+      // Customized toast notification
       const successMessage = isAdmin 
         ? "Batch successfully submitted and approved!" 
         : "Batch successfully submitted! Awaiting admin approval.";
@@ -200,7 +184,7 @@ const PostModal = ({
                   />
                   <div>
                     <span className="text-sm font-bold block leading-tight">Exclusive Upload</span>
-                    <span className="text-xs text-slate-500 block mt-0.5">Direct links only (No shortlinks)</span>
+                    <span className="text-xs text-slate-500 block mt-0.5">Monetized shortlinks allowed</span>
                   </div>
                 </div>
               </div>
@@ -321,9 +305,7 @@ const PostModal = ({
                     ? 'text-purple-600 bg-purple-50' 
                     : 'text-emerald-600 bg-emerald-50'
                 }`}>
-                  {formData.upload_type === 'exclusive' 
-                    ? 'Direct link required' 
-                    : 'Monetized shortlinks allowed'}
+                  Monetized shortlinks allowed
                 </span>
               </div>
               <input 
@@ -345,9 +327,7 @@ const PostModal = ({
                     ? 'text-purple-600 bg-purple-50' 
                     : 'text-emerald-600 bg-emerald-50'
                 }`}>
-                  {formData.upload_type === 'exclusive' 
-                    ? 'Direct link required' 
-                    : 'Monetized shortlinks allowed'}
+                  Monetized shortlinks allowed
                 </span>
               </div>
               <input 
