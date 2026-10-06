@@ -9,7 +9,7 @@ import { supabase } from "../supabase";
 
 import { EmeraldFolderIcon } from "../components/SharedIcons";
 import AvatarBorderVip from "../components/AvatarBorderVip";
-import WebmContribute from "../components/WebmContribute"; // Fix: Path diubah ke folder components
+import WebmContribute from "../components/WebmContribute";
 
 // Lazy Load Modal
 const PreviewModal = lazy(() => import("../components/PreviewModal"));
@@ -234,250 +234,6 @@ export default function CreatorPage({
   const currentUser = propCurrentUser !== undefined ? propCurrentUser : localCurrentUser;
 
   const { data: creatorData, isLoading: loading, mutate } = useSWR(
-    username ? Error `TS2307` muncul karena sistem mencoba mencari module `WebmContribute` di direktori yang sama dengan `TopContributors.tsx` (di dalam folder `src/pages/`)[cite: 1]. Berdasarkan struktur import pada file `WebmContribute` yang memanggil `../supabase`, file tersebut seharusnya berada di dalam folder `src/components/`[cite: 2].
-
-Path import perlu diubah dari `"./WebmContribute"` menjadi `"../components/WebmContribute"`[cite: 1, 2]. Pastikan Anda telah menyimpan file `WebmContribute_2.tsx` dengan nama `WebmContribute.tsx` di dalam folder `src/components/`.
-
-Berikut adalah *full code* `TopContributors.tsx` yang sudah diperbaiki:
-
-```tsx
-import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
-import useSWR from 'swr';
-import { 
-  Home, User, HardDrive, FolderOpen, Video, 
-  MousePointerClick, Play, Check,
-  Crown, Sparkles 
-} from 'lucide-react';
-import { supabase } from "../supabase";
-
-import { EmeraldFolderIcon } from "../components/SharedIcons";
-import AvatarBorderVip from "../components/AvatarBorderVip";
-// Perbaikan path import: mengarah ke folder components
-import WebmContribute from "../components/WebmContribute"; 
-
-// Lazy Load Modal
-const PreviewModal = lazy(() => import("../components/PreviewModal"));
-
-interface BatchItem {
-  id: string;
-  user_id?: string;
-  username: string;
-  country: string;
-  video_count: number | string;
-  size_file: string;
-  size_gb: number | string;
-  uploaded_by?: string;
-  uploader_is_admin?: boolean;
-  is_edited?: boolean;
-  is_exclusive?: boolean; 
-  is_banned?: boolean;
-  status?: string;
-  [key: string]: any; 
-}
-
-interface BadgeItem {
-  id: string;
-  title: string;
-  tier: string;
-  iconUrl: string;
-  colorClass: string;
-  isUnlocked: (stats: any) => boolean;
-}
-
-const BADGES: BadgeItem[] = [
-  {
-    id: 'bronze',
-    title: 'Bronze Tier',
-    tier: 'Tier 1 Badge',
-    iconUrl: '[https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Bronze.webp](https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Bronze.webp)',
-    colorClass: 'text-[#b08d6a]',
-    isUnlocked: (stats: any) => stats.totalUploads >= 10,
-  },
-  {
-    id: 'silver',
-    title: 'Silver Tier',
-    tier: 'Tier 2 Badge',
-    iconUrl: '[https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Silver.webp](https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Silver.webp)',
-    colorClass: 'text-slate-500',
-    isUnlocked: (stats: any) => stats.totalUploads >= 30,
-  },
-  {
-    id: 'gold',
-    title: 'Gold Tier',
-    tier: 'Tier 3 Badge',
-    iconUrl: '[https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Gold.webp](https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Gold.webp)',
-    colorClass: 'text-amber-500',
-    isUnlocked: (stats: any) => stats.totalUploads >= 50,
-  },
-  {
-    id: 'elite',
-    title: 'Elite Tier',
-    tier: 'Tier 4 Badge',
-    iconUrl: '[https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp](https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp)',
-    colorClass: 'text-blue-500',
-    isUnlocked: (stats: any) => stats.totalUploads >= 100,
-  },
-  {
-    id: 'legend',
-    title: 'Legend Tier',
-    tier: 'Tier 5 Badge',
-    iconUrl: '[https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp](https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp)',
-    colorClass: 'text-rose-600',
-    isUnlocked: (stats: any) => stats.totalUploads >= 200,
-  },
-];
-
-interface CreatorCardProps {
-  data: BatchItem;
-  onOpenPreview: (item: BatchItem) => void;
-  creatorBadge: BadgeItem | null;
-  isAdmin: boolean;
-}
-
-const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorBadge, isAdmin }) => {
-  return (
-    <div 
-      onClick={() => onOpenPreview(data)} 
-      className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative overflow-hidden"
-    >
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
-        <div className="flex items-center gap-1.5 flex-wrap justify-center">
-          <span className="text-[11px] font-medium text-slate-500 italic flex items-center gap-1.5">
-            Uploaded by <span className="font-semibold text-emerald-600 not-italic">{data.uploaded_by || data.username}</span>
-          </span>
-          
-          {isAdmin ? (
-            <span title="Admin Verified">
-              <img 
-                src="[https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp](https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp)" 
-                alt="Admin Verified"
-                className="w-6 h-6 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform ml-0.5"
-              />
-            </span>
-          ) : creatorBadge ? (
-            <img 
-              src={creatorBadge.iconUrl} 
-              alt={creatorBadge.title} 
-              title={creatorBadge.title}
-              className="w-6 h-6 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform ml-0.5"
-            />
-          ) : null}
-        </div>
-        
-        {data.is_edited && (
-          <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-500" title="Folder has been updated">
-            <Check size="{12}" strokeWidth="{3}"/> Updated
-          </span>
-        )}
-      </div>
-
-      <div 
-        className="mb-5 mt-2 relative transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
-        title={data.is_banned ? "Account Banned" : data.is_exclusive ? "TikTok Exclusive Collection" : ""}
-      >
-        <EmeraldFolderIcon country="{data.country}" isBanned="{data.is_banned}" isExclusive="{data.is_exclusive}"/>
-        
-        {data.is_exclusive && (
-          <div 
-            className="absolute -top-[14px] -left-[6px] z-20 -rotate-[15deg] group-hover:-rotate-[25deg] transition-transform duration-300 pointer-events-none filter drop-shadow-[0_2px_4px_rgba(217,119,6,0.5)]"
-            title="Exclusive Premium Collection"
-          >
-            <Crown className="text-amber-500 fill-amber-400" size="{24}" strokeWidth="{1.5}"/>
-          </div>
-        )}
-      </div>
-      
-      <h3 className="text-lg font-bold text-slate-800 mb-1 tracking-tight">
-        {data.username}
-      </h3>
-      
-      <span className="text-[11px] font-bold tracking-wider text-white bg-emerald-500 px-3 py-1 rounded-full mb-4 shadow-sm border-none">
-        {data.country || 'Unknown'}
-      </span>
-      
-      <div className="flex w-full justify-between px-5 py-3.5 bg-slate-50/80 rounded-2xl mb-5 border-none">
-        <div className="flex flex-col items-start">
-          <span className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Videos</span>
-          <span className="text-sm font-bold text-slate-700">{data.video_count || 0}</span>
-        </div>
-        <div className="flex flex-col items-end">
-          <span className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Size</span>
-          <span className="text-sm font-bold text-slate-700">{data.size_file || `${data.size_gb || 0} GB`}</span>
-        </div>
-      </div>
-      
-      <div className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold transition-all duration-300 bg-emerald-500 text-white hover:bg-emerald-600 shadow-md hover:shadow-lg border-none">
-        <Play className="fill-current" size="{18}"/>
-        Preview Folder
-      </div>
-    </div>
-  );
-};
-
-const fetchCreatorData = async (username: string) => {
-  if (!username) return { profile: null, batches: [] };
-
-  const { data: profileData } = await supabase
-    .from('profiles')
-    .select('*')
-    .ilike('username', username)
-    .maybeSingle();
-
-  let mappedBatches: BatchItem[] = [];
-
-  if (profileData) {
-    const { data: batchData } = await supabase
-      .from('batches')
-      .select('*')
-      .or(`user_id.eq.${profileData.id},username.ilike.${username}`)
-      .order('created_at', { ascending: false });
-
-    if (batchData) {
-      mappedBatches = batchData.map(b => ({
-        ...b,
-        uploaded_by: profileData.username, 
-        uploader_is_admin: profileData.is_admin
-      }));
-    }
-  } else {
-    const { data: batchData } = await supabase
-      .from('batches')
-      .select('*')
-      .ilike('username', username)
-      .order('created_at', { ascending: false });
-
-    if (batchData) {
-      mappedBatches = batchData.map(b => ({
-        ...b,
-        uploaded_by: b.uploaded_by || username,
-        uploader_is_admin: false
-      }));
-    }
-  }
-
-  return { profile: profileData, batches: mappedBatches };
-};
-
-interface CreatorPageProps {
-  username: string;
-  isUserPremium?: boolean;
-  onOpenUpgradeModal?: () => void;
-  currentUser?: any; 
-}
-
-export default function CreatorPage({ 
-  username, 
-  isUserPremium, 
-  onOpenUpgradeModal, 
-  currentUser: propCurrentUser 
-}: CreatorPageProps) {
-  const [localCurrentUser, setLocalCurrentUser] = useState<any>(null); 
-  const [previewItem, setPreviewItem] = useState<BatchItem null |>(null);
-  const [showWebmSettings, setShowWebmSettings] = useState(false);
-
-  const currentUser = propCurrentUser !== undefined ? propCurrentUser : localCurrentUser;
-
-  const { data: creatorData, isLoading: loading, mutate } = useSWR(
     username ? `creator_page_${username}` : null,
     () => fetchCreatorData(username),
     {
@@ -489,7 +245,6 @@ export default function CreatorPage({
   const creatorProfile = creatorData?.profile || null;
   const batches = creatorData?.batches || [];
 
-  // Mengecek apakah halaman profil yang dibuka adalah profil milik user sendiri
   const isOwnProfile = Boolean(
     currentUser && creatorProfile && 
     (currentUser.id === creatorProfile.id || currentUser.user_metadata?.username === creatorProfile.username)
@@ -597,33 +352,31 @@ export default function CreatorPage({
             onClick={handleGoBack} 
             className="flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-slate-700 bg-white hover:bg-slate-50 transition-all shadow-sm hover:shadow-md border border-slate-100 w-max cursor-pointer"
           >
-            <Home size="{20}"/> Home
+            <Home size={20} /> Home
           </button>
 
-          {/* Tombol Akses Pengaturan WebM jika milik sendiri */}
           {isOwnProfile && (
             <button
               onClick={() => setShowWebmSettings(!showWebmSettings)}
               className="flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/60 transition-all shadow-xs cursor-pointer"
             >
-              <Sparkles className="text-amber-500 fill-amber-400" size="{18}"/>
+              <Sparkles size={18} className="text-amber-500 fill-amber-400" />
               {showWebmSettings ? 'Tutup Pengaturan Efek' : 'Ganti Efek Kartu Profil'}
             </button>
           )}
         </div>
 
-        {/* COMPONENT WEBM CONTRIBUTE (Dapat dibuka oleh pemilik akun) */}
         {isOwnProfile && showWebmSettings && (
           <div className="mb-10">
-            <WebmContribute onOpenUpgradeModal="{onOpenUpgradeModal}" onSuccess="{()"> mutate()} 
+            <WebmContribute 
+              onOpenUpgradeModal={onOpenUpgradeModal} 
+              onSuccess={() => mutate()} 
             />
           </div>
         )}
 
-        {/* HEADER KARTU PROFIL (Akan menampilkan WebM jika user memasang card_bg_url) */}
         <div className="relative bg-white p-8 sm:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 mb-10 flex flex-col md:flex-row items-center md:items-start gap-8 overflow-hidden">
           
-          {/* WEBM BACKGROUND LAYERING */}
           {creatorProfile?.card_bg_url && (
             <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden rounded-[32px]">
               <video 
@@ -656,7 +409,7 @@ export default function CreatorPage({
           {creatorProfile?.is_admin && (
             <div className="absolute top-6 right-6 sm:top-8 sm:right-10 flex flex-col items-center justify-center z-10 hover:scale-105 transition-transform duration-300">
               <img 
-                src="[https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp](https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp)"
+                src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp"
                 alt="Verified Staff"
                 title="Verified Staff"
                 className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain drop-shadow-md"
@@ -672,13 +425,15 @@ export default function CreatorPage({
               {creatorProfile?.avatar_url ? (
                 <img src={creatorProfile.avatar_url} alt={username} className="w-full h-full object-cover" />
               ) : (
-                <User size="{40}" strokeWidth="{2.2}"/>
+                <User size={40} strokeWidth={2.2} />
               )}
             </div>
 
-            {/* Menampilkan VIP Border jika ada, atau Animation Border */}
             {creatorProfile?.vip_border_url ? (
-              <AvatarBorderVip borderUrl="{creatorProfile?.vip_border_url}" isPremium="{creatorProfile?.is_premium}"/>
+              <AvatarBorderVip 
+                borderUrl={creatorProfile?.vip_border_url} 
+                isPremium={creatorProfile?.is_premium} 
+              />
             ) : creatorProfile?.animation_border_url ? (
               <img 
                 src={creatorProfile.animation_border_url} 
@@ -689,13 +444,12 @@ export default function CreatorPage({
           </div>
           
           <div className="flex-1 text-center md:text-left z-10">
-            
             <div className="flex flex-col md:flex-row items-center gap-3 mb-2 justify-center md:justify-start">
               <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 flex items-center gap-2">
                 {creatorProfile?.username || username}
                 {creatorProfile?.is_premium && (
                   <span title="Premium Creator" className="inline-flex items-center">
-                    <Crown className="text-amber-500 fill-amber-400 inline-block drop-shadow-sm" size="{22}"/>
+                    <Crown size={22} className="text-amber-500 fill-amber-400 inline-block drop-shadow-sm" />
                   </span>
                 )}
               </h1>
@@ -739,15 +493,23 @@ export default function CreatorPage({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {batches.map((batch: BatchItem) => (
-              <CreatorCard creatorBadge="{highestBadge}" data="{batch}" isAdmin="{!!creatorProfile?.is_admin}" key="{batch.id}" onOpenPreview="{setPreviewItem}"/>
+              <CreatorCard 
+                key={batch.id} 
+                data={batch}
+                creatorBadge={highestBadge}
+                isAdmin={!!creatorProfile?.is_admin} 
+                onOpenPreview={setPreviewItem}
+              />
             ))}
           </div>
         )}
       </main>
 
-      <Suspense fallback="{null}">
+      <Suspense fallback={null}>
         {previewItem && (
-          <PreviewModal item="{previewItem}" onClose="{()"> setPreviewItem(null)} 
+          <PreviewModal 
+            item={previewItem} 
+            onClose={() => setPreviewItem(null)} 
             onDownload={handleDownloadInitiate}
             uploaderCount={batches.length}
             isUserPremium={isUserPremium}
