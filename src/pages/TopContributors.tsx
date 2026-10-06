@@ -197,7 +197,7 @@ export default function TopContributors() {
   const restOfContributors = contributors.slice(3, 10);
 
   return (
-    <div className="min-h-screen bg-transparent font-sans flex flex-col justify-between">
+    <div className="min-h-screen bg-[#F8FAFC] font-sans flex flex-col justify-between">
       <div>
         <Navbar 
           activeCategory="Top Contributors"
