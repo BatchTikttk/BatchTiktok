@@ -9,6 +9,21 @@ import PostModal from "../components/PostModal";
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
+// Data Preset Warna & WebM agar kartu menyesuaikan secara dinamis
+const PRESET_BACKGROUNDS = [
+  { id: 'lord-hades', name: 'Lord Hades', url: 'https://qu.ax/Kd5um.webm', gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)' },
+  { id: 'butterfly-waltz', name: 'Butterfly Waltz', url: 'https://qu.ax/fGDzx.webm', gradient: 'linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.4) 100%)' },
+  { id: 'stalkers-1', name: 'Stalkers 1', url: 'https://qu.ax/mzL2s.webm', gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)' },
+  { id: 'stalkers-2', name: 'Stalker 2', url: 'https://qu.ax/G64Cg.webm', gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)' },
+  { id: 'animal', name: 'Animal', url: 'https://qu.ax/niCgt.webm', gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)' },
+  { id: 'lotties-cauldron', name: "Lottie's Cauldron", url: 'https://qu.ax/TWIbU.webm', gradient: 'linear-gradient(90deg, rgba(1, 49, 194, 0.1) 0%, rgba(1, 49, 194, 0.4) 100%)' },
+  { id: 'mantas', name: 'MidnightMantis', url: 'https://qu.ax/bmKDF.webm', gradient: 'linear-gradient(90deg, rgba(1, 49, 194, 0.1) 0%, rgba(1, 49, 194, 0.4) 100%)' },
+  { id: 'aries', name: 'Aries', url: 'https://qu.ax/wq4eK.webm', gradient: 'linear-gradient(90deg, rgba(144, 0, 7, 0.1) 0%, rgba(144, 0, 7, 0.4) 100%)' },
+  { id: 'ravens', name: 'Ravens', url: 'https://qu.ax/bQC0S.webm', gradient: 'linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.4) 100%)' },
+  { id: 'light-wolf', name: 'LightWolf', url: 'https://qu.ax/PrsFr.webm', gradient: 'linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.4) 100%)' },
+  { id: 'carberus', name: 'Carberus', url: 'https://qu.ax/Yf3Q0.webm', gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)' },
+];
+
 interface ToastProps {
   message: string;
   isVisible: boolean;
@@ -228,20 +243,28 @@ export default function TopContributors() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   {contributors.map((user) => {
                     const hasWebm = (user.is_premium || user.is_admin) && user.card_bg_url;
+                    
+                    // Mencari preset gradien warna yang cocok dari URL kartu user
+                    const matchedPreset = PRESET_BACKGROUNDS.find(p => p.url === user.card_bg_url);
+                    const cardGradient = matchedPreset?.gradient || 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)';
 
                     return (
                       <div 
                         key={user.id} 
                         onClick={() => handleNavigateToCreator(user.username)}
+                        style={hasWebm ? { background: cardGradient } : undefined}
                         className={`p-5 relative overflow-hidden group transition-all cursor-pointer flex items-center justify-between min-h-[96px] ${
                           hasWebm 
-                            ? 'rounded-2xl shadow-md hover:shadow-xl bg-slate-950 border border-white/10' 
+                            ? 'rounded-2xl shadow-md hover:shadow-xl border border-white/20' 
                             : 'bg-white border border-slate-100 shadow-sm hover:shadow-md rounded-3xl' 
                         }`}
                       >
-                        {/* BACKGROUND WEBM PRESISI SEPERTI DISCORD */}
+                        {/* BACKGROUND WEBM PRESISI SEPERTI DISCORD (DENGAN MASKING MASUK) */}
                         {hasWebm && (
-                          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                          <div 
+                            className="absolute inset-0 z-0 pointer-events-none overflow-hidden"
+                            style={{ maskImage: 'linear-gradient(to right, rgba(0, 0, 0, 0.3) 165.312px, rgb(0, 0, 0) 215.312px)' }}
+                          >
                             <video
                               autoPlay
                               loop
@@ -251,8 +274,6 @@ export default function TopContributors() {
                             >
                               <source src={user.card_bg_url} type="video/webm" />
                             </video>
-                            {/* Dark overlay tipis agar teks selalu kontras */}
-                            <div className="absolute inset-0 bg-black/25" />
                           </div>
                         )}
 
