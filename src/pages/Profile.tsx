@@ -36,6 +36,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import AvatarBorderVip, { VIP_BORDERS } from '../components/AvatarBorderVip';
 import AnimationBorder from '../components/AnimationBorder'; // Import komponen Animation Border
+import WebmContribute from '../components/WebmContribute'; // Import komponen WebmContribute
 
 // Lazy load heavy components
 const PostModal = lazy(() => import('../components/PostModal'));
@@ -1178,25 +1179,9 @@ export default function Profile({
                     </div>
                   </div>
 
-                  {/* ===== WADAH KUMPULAN ANIMATION BORDER (UMUM) ===== */}
+                  {/* ===== WEBM CONTRIBUTE ===== */}
                   <div className="p-6 bg-slate-50 rounded-[32px] mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                          <Sparkles size={18} className="text-[#10b981]" /> Animation Border Selector
-                        </h3>
-                        <p className="text-[11px] text-slate-500 mt-1">
-                          Choose an animated avatar frame unlocked from your upload progress.
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <AnimationBorder 
-                      userProgress={userProfile?.is_admin ? 999999 : stats.totalUploads} 
-                      equippedBorderUrl={userProfile?.animation_border_url} 
-                      userAvatarUrl={userProfile?.avatar_url}
-                      onSelectBorder={handleSelectAnimationBorder} 
-                    />
+                    <WebmContribute />
                   </div>
 
                   <div className="space-y-4">
