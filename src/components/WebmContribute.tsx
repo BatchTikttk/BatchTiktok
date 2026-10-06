@@ -9,6 +9,12 @@ const PRESET_BACKGROUNDS = [
   { id: 'stalkers-2', name: 'Stalker 2', url: 'https://qu.ax/G64Cg.webm' },
   { id: 'animal', name: 'Animal', url: 'https://qu.ax/niCgt.webm' },
   { id: 'lotties-cauldron', name: "Lottie's Cauldron", url: 'https://qu.ax/TWIbU.webm' },
+  // Aset Tambahan Baru
+  { id: 'mantas', name: 'Mantas', url: 'https://qu.ax/bmKDF.webm' },
+  { id: 'aries', name: 'Aries', url: 'https://qu.ax/wq4eK.webm' },
+  { id: 'ravens', name: 'Ravens', url: 'https://qu.ax/bQC0S.webm' },
+  { id: 'light-wolf', name: 'LightWolf', url: 'https://qu.ax/PrsFr.webm' },
+  { id: 'carberus', name: 'Carberus', url: 'https://qu.ax/Yf3Q0.webm' },
 ];
 
 interface WebmContributeProps {
@@ -78,41 +84,41 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
     setLoading(false);
   };
 
-  if (fetching) return <div className="p-6 text-center text-slate-500">Loading data...</div>;
+  if (fetching) return <div className="p-6 text-center text-slate-500 font-medium">Loading data...</div>;
 
   const selectedPreset = PRESET_BACKGROUNDS.find(p => p.url === webmUrl);
 
   return (
-    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm w-full max-w-3xl mx-auto relative overflow-hidden">
+    <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm w-full max-w-3xl mx-auto relative overflow-hidden">
       
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-emerald-50 text-emerald-500 rounded-2xl">
-            <Video size={20} />
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-emerald-50 text-emerald-500 rounded-2xl">
+            <Video size={22} />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-              Top Contribute Card Effect
-              <span className="text-[10px] font-extrabold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <Crown size={12} /> VIP / Premium
+            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-3">
+              Top Contribute Effect
+              <span className="text-[10px] font-extrabold bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full flex items-center gap-1">
+                <Crown size={12} /> VIP
               </span>
             </h2>
-            <p className="text-xs text-slate-500">Choose a WebM animation effect for your card background on the Top Contributors page.</p>
+            <p className="text-sm text-slate-500 mt-0.5">Select an exclusive WebM animation for your contributor card.</p>
           </div>
         </div>
       </div>
 
       {!isAllowed && (
-        <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200/60 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-amber-800 text-xs font-semibold">
-            <Lock size={16} className="text-amber-600 flex-shrink-0" />
+        <div className="mb-8 p-4 rounded-2xl bg-amber-50 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5 text-amber-800 text-sm font-semibold">
+            <Lock size={18} className="text-amber-600 flex-shrink-0" />
             <span>This feature is locked. Exclusive for <strong>Premium</strong> & <strong>Admin</strong> users.</span>
           </div>
           {onOpenUpgradeModal && (
             <button
               type="button"
               onClick={onOpenUpgradeModal}
-              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex-shrink-0"
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-bold transition-all shadow-sm flex-shrink-0"
             >
               Upgrade
             </button>
@@ -120,15 +126,15 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
         </div>
       )}
 
-      <form onSubmit={handleSave} className="space-y-6">
+      <form onSubmit={handleSave} className="space-y-8">
         
-        {/* LIVE PREVIEW (Diperkecil tingginya agar lebih proporsional) */}
+        {/* LIVE PREVIEW */}
         <div>
-          <label className="block text-sm font-bold text-slate-700 mb-3">
+          <label className="block text-sm font-bold text-slate-700 mb-3 ml-1">
             Live Preview
           </label>
           {webmUrl ? (
-            <div className="relative w-full h-24 sm:h-30 rounded-xl overflow-hidden border-2 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)] bg-slate-900">
+            <div className="relative w-full h-28 sm:h-36 rounded-2xl overflow-hidden shadow-lg bg-slate-900 group">
               <video 
                 key={webmUrl}
                 autoPlay 
@@ -140,29 +146,29 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
                 <source src={webmUrl} type="video/webm" />
               </video>
               
-              <div className="absolute top-2 right-2 z-20 bg-emerald-500 text-white rounded-full p-1 shadow-sm">
+              <div className="absolute top-3 right-3 z-20 bg-emerald-500 text-white rounded-full p-1.5 shadow-md">
                 <CheckCircle2 size={16} />
               </div>
 
               {selectedPreset && (
-                <div className="absolute bottom-2 left-3 z-10 bg-black/50 backdrop-blur-sm px-2.5 py-0.5 rounded-lg">
-                  <span className="text-white text-xs font-semibold shadow-sm">
+                <div className="absolute bottom-3 left-4 z-10 bg-black/40 backdrop-blur-md px-3 py-1 rounded-xl">
+                  <span className="text-white text-xs font-bold tracking-wide">
                     {selectedPreset.name}
                   </span>
                 </div>
               )}
             </div>
           ) : (
-            <div className="w-full h-24 sm:h-30 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center bg-slate-50 text-slate-400">
-              <Video size={24} className="mb-1 opacity-50" />
-              <span className="text-xs font-medium">No animation selected</span>
+            <div className="w-full h-28 sm:h-36 rounded-2xl bg-slate-50 flex flex-col items-center justify-center text-slate-400">
+              <Video size={28} className="mb-2 opacity-40" />
+              <span className="text-sm font-semibold">No animation selected</span>
             </div>
           )}
         </div>
 
         {/* ANIMATION COLLECTION */}
         <div>
-          <label className="block text-sm font-bold text-slate-700 mb-3">
+          <label className="block text-sm font-bold text-slate-700 mb-3 ml-1">
             Animation Collection
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -179,28 +185,48 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
                     }
                     setWebmUrl(preset.url);
                   }}
-                  className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all text-left ${
+                  className={`relative overflow-hidden flex items-center justify-between p-4 rounded-2xl transition-all text-left ${
                     isSelected 
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm' 
-                      : 'border-slate-200 bg-white hover:border-emerald-300 text-slate-600 hover:bg-slate-50'
+                      ? 'bg-slate-900 text-white shadow-md transform scale-[1.02]' 
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700'
                   } ${!isAllowed ? 'opacity-75 cursor-not-allowed' : ''}`}
                 >
-                  <span className="text-xs sm:text-sm font-semibold truncate pr-2">
+                  {/* Efek WebM diputar di background tombol saat diselect */}
+                  {isSelected && (
+                    <>
+                      <video 
+                        autoPlay 
+                        loop 
+                        muted 
+                        playsInline 
+                        className="absolute inset-0 w-full h-full object-cover z-0 opacity-40"
+                      >
+                        <source src={preset.url} type="video/webm" />
+                      </video>
+                      <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 to-transparent z-0"></div>
+                    </>
+                  )}
+
+                  <span className="relative z-10 text-sm font-bold truncate pr-2">
                     {preset.name}
                   </span>
-                  {!isAllowed ? (
-                    <Lock size={14} className="text-amber-500 flex-shrink-0" />
-                  ) : isSelected ? (
-                    <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0" />
-                  ) : null}
+                  
+                  <span className="relative z-10 flex-shrink-0">
+                    {!isAllowed ? (
+                      <Lock size={16} className={isSelected ? 'text-amber-300' : 'text-amber-400'} />
+                    ) : isSelected ? (
+                      <CheckCircle2 size={18} className="text-emerald-400 drop-shadow-md" />
+                    ) : null}
+                  </span>
                 </button>
               );
             })}
           </div>
         </div>
 
+        {/* CUSTOM URL */}
         <div>
-          <label className="block text-sm font-bold text-slate-700 mb-2">
+          <label className="block text-sm font-bold text-slate-700 mb-3 ml-1">
             Or Custom WebM URL
           </label>
           <input
@@ -209,34 +235,36 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
             value={webmUrl}
             onChange={(e) => setWebmUrl(e.target.value)}
             placeholder={isAllowed ? "https://.../video.webm" : "Premium & Admin Members Only"}
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-5 py-3.5 bg-slate-50 rounded-2xl focus:ring-4 focus:ring-emerald-500/20 transition-all text-sm outline-none font-medium disabled:opacity-50 disabled:cursor-not-allowed placeholder-slate-400"
           />
         </div>
 
+        {/* ALERTS */}
         {message.text && (
-          <div className={`p-3 rounded-xl text-sm font-medium flex items-center gap-2 ${
+          <div className={`p-4 rounded-2xl text-sm font-bold flex items-center gap-3 ${
             message.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
           }`}>
-            {message.type === 'success' && <CheckCircle2 size={16} />}
+            {message.type === 'success' && <CheckCircle2 size={18} />}
             {message.text}
           </div>
         )}
 
+        {/* SUBMIT BUTTON */}
         <button
           type="submit"
           disabled={loading || !webmUrl || !isAllowed}
-          className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white py-3 px-4 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white py-4 px-6 rounded-2xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
-            <Loader2 size={18} className="animate-spin" />
+            <Loader2 size={20} className="animate-spin" />
           ) : !isAllowed ? (
             <>
-              <Lock size={18} className="text-amber-400" />
+              <Lock size={20} className="text-amber-400" />
               Premium & Admin Only
             </>
           ) : (
             <>
-              <Save size={18} />
+              <Save size={20} />
               Save Changes
             </>
           )}
