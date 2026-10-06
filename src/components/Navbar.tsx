@@ -77,7 +77,6 @@ const RegionFlag = ({ country, className = "w-4 h-4" }: { country: string, class
   );
 };
 
-// Mendefinisikan tipe data (TypeScript Interface)
 interface NavbarProps {
   activeCategory?: string;
   setActiveCategory: (category: string) => void;
@@ -158,7 +157,6 @@ export default function Navbar({
         if (data.vip_border_url !== undefined) setVipBorderUrl(data.vip_border_url);
       }
 
-      // Realtime subscription untuk mendeteksi perubahan profil & border secara instan
       channel = supabase
         .channel(`public:profiles:${userId}`)
         .on(
@@ -266,6 +264,7 @@ export default function Navbar({
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
+          {/* Logo & Brand Name */}
           <div 
             className="flex items-center gap-3 cursor-pointer group"
             onClick={() => handleGoToHome('Home')}
@@ -278,13 +277,14 @@ export default function Navbar({
             </span>
           </div>
 
-          <div className="hidden md:flex items-center gap-2 bg-white p-1.5 rounded-full shadow-[0_4px_20px_rgb(0,0,0,0.03)] border-none relative">
+          {/* Navigasi Utama (Container Kotak Putih Dihapus) */}
+          <div className="hidden md:flex items-center gap-1.5 relative">
             <button
               onClick={() => handleGoToHome('Home')}
               className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border-none cursor-pointer flex items-center gap-1.5 ${
                 activeCategory === 'Home' && window.location.pathname === '/'
                   ? 'bg-emerald-50 text-emerald-600 shadow-sm' 
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
               }`}
             >
               <Home size={16} />
@@ -297,7 +297,7 @@ export default function Navbar({
                 className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-1.5 border-none cursor-pointer ${
                   regions.includes(activeCategory) && window.location.pathname === '/'
                     ? 'bg-emerald-50 text-emerald-600 shadow-sm' 
-                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
                 }`}
               >
                 <Globe size={16} />
@@ -333,7 +333,7 @@ export default function Navbar({
               className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border-none cursor-pointer flex items-center gap-1.5 ${
                 isTopContributorsActive
                   ? 'bg-emerald-50 text-emerald-600 shadow-sm' 
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
               }`}
             >
               <Trophy size={16} />
@@ -341,11 +341,12 @@ export default function Navbar({
             </button>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-3">
+          {/* Area Kanan (Rules & Avatar) tanpa Background Card */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button 
               onClick={handleGoToRules}
-              className={`p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold flex items-center gap-2 transition-all border-none cursor-pointer ${
-                isRulesActive ? 'text-emerald-600 ring-2 ring-emerald-500/20' : 'text-slate-600'
+              className={`p-2.5 sm:px-4 sm:py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all border-none cursor-pointer hover:bg-slate-200/50 ${
+                isRulesActive ? 'text-emerald-600 bg-emerald-50' : 'text-slate-600'
               }`}
               title="Posting Rules"
             >
@@ -357,9 +358,9 @@ export default function Navbar({
               <div className="hidden sm:relative sm:block">
                 <button 
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="px-4 py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold text-slate-600 flex items-center gap-2.5 transition-all border-none cursor-pointer"
+                  className="px-3 py-2 rounded-xl text-sm font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 flex items-center gap-2.5 transition-all border-none cursor-pointer"
                 >
-                  {/* Container Avatar + Animation Border */}
+                  {/* Container Avatar + Border (Ukuran & Gap Tetap Dijaga) */}
                   <div className="relative w-8 h-8 flex items-center justify-center flex-shrink-0">
                     <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0 relative z-10">
                       {avatarUrl ? (
@@ -371,7 +372,6 @@ export default function Navbar({
                       )}
                     </div>
 
-                    {/* Menampilkan VIP Border jika ada, atau Animation Border (Progress) jika tidak ada VIP */}
                     {vipBorderUrl ? (
                       <AvatarBorderVip borderUrl={vipBorderUrl} isPremium={isPremium} />
                     ) : animationBorderUrl ? (
@@ -379,7 +379,7 @@ export default function Navbar({
                         src={animationBorderUrl} 
                         alt="Animated Border" 
                         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] max-w-none object-contain z-20 pointer-events-none drop-shadow-sm" 
-    />
+                      />
                     ) : null}
                   </div>
 
@@ -438,7 +438,7 @@ export default function Navbar({
             ) : (
               <button 
                 onClick={() => setShowLoginModal(true)}
-                className="p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] text-sm font-bold text-slate-600 flex items-center gap-2 transition-all border-none cursor-pointer"
+                className="p-2.5 sm:px-4 sm:py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 flex items-center gap-2 transition-all border-none cursor-pointer"
                 title="Sign In"
               >
                 <LogIn className="w-5 h-5 sm:w-4 sm:h-4 text-emerald-500" />
@@ -447,7 +447,7 @@ export default function Navbar({
             )}
 
             <button 
-              className="md:hidden p-2.5 text-slate-500 hover:text-slate-800 bg-white rounded-xl shadow-sm border-none cursor-pointer z-50"
+              className="md:hidden p-2.5 text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 rounded-xl border-none cursor-pointer z-50"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -514,7 +514,6 @@ export default function Navbar({
             {currentUser ? (
               <>
                 <div className="px-4 py-2 mb-1 flex items-center gap-3">
-                  {/* Container Avatar + Border di Tampilan Mobile */}
                   <div className="relative w-11 h-11 flex items-center justify-center flex-shrink-0">
                     <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0 relative z-10">
                       {avatarUrl ? (
