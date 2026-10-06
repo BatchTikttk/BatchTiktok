@@ -80,10 +80,12 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
 
   if (fetching) return <div className="p-6 text-center text-slate-500">Loading data...</div>;
 
+  // Mencari nama preset jika URL cocok untuk ditampilkan di Live Preview
+  const selectedPreset = PRESET_BACKGROUNDS.find(p => p.url === webmUrl);
+
   return (
     <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm max-w-xl mx-auto relative overflow-hidden">
       
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-emerald-50 text-emerald-500 rounded-2xl">
@@ -101,7 +103,6 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
         </div>
       </div>
 
-      {/* Access Warning Banner */}
       {!isAllowed && (
         <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200/60 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-amber-800 text-xs font-semibold">
@@ -121,61 +122,84 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
       )}
 
       <form onSubmit={handleSave} className="space-y-6">
-        {/* ANIMATION PRESET GALLERY */}
+        
+        {/* AREA LIVE PREVIEW (Hanya menampilkan 1 video yang aktif) */}
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-3">
-            Animation Effects Collection
+            Live Preview
           </label>
-          <div className="flex flex-col gap-4">
-            {PRESET_BACKGROUNDS.map((preset) => (
-              <div
-                key={preset.id}
-                onClick={() => {
-                  if (!isAllowed) {
-                    if (onOpenUpgradeModal) onOpenUpgradeModal();
-                    return;
-                  }
-                  setWebmUrl(preset.url);
-                }}
-                className={`relative w-full h-24 sm:h-28 rounded-xl overflow-hidden cursor-pointer border-2 transition-all group ${
-                  webmUrl === preset.url 
-                    ? 'border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]' 
-                    : 'border-slate-200 hover:border-emerald-300'
-                } ${!isAllowed ? 'opacity-75' : ''}`}
+          {webmUrl ? (
+            <div className="relative w-full h-28 sm:h-36 rounded-xl overflow-hidden border-2 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)] bg-slate-900">
+              <video 
+                key={webmUrl} // Key memastikan video player reload saat URL berubah
+                autoPlay 
+                loop 
+                muted 
+                playsInline 
+                className="absolute inset-0 w-full h-full object-cover z-0"
               >
-                <video 
-                  autoPlay 
-                  loop 
-                  muted 
-                  playsInline 
-                  className="absolute inset-0 w-full h-full object-cover z-0 opacity-70 group-hover:opacity-100 transition-opacity"
-                >
-                  <source src={preset.url} type="video/webm" />
-                </video>
-                
-                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors z-10 flex items-center justify-center p-2 text-center">
-                  <span className="text-white text-lg font-bold drop-shadow-md">
-                    {preset.name}
+                <source src={webmUrl} type="video/webm" />
+              </video>
+              
+              <div className="absolute top-3 right-3 z-20 bg-emerald-500 text-white rounded-full p-1 shadow-sm">
+                <CheckCircle2 size={16} />
+              </div>
+
+              {selectedPreset && (
+                <div className="absolute bottom-2 left-3 z-10 bg-black/50 backdrop-blur-sm px-3 py-1 rounded-lg">
+                  <span className="text-white text-sm font-semibold shadow-sm">
+                    {selectedPreset.name}
                   </span>
                 </div>
+              )}
+            </div>
+          ) : (
+            <div className="w-full h-28 sm:h-36 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center bg-slate-50 text-slate-400">
+              <Video size={28} className="mb-2 opacity-50" />
+              <span className="text-sm font-medium">No animation selected</span>
+            </div>
+          )}
+        </div>
 
-                {!isAllowed && (
-                  <div className="absolute top-3 left-3 z-20 bg-black/60 text-amber-400 p-2 rounded-full">
-                    <Lock size={16} />
-                  </div>
-                )}
-
-                {webmUrl === preset.url && (
-                  <div className="absolute top-3 right-3 z-20 bg-emerald-500 text-white rounded-full p-1 shadow-sm">
-                    <CheckCircle2 size={20} />
-                  </div>
-                )}
-              </div>
-            ))}
+        {/* PEMILIHAN ANIMASI (Berupa Tombol List) */}
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-3">
+            Animation Collection
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {PRESET_BACKGROUNDS.map((preset) => {
+              const isSelected = webmUrl === preset.url;
+              return (
+                <button
+                  type="button"
+                  key={preset.id}
+                  onClick={() => {
+                    if (!isAllowed) {
+                      if (onOpenUpgradeModal) onOpenUpgradeModal();
+                      return;
+                    }
+                    setWebmUrl(preset.url);
+                  }}
+                  className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all text-left ${
+                    isSelected 
+                      ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm' 
+                      : 'border-slate-200 bg-white hover:border-emerald-300 text-slate-600 hover:bg-slate-50'
+                  } ${!isAllowed ? 'opacity-75 cursor-not-allowed' : ''}`}
+                >
+                  <span className="text-xs sm:text-sm font-semibold truncate pr-2">
+                    {preset.name}
+                  </span>
+                  {!isAllowed ? (
+                    <Lock size={14} className="text-amber-500 flex-shrink-0" />
+                  ) : isSelected ? (
+                    <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0" />
+                  ) : null}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* CUSTOM URL INPUT */}
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-2">
             Or Custom WebM URL
