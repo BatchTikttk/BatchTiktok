@@ -477,9 +477,14 @@ const RulesPage = () => {
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  
                   {/* Admin Badge */}
                   <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center">
-                    <ShieldCheck size={48} className="text-[#fbbf24] mb-4 drop-shadow-sm" />
+                    <img 
+                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp" 
+                      alt="Admin Verified" 
+                      className="w-16 h-16 mb-3 object-contain drop-shadow-sm" 
+                    />
                     <h3 className="font-bold text-slate-800 text-lg">{content.badges.adminTitle}</h3>
                     <div className="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full mt-1.5 mb-2 border-none">
                       {content.badges.adminBadge}
