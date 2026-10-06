@@ -134,14 +134,14 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
             Live Preview
           </label>
           {webmUrl ? (
-            <div className="relative w-full h-24 sm:h-[120px] rounded-2xl overflow-hidden shadow-sm bg-slate-950 flex items-center justify-center">
+            <div className="relative w-full h-24 sm:h-[120px] rounded-2xl overflow-hidden shadow-sm bg-transparent flex items-center justify-center">
               <video 
                 key={webmUrl}
                 autoPlay 
                 loop 
                 muted 
                 playsInline 
-                className="w-full h-full object-fill object-center"
+                className="w-full h-full object-cover object-center"
               >
                 <source src={webmUrl} type="video/webm" />
               </video>
