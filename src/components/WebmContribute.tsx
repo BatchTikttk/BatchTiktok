@@ -2,18 +2,74 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { Video, CheckCircle2, Loader2, Save, Lock, Crown, ChevronDown } from 'lucide-react';
 
+// Data preset lengkap dengan gradien warna spesifik sesuai struktur kartu Discord
 const PRESET_BACKGROUNDS = [
-  { id: 'lord-hades', name: 'Lord Hades', url: 'https://qu.ax/Kd5um.webm' },
-  { id: 'butterfly-waltz', name: 'Butterfly Waltz', url: 'https://qu.ax/fGDzx.webm' },
-  { id: 'stalkers-1', name: 'Stalkers 1', url: 'https://qu.ax/mzL2s.webm' },
-  { id: 'stalkers-2', name: 'Stalker 2', url: 'https://qu.ax/G64Cg.webm' },
-  { id: 'animal', name: 'Animal', url: 'https://qu.ax/niCgt.webm' },
-  { id: 'lotties-cauldron', name: "Lottie's Cauldron", url: 'https://qu.ax/TWIbU.webm' },
-  { id: 'mantas', name: 'Mantas', url: 'https://qu.ax/bmKDF.webm' },
-  { id: 'aries', name: 'Aries', url: 'https://qu.ax/wq4eK.webm' },
-  { id: 'ravens', name: 'Ravens', url: 'https://qu.ax/bQC0S.webm' },
-  { id: 'light-wolf', name: 'LightWolf', url: 'https://qu.ax/PrsFr.webm' },
-  { id: 'carberus', name: 'Carberus', url: 'https://qu.ax/Yf3Q0.webm' },
+  { 
+    id: 'lord-hades', 
+    name: 'Lord Hades', 
+    url: 'https://qu.ax/Kd5um.webm',
+    gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)'
+  },
+  { 
+    id: 'butterfly-waltz', 
+    name: 'Butterfly Waltz', 
+    url: 'https://qu.ax/fGDzx.webm',
+    gradient: 'linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.4) 100%)'
+  },
+  { 
+    id: 'stalkers-1', 
+    name: 'Stalkers 1', 
+    url: 'https://qu.ax/mzL2s.webm',
+    gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)'
+  },
+  { 
+    id: 'stalkers-2', 
+    name: 'Stalker 2', 
+    url: 'https://qu.ax/G64Cg.webm',
+    gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)'
+  },
+  { 
+    id: 'animal', 
+    name: 'Animal', 
+    url: 'https://qu.ax/niCgt.webm',
+    gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)'
+  },
+  { 
+    id: 'lotties-cauldron', 
+    name: "Lottie's Cauldron", 
+    url: 'https://qu.ax/TWIbU.webm',
+    gradient: 'linear-gradient(90deg, rgba(1, 49, 194, 0.1) 0%, rgba(1, 49, 194, 0.4) 100%)'
+  },
+  { 
+    id: 'mantas', 
+    name: 'MidnightMantis', 
+    url: 'https://qu.ax/bmKDF.webm',
+    gradient: 'linear-gradient(90deg, rgba(1, 49, 194, 0.1) 0%, rgba(1, 49, 194, 0.4) 100%)'
+  },
+  { 
+    id: 'aries', 
+    name: 'Aries', 
+    url: 'https://qu.ax/wq4eK.webm',
+    gradient: 'linear-gradient(90deg, rgba(144, 0, 7, 0.1) 0%, rgba(144, 0, 7, 0.4) 100%)'
+  },
+  { 
+    id: 'ravens', 
+    name: 'Ravens', 
+    url: 'https://qu.ax/bQC0S.webm',
+    gradient: 'linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.4) 100%)'
+  },
+  { 
+    id: 'light-wolf', 
+    name: 'LightWolf', 
+    url: 'https://qu.ax/PrsFr.webm',
+    gradient: 'linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.4) 100%)'
+  },
+  { 
+    id: 'carberus', 
+    name: 'Carberus', 
+    url: 'https://qu.ax/Yf3Q0.webm',
+    gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)'
+  },
 ];
 
 interface WebmContributeProps {
@@ -87,6 +143,8 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
   if (fetching) return <div className="p-6 text-center text-slate-500 font-medium">Loading data...</div>;
 
   const selectedPreset = PRESET_BACKGROUNDS.find(p => p.url === webmUrl);
+  // Default gradient jika menggunakan URL kustom
+  const currentGradient = selectedPreset?.gradient || 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)';
 
   return (
     <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm w-full max-w-3xl mx-auto relative overflow-hidden">
@@ -128,25 +186,36 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
 
       <form onSubmit={handleSave} className="space-y-6">
         
-        {/* LIVE PREVIEW */}
+        {/* LIVE PREVIEW - DENGAN STRUKTUR WIDGET CARD DISCORD */}
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-2 ml-1">
             Live Preview
           </label>
           {webmUrl ? (
-            <div className="relative w-full h-24 sm:h-[120px] rounded-2xl overflow-hidden shadow-sm bg-transparent flex items-center justify-center">
-              <video 
-                key={webmUrl}
-                autoPlay 
-                loop 
-                muted 
-                playsInline 
-                className="w-full h-full object-cover object-center"
+            <div className="relative rounded-2xl overflow-hidden shadow-sm">
+              <div 
+                className="container_df39b2 relative w-full h-24 sm:h-[120px] flex items-center justify-center transition-all duration-300" 
+                aria-hidden="true" 
+                style={{ background: currentGradient }}
               >
-                <source src={webmUrl} type="video/webm" />
-              </video>
+                <div 
+                  className="videoContainer_df39b2 w-full h-full flex items-center justify-center" 
+                  style={{ maskImage: 'linear-gradient(to right, rgba(0, 0, 0, 0.3) 165.312px, rgb(0, 0, 0) 215.312px)' }}
+                >
+                  <video 
+                    key={webmUrl}
+                    tabIndex={-1} 
+                    src={webmUrl} 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline 
+                    className="img_df39b2 hover_df39b2 preview_df39b2 w-full h-full object-cover"
+                  />
+                </div>
+              </div>
               
-              {/* Ikon CheckCircle tanpa Background Container */}
+              {/* Ikon CheckCircle */}
               <CheckCircle2 
                 size={22} 
                 strokeWidth={2.5} 
@@ -169,7 +238,7 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
           )}
         </div>
 
-        {/* CUSTOM DROPDOWN COLLECTION - Lighweight (Tanpa Preview Video) */}
+        {/* CUSTOM DROPDOWN COLLECTION - Lightweight */}
         <div className="relative z-30">
           <label className="block text-xs font-bold text-slate-700 mb-2 ml-1">
             Animation Collection
@@ -191,7 +260,6 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
           {/* Dropdown Menu Container */}
           {isDropdownOpen && (
             <>
-              {/* Overlay untuk menutup dropdown ketika di klik di luar */}
               <div 
                 className="fixed inset-0 z-40" 
                 onClick={() => setIsDropdownOpen(false)} 
