@@ -144,6 +144,7 @@ export default function TopContributors() {
   const fetchTopContributors = async () => {
     setLoading(true);
     
+    // Semua field termasuk is_premium, is_admin, dan card_bg_url akan ikut ditarik oleh select('*')
     const { data: profiles } = await supabase.from('profiles').select('*');
     const { data: batches } = await supabase.from('batches').select('*');
 
@@ -231,9 +232,28 @@ export default function TopContributors() {
                     <div 
                       key={user.id} 
                       onClick={() => handleNavigateToCreator(user.username)}
-                      className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 relative group transition-all hover:shadow-md cursor-pointer flex items-center justify-between"
+                      // TAMBAHAN: menambahkan `overflow-hidden` agar background tidak keluar lengkungan 3xl
+                      className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden group transition-all hover:shadow-md cursor-pointer flex items-center justify-between"
                     >
-                      <div className="flex items-center gap-4">
+                      {/* LOGIKA BACKGROUND WEBM: KHUSUS PREMIUM/ADMIN */}
+                      {(user.is_premium || user.is_admin) && user.card_bg_url && (
+                        <div className="absolute inset-0 z-0 pointer-events-none">
+                          <video
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="w-full h-full object-cover opacity-60"
+                          >
+                            <source src={user.card_bg_url} type="video/webm" />
+                          </video>
+                          {/* Overlay putih semi-transparan agar teks tidak bertabrakan dengan warna video */}
+                          <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px]" />
+                        </div>
+                      )}
+
+                      {/* KONTEN CARD (Dibungkus `relative z-10` agar selalu di atas video) */}
+                      <div className="flex items-center gap-4 relative z-10">
                         <div className="w-14 h-14 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
                           {user.avatar_url ? (
                             <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
@@ -244,23 +264,24 @@ export default function TopContributors() {
                           )}
                         </div>
                         <div>
-                          <h3 className="text-base font-black text-slate-800 group-hover:text-emerald-600 transition-colors">
+                          <h3 className="text-base font-black text-slate-800 group-hover:text-emerald-600 transition-colors drop-shadow-sm">
                             @{user.username}
                           </h3>
                           <div className="flex items-center gap-2 mt-1">
-                            <p className="text-[11px] text-slate-400 font-semibold">
+                            <p className="text-[11px] text-slate-500 font-semibold">
                               Community Contributor
                             </p>
-                            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                            <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                            <span className="w-1 h-1 rounded-full bg-slate-400"></span>
+                            <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50/90 backdrop-blur-sm px-2 py-0.5 rounded-md border border-emerald-200">
                               Level {user.level}
                             </span>
                           </div>
                         </div>
                       </div>
 
+                      {/* BADGE ICON */}
                       {user.highestBadge && (
-                        <div title={user.highestBadge.title} className="flex-shrink-0">
+                        <div title={user.highestBadge.title} className="flex-shrink-0 relative z-10">
                           <img 
                             src={user.highestBadge.iconUrl} 
                             alt={user.highestBadge.title} 
@@ -300,7 +321,7 @@ export default function TopContributors() {
                             @{rank2.username}
                           </span>
                           <div className="relative">
-                            <div className="w-16 h-16 rounded-full border-[3px] border-slate-300 p-0.5 shadow-sm">
+                            <div className="w-16 h-16 rounded-full border-[3px] border-slate-300 p-0.5 shadow-sm bg-white">
                               {rank2.avatar_url ? (
                                 <img src={rank2.avatar_url} alt="Avatar" className="w-full h-full rounded-full object-cover" />
                               ) : (
@@ -329,7 +350,7 @@ export default function TopContributors() {
                             @{rank1.username}
                           </span>
                           <div className="relative">
-                            <div className="w-20 h-20 rounded-full border-[3px] border-amber-400 p-0.5 shadow-[0_4px_20px_rgba(251,191,36,0.35)]">
+                            <div className="w-20 h-20 rounded-full border-[3px] border-amber-400 p-0.5 shadow-[0_4px_20px_rgba(251,191,36,0.35)] bg-white">
                               {rank1.avatar_url ? (
                                 <img src={rank1.avatar_url} alt="Avatar" className="w-full h-full rounded-full object-cover" />
                               ) : (
@@ -358,7 +379,7 @@ export default function TopContributors() {
                             @{rank3.username}
                           </span>
                           <div className="relative">
-                            <div className="w-16 h-16 rounded-full border-[3px] border-amber-700/50 p-0.5 shadow-sm">
+                            <div className="w-16 h-16 rounded-full border-[3px] border-amber-700/50 p-0.5 shadow-sm bg-white">
                               {rank3.avatar_url ? (
                                 <img src={rank3.avatar_url} alt="Avatar" className="w-full h-full rounded-full object-cover" />
                               ) : (
@@ -390,12 +411,12 @@ export default function TopContributors() {
                             <div 
                               key={user.id} 
                               onClick={() => handleNavigateToCreator(user.username)}
-                              className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-2xl transition-colors cursor-pointer group"
+                              className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-2xl transition-colors cursor-pointer group relative overflow-hidden"
                             >
-                              <span className="w-5 text-center text-xs font-bold text-slate-400 group-hover:text-slate-600">
+                              <span className="w-5 text-center text-xs font-bold text-slate-400 group-hover:text-slate-600 relative z-10">
                                 {idx + 4}
                               </span>
-                              <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
+                              <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0 relative z-10">
                                 {user.avatar_url ? (
                                   <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                                 ) : (
@@ -404,12 +425,12 @@ export default function TopContributors() {
                                   </div>
                                 )}
                               </div>
-                              <div className="flex-1 overflow-hidden">
-                                <p className="text-[13px] font-bold text-slate-700 truncate group-hover:text-emerald-600">
+                              <div className="flex-1 overflow-hidden relative z-10">
+                                <p className="text-[13px] font-bold text-slate-700 truncate group-hover:text-emerald-600 drop-shadow-sm">
                                   @{user.username}
                                 </p>
                               </div>
-                              <div className="flex items-center gap-1 bg-slate-100/80 px-2.5 py-1 rounded-full">
+                              <div className="flex items-center gap-1 bg-slate-100/80 backdrop-blur-sm px-2.5 py-1 rounded-full relative z-10">
                                 <Video size={12} className="text-emerald-500" />
                                 <span className="text-xs font-extrabold text-slate-700">{user.stats.totalVideos}</span>
                               </div>

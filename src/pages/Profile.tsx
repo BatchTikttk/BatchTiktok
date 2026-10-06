@@ -42,6 +42,7 @@ const PostModal = lazy(() => import('../components/PostModal'));
 const LoginModal = lazy(() => import('../components/LoginModal'));
 const AvatarModal = lazy(() => import('../components/Avatar'));
 const CustomBatchRequest = lazy(() => import('../components/CustomBatchRequest'));
+const WebmContribute = lazy(() => import('../components/WebmContribute')); // Tambahan Import WebmContribute
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
@@ -1042,11 +1043,11 @@ export default function Profile({
                   
                   {/* Memanggil Komponen Animation Border */}
                   <AnimationBorder 
-  userProgress={userProfile?.is_admin ? 999999 : stats.totalUploads} 
-  equippedBorderUrl={userProfile?.animation_border_url} 
-  userAvatarUrl={userProfile?.avatar_url}
-  onSelectBorder={handleSelectAnimationBorder} 
-/>
+                    userProgress={userProfile?.is_admin ? 999999 : stats.totalUploads} 
+                    equippedBorderUrl={userProfile?.animation_border_url} 
+                    userAvatarUrl={userProfile?.avatar_url}
+                    onSelectBorder={handleSelectAnimationBorder} 
+                  />
                 </div>
               )}
 
@@ -1199,6 +1200,19 @@ export default function Profile({
                       </div>
                     </div>
                   </div>
+
+                  {/* ===== TAMBAHAN KOMPONEN WEBM CONTRIBUTE ===== */}
+                  <div className="mt-8 pt-6 border-t border-slate-100">
+                    <Suspense fallback={
+                      <div className="flex items-center justify-center p-6">
+                        <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
+                      </div>
+                    }>
+                      <WebmContribute />
+                    </Suspense>
+                  </div>
+                  {/* ============================================= */}
+
                 </div>
               )}
 
@@ -1625,10 +1639,10 @@ export default function Profile({
         {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
         {showAvatarModal && (
           <AvatarModal
-  onClose={() => setShowAvatarModal(false)} 
-  currentAvatar={currentUser} 
-  onSelectAvatar={handleUpdateAvatar}
-/>
+            onClose={() => setShowAvatarModal(false)} 
+            currentAvatar={currentUser} 
+            onSelectAvatar={handleUpdateAvatar}
+          />
         )}
       </Suspense>
 

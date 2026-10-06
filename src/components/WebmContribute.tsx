@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { Video, CheckCircle2, Loader2, Save, Lock, Crown } from 'lucide-react';
 
+// DAFTAR ASET WEBM ANDA
 const PRESET_BACKGROUNDS = [
   { id: 'lord-hades', name: 'Lord Hades', url: 'https://qu.ax/Kd5um.webm' },
   { id: 'butterfly-waltz', name: 'Butterfly Waltz', url: 'https://qu.ax/fGDzx.webm' },
@@ -38,7 +39,7 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
       
       if (data) {
         setWebmUrl(data.card_bg_url || '');
-        // Bebas jika Admin ATAU Premium
+        // Akses hanya untuk Premium atau Admin[cite: 4]
         const hasAccess = Boolean(data.is_premium || data.is_admin);
         setIsAllowed(hasAccess);
       }
@@ -73,7 +74,7 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
     if (error) {
       setMessage({ text: `Gagal menyimpan: ${error.message}`, type: 'error' });
     } else {
-      setMessage({ text: 'Background efek berhasil diperbarui!', type: 'success' });
+      setMessage({ text: 'Background kartu Top Contribute berhasil diperbarui!', type: 'success' });
       if (onSuccess) onSuccess();
     }
     setLoading(false);
@@ -92,12 +93,12 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-              Efek Kartu Profil
+              Efek Kartu Top Contribute
               <span className="text-[10px] font-extrabold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full flex items-center gap-1">
                 <Crown size={12} /> VIP / Premium
               </span>
             </h2>
-            <p className="text-xs text-slate-500">Pilih efek animasi WebM eksklusif untuk kartu profil Anda.</p>
+            <p className="text-xs text-slate-500">Pilih efek animasi WebM untuk latar belakang kartu Anda di halaman Top Contributors.</p>
           </div>
         </div>
       </div>
@@ -107,7 +108,7 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
         <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200/60 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-amber-800 text-xs font-semibold">
             <Lock size={16} className="text-amber-600 flex-shrink-0" />
-            <span>Fitur ini terkunci. Khusus pengguna <strong>Premium</strong> (Admin Bebas).</span>
+            <span>Fitur ini terkunci. Khusus pengguna <strong>Premium</strong> & <strong>Admin</strong>.</span>
           </div>
           {onOpenUpgradeModal && (
             <button
@@ -186,7 +187,7 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
             disabled={!isAllowed}
             value={webmUrl}
             onChange={(e) => setWebmUrl(e.target.value)}
-            placeholder={isAllowed ? "https://.../video.webm" : "Khusus Member Premium"}
+            placeholder={isAllowed ? "https://.../video.webm" : "Khusus Member Premium & Admin"}
             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
