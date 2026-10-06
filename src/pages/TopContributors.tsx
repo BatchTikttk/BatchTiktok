@@ -1,34 +1,31 @@
-import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
-import useSWR from 'swr';
-import { 
-  Home, User, HardDrive, FolderOpen, Video, 
-  MousePointerClick, Play, Check,
-  Crown, Sparkles 
-} from 'lucide-react';
-import { supabase } from "../supabase";
+import { useState, useEffect } from 'react';
+import { supabase } from '../supabase';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import { EmeraldFolderIcon } from '../components/SharedIcons';
+import { Trophy, Users, Video, CheckCircle2, XCircle } from 'lucide-react';
+import LoginModal from "../components/LoginModal";
+import PostModal from "../components/PostModal";
 
-import { EmeraldFolderIcon } from "../components/SharedIcons";
-import AvatarBorderVip from "../components/AvatarBorderVip";
-import WebmContribute from "../components/WebmContribute";
+const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
-// Lazy Load Modal
-const PreviewModal = lazy(() => import("../components/PreviewModal"));
+interface ToastProps {
+  message: string;
+  isVisible: boolean;
+  type?: 'success' | 'info' | 'error';
+}
 
-interface BatchItem {
-  id: string;
-  user_id?: string;
-  username: string;
-  country: string;
-  video_count: number | string;
-  size_file: string;
-  size_gb: number | string;
-  uploaded_by?: string;
-  uploader_is_admin?: boolean;
-  is_edited?: boolean;
-  is_exclusive?: boolean; 
-  is_banned?: boolean;
-  status?: string;
-  [key: string]: any; 
+const Toast = ({ message, isVisible, type = 'success' }: ToastProps) => (
+  <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-2 transition-all duration-300 z-[9999] ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'} ${type === 'success' ? 'bg-slate-900 text-white' : 'bg-red-500 text-white'}`}>
+    {type === 'success' ? <CheckCircle2 size={18} className="text-emerald-400" /> : <XCircle size={18} className="text-red-400" />}
+    <span className="text-sm font-medium">{message}</span>
+  </div>
+);
+
+interface Stats {
+  totalUploads: number;
+  totalApproved: number;
+  totalVideos: number;
 }
 
 interface BadgeItem {
@@ -37,9 +34,10 @@ interface BadgeItem {
   tier: string;
   iconUrl: string;
   colorClass: string;
-  isUnlocked: (stats: any) => boolean;
+  isUnlocked: (stats: Stats) => boolean;
 }
 
+// MENGGUNAKAN BADGE TERBARU YANG SINKRON
 const BADGES: BadgeItem[] = [
   {
     id: 'bronze',
@@ -47,7 +45,7 @@ const BADGES: BadgeItem[] = [
     tier: 'Tier 1 Badge',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Bronze.webp',
     colorClass: 'text-[#b08d6a]',
-    isUnlocked: (stats: any) => stats.totalUploads >= 10,
+    isUnlocked: (stats: Stats) => stats.totalUploads >= 10,
   },
   {
     id: 'silver',
@@ -55,7 +53,7 @@ const BADGES: BadgeItem[] = [
     tier: 'Tier 2 Badge',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Silver.webp',
     colorClass: 'text-slate-500',
-    isUnlocked: (stats: any) => stats.totalUploads >= 30,
+    isUnlocked: (stats: Stats) => stats.totalUploads >= 30,
   },
   {
     id: 'gold',
@@ -63,7 +61,7 @@ const BADGES: BadgeItem[] = [
     tier: 'Tier 3 Badge',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Gold.webp',
     colorClass: 'text-amber-500',
-    isUnlocked: (stats: any) => stats.totalUploads >= 50,
+    isUnlocked: (stats: Stats) => stats.totalUploads >= 50,
   },
   {
     id: 'elite',
@@ -71,7 +69,7 @@ const BADGES: BadgeItem[] = [
     tier: 'Tier 4 Badge',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp',
     colorClass: 'text-blue-500',
-    isUnlocked: (stats: any) => stats.totalUploads >= 100,
+    isUnlocked: (stats: Stats) => stats.totalUploads >= 100,
   },
   {
     id: 'legend',
@@ -79,445 +77,388 @@ const BADGES: BadgeItem[] = [
     tier: 'Tier 5 Badge',
     iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp',
     colorClass: 'text-rose-600',
-    isUnlocked: (stats: any) => stats.totalUploads >= 200,
+    isUnlocked: (stats: Stats) => stats.totalUploads >= 200,
   },
 ];
 
-interface CreatorCardProps {
-  data: BatchItem;
-  onOpenPreview: (item: BatchItem) => void;
-  creatorBadge: BadgeItem | null;
-  isAdmin: boolean;
-}
-
-const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorBadge, isAdmin }) => {
-  return (
-    <div 
-      onClick={() => onOpenPreview(data)} 
-      className="bg-white p-6 pt-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col items-center text-center group border-none cursor-pointer transform hover:-translate-y-1 relative overflow-hidden"
-    >
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10 w-full justify-center transition-all duration-300 opacity-80 group-hover:opacity-100">
-        <div className="flex items-center gap-1.5 flex-wrap justify-center">
-          <span className="text-[11px] font-medium text-slate-500 italic flex items-center gap-1.5">
-            Uploaded by <span className="font-semibold text-emerald-600 not-italic">{data.uploaded_by || data.username}</span>
-          </span>
-          
-          {isAdmin ? (
-            <span title="Admin Verified">
-              <img 
-                src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp" 
-                alt="Admin Verified"
-                className="w-6 h-6 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform ml-0.5"
-              />
-            </span>
-          ) : creatorBadge ? (
-            <img 
-              src={creatorBadge.iconUrl} 
-              alt={creatorBadge.title} 
-              title={creatorBadge.title}
-              className="w-6 h-6 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform ml-0.5"
-            />
-          ) : null}
-        </div>
-        
-        {data.is_edited && (
-          <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-500" title="Folder has been updated">
-            <Check size={12} strokeWidth={3} /> Updated
-          </span>
-        )}
-      </div>
-
-      <div 
-        className="mb-5 mt-2 relative transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
-        title={data.is_banned ? "Account Banned" : data.is_exclusive ? "TikTok Exclusive Collection" : ""}
-      >
-        <EmeraldFolderIcon country={data.country} isExclusive={data.is_exclusive} isBanned={data.is_banned} />
-        
-        {data.is_exclusive && (
-          <div 
-            className="absolute -top-[14px] -left-[6px] z-20 -rotate-[15deg] group-hover:-rotate-[25deg] transition-transform duration-300 pointer-events-none filter drop-shadow-[0_2px_4px_rgba(217,119,6,0.5)]"
-            title="Exclusive Premium Collection"
-          >
-            <Crown size={24} className="text-amber-500 fill-amber-400" strokeWidth={1.5} />
-          </div>
-        )}
-      </div>
-      
-      <h3 className="text-lg font-bold text-slate-800 mb-1 tracking-tight">
-        {data.username}
-      </h3>
-      
-      <span className="text-[11px] font-bold tracking-wider text-white bg-emerald-500 px-3 py-1 rounded-full mb-4 shadow-sm border-none">
-        {data.country || 'Unknown'}
-      </span>
-      
-      <div className="flex w-full justify-between px-5 py-3.5 bg-slate-50/80 rounded-2xl mb-5 border-none">
-        <div className="flex flex-col items-start">
-          <span className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Videos</span>
-          <span className="text-sm font-bold text-slate-700">{data.video_count || 0}</span>
-        </div>
-        <div className="flex flex-col items-end">
-          <span className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Size</span>
-          <span className="text-sm font-bold text-slate-700">{data.size_file || `${data.size_gb || 0} GB`}</span>
-        </div>
-      </div>
-      
-      <div className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold transition-all duration-300 bg-emerald-500 text-white hover:bg-emerald-600 shadow-md hover:shadow-lg border-none">
-        <Play size={18} className="fill-current" />
-        Preview Folder
-      </div>
-    </div>
-  );
-};
-
-const fetchCreatorData = async (username: string) => {
-  if (!username) return { profile: null, batches: [] };
-
-  const { data: profileData } = await supabase
-    .from('profiles')
-    .select('*')
-    .ilike('username', username)
-    .maybeSingle();
-
-  let mappedBatches: BatchItem[] = [];
-
-  if (profileData) {
-    const { data: batchData } = await supabase
-      .from('batches')
-      .select('*')
-      .or(`user_id.eq.${profileData.id},username.ilike.${username}`)
-      .order('created_at', { ascending: false });
-
-    if (batchData) {
-      mappedBatches = batchData.map(b => ({
-        ...b,
-        uploaded_by: profileData.username, 
-        uploader_is_admin: profileData.is_admin
-      }));
-    }
-  } else {
-    const { data: batchData } = await supabase
-      .from('batches')
-      .select('*')
-      .ilike('username', username)
-      .order('created_at', { ascending: false });
-
-    if (batchData) {
-      mappedBatches = batchData.map(b => ({
-        ...b,
-        uploaded_by: b.uploaded_by || username,
-        uploader_is_admin: false
-      }));
-    }
-  }
-
-  return { profile: profileData, batches: mappedBatches };
-};
-
-interface CreatorPageProps {
-  username: string;
-  isUserPremium?: boolean;
-  onOpenUpgradeModal?: () => void;
-  currentUser?: any; 
-}
-
-export default function CreatorPage({ 
-  username, 
-  isUserPremium, 
-  onOpenUpgradeModal, 
-  currentUser: propCurrentUser 
-}: CreatorPageProps) {
-  const [localCurrentUser, setLocalCurrentUser] = useState<any>(null); 
-  const [previewItem, setPreviewItem] = useState<BatchItem | null>(null);
-  const [showWebmSettings, setShowWebmSettings] = useState(false);
-
-  const currentUser = propCurrentUser !== undefined ? propCurrentUser : localCurrentUser;
-
-  const { data: creatorData, isLoading: loading, mutate } = useSWR(
-    username ? `creator_page_${username}` : null,
-    () => fetchCreatorData(username),
-    {
-      dedupingInterval: 600000, 
-      revalidateOnFocus: false,
-    }
-  );
-
-  const creatorProfile = creatorData?.profile || null;
-  const batches = creatorData?.batches || [];
-
-  const isOwnProfile = Boolean(
-    currentUser && creatorProfile && 
-    (currentUser.id === creatorProfile.id || currentUser.user_metadata?.username === creatorProfile.username)
-  );
-
-  const handleGoBack = () => {
-    window.history.back();
-  };
+export default function TopContributors() {
+  const [loading, setLoading] = useState(true);
+  const [contributors, setContributors] = useState<any[]>([]);
+  
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [toastConfig, setToastConfig] = useState<{ message: string; isVisible: boolean; type: 'success' | 'info' | 'error' }>({ message: '', isVisible: false, type: 'success' });
 
   useEffect(() => {
-    if (propCurrentUser !== undefined) return;
-    
-    let isMounted = true;
-    const fetchCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (isMounted) setLocalCurrentUser(user);
-    };
-    fetchCurrentUser();
-    return () => { isMounted = false; };
-  }, [propCurrentUser]);
+    fetchTopContributors();
+    checkUser();
 
-  useEffect(() => {
-    if (!username) return;
-
-    const profileSubscription = supabase
-      .channel(`creator-profile-updates-${username}`)
+    const channel = supabase
+      .channel('schema-db-changes-top')
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'profiles' },
-        (payload) => {
-          if (
-            payload.new && 
-            payload.new.username && 
-            username && 
-            payload.new.username.toLowerCase() === username.toLowerCase()
-          ) {
-            mutate();
-          }
+        { event: '*', schema: 'public', table: 'profiles' },
+        () => {
+          checkUser();
+          fetchTopContributors();
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(profileSubscription);
+      supabase.removeChannel(channel);
     };
-  }, [username, mutate]);
+  }, []);
 
-  const handleDownloadInitiate = async (_providerName: string, url: string, batchId?: string) => {
-    if (!url) {
-      alert("Download link is not available");
-      return;
+  const checkUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', session.user.id)
+        .single();
+        
+      if (data) setCurrentUser(data.username);
     }
-    if (batchId) {
-      const { error } = await supabase.rpc('increment_download_count', { batch_id: batchId });
-      if (error) console.error('Failed to update download count:', error);
-    }
-    setTimeout(() => {
-      window.open(url, '_blank');
-      setPreviewItem(null);
-    }, 600);
   };
 
-  const stats = useMemo(() => {
-    const totalUploads = batches.length;
-    const totalApproved = batches.filter((b: any) => b.status === 'approved').length;
-    const totalVideos = batches.reduce((acc: number, b: any) => acc + (Number(b.video_count) || 0), 0);
+  const showToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
+    setToastConfig({ message, isVisible: true, type });
+    setTimeout(() => setToastConfig({ message: '', isVisible: false, type: 'success' }), 3000);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setCurrentUser(null);
+    showToast("You have been logged out.", "info");
+  };
+
+  const handleNavigateToCreator = (username: string) => {
+    if (!username) return;
+    window.history.pushState({}, '', `/creator/${username}`);
+    window.dispatchEvent(new Event('popstate'));
+  };
+
+  const fetchTopContributors = async () => {
+    setLoading(true);
     
-    const totalDownloads = batches.reduce((acc: number, b: any) => {
-      const downloadVal = b.download_count ?? b.downloads ?? b.clicks ?? b.click_count ?? b.total_clicks ?? b.click ?? b.views ?? 0;
-      return acc + (Number(downloadVal) || 0);
-    }, 0);
+    const { data: profiles } = await supabase.from('profiles').select('*');
+    const { data: batches } = await supabase.from('batches').select('*');
 
-    const totalGB = batches.reduce((acc: number, b: any) => {
-      if (b.size_gb !== undefined && b.size_gb !== null && b.size_gb !== '') return acc + Number(b.size_gb);
-      if (b.size_file) {
-        const sizeStr = b.size_file.toString().toUpperCase();
-        const val = parseFloat(sizeStr.replace(/[^\d.]/g, ''));
-        if (isNaN(val)) return acc;
-        if (sizeStr.includes('MB')) return acc + (val / 1024);
-        if (sizeStr.includes('KB')) return acc + (val / (1024 * 1024));
-        return acc + val;
-      }
-      return acc;
-    }, 0);
+    if (profiles && batches) {
+      const userStats = profiles.map(profile => {
+        const userBatches = batches.filter(b => b.user_id === profile.id);
+        
+        const totalUploads = userBatches.length;
+        const totalApproved = userBatches.filter(b => b.status === 'approved').length;
+        const totalVideos = userBatches.reduce((acc, b) => acc + (Number(b.video_count) || 0), 0);
+        
+        const stats: Stats = { totalUploads, totalApproved, totalVideos };
+        
+        const calculatedLevel = Math.floor(totalUploads / 3) + 1;
 
-    let totalSizeDisplay = '0 GB';
-    if (totalGB > 0) {
-      totalSizeDisplay = totalGB < 1 ? (totalGB * 1024).toFixed(1) + ' MB' : totalGB.toFixed(1) + ' GB';
+        const unlockedBadges = BADGES.filter(badge => badge.isUnlocked(stats));
+        const highestBadge = unlockedBadges.length > 0 ? unlockedBadges[unlockedBadges.length - 1] : null;
+
+        return {
+          ...profile,
+          stats,
+          highestBadge,
+          level: calculatedLevel 
+        };
+      })
+      .filter(user => user.stats.totalUploads > 0 && user.role !== 'admin' && user.is_admin !== true)
+      .sort((a, b) => b.stats.totalVideos - a.stats.totalVideos);
+
+      setContributors(userStats);
     }
+    setLoading(false);
+  };
 
-    return { totalFolders: totalUploads, totalUploads, totalApproved, totalVideos, totalDownloads, totalSizeDisplay };
-  }, [batches]);
-
-  const unlockedBadges = useMemo(() => {
-    return BADGES.filter(b => b.isUnlocked(stats));
-  }, [stats]);
-  const highestBadge = unlockedBadges.length > 0 ? unlockedBadges[unlockedBadges.length - 1] : null;
+  const rank1 = contributors[0];
+  const rank2 = contributors[1];
+  const rank3 = contributors[2];
+  const restOfContributors = contributors.slice(3, 10);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pt-8 pb-16 px-6 sm:px-8 font-sans flex flex-col selection:bg-emerald-100 selection:text-emerald-900">
-      <main className="max-w-7xl mx-auto w-full flex-grow animate-in fade-in slide-in-from-bottom-4 duration-500">
-        
-        <div className="flex items-center justify-between mb-8">
-          <button 
-            onClick={handleGoBack} 
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-slate-700 bg-white hover:bg-slate-50 transition-all shadow-sm hover:shadow-md border border-slate-100 w-max cursor-pointer"
-          >
-            <Home size={20} /> Home
-          </button>
+    <div className="min-h-screen bg-[#F8FAFC] font-sans flex flex-col justify-between">
+      <div>
+        <Navbar 
+          activeCategory="Top Contributors"
+          setActiveCategory={(category: string) => {
+             window.location.href = category === 'Home' ? '/' : `/?category=${category}`;
+          }}
+          resetSearch={() => {}}
+          CATEGORIES={CATEGORIES}
+          EmeraldFolderIcon={EmeraldFolderIcon}
+          currentUser={currentUser}
+          handleLogout={handleLogout}
+          setShowAddModal={() => setShowAddModal(true)}
+          setShowLoginModal={() => setShowLoginModal(true)}
+          setShowRulesModal={() => {
+            window.history.pushState({}, '', '/rules');
+            window.dispatchEvent(new Event('popstate'));
+          }}
+        />
 
-          {isOwnProfile && (
-            <button
-              onClick={() => setShowWebmSettings(!showWebmSettings)}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/60 transition-all shadow-xs cursor-pointer"
-            >
-              <Sparkles size={18} className="text-amber-500 fill-amber-400" />
-              {showWebmSettings ? 'Tutup Pengaturan Efek' : 'Ganti Efek Kartu Profil'}
-            </button>
-          )}
-        </div>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div className="lg:col-span-2 space-y-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Users className="text-emerald-500" size={20} />
+                <h2 className="text-lg font-bold text-slate-800 tracking-tight">Contributor Profiles</h2>
+                <span className="ml-auto text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
+                  {contributors.length} Community Members
+                </span>
+              </div>
 
-        {isOwnProfile && showWebmSettings && (
-          <div className="mb-10">
-            <WebmContribute 
-              onOpenUpgradeModal={onOpenUpgradeModal} 
-              onSuccess={() => mutate()} 
-            />
-          </div>
-        )}
-
-        <div className="relative bg-white p-8 sm:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 mb-10 flex flex-col md:flex-row items-center md:items-start gap-8 overflow-hidden">
-          
-          {creatorProfile?.card_bg_url && (
-            <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden rounded-[32px]">
-              <video 
-                autoPlay 
-                loop 
-                muted 
-                playsInline 
-                className="w-full h-full object-cover opacity-20"
-              >
-                <source src={creatorProfile.card_bg_url} type="video/webm" />
-              </video>
-              <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/80 to-white/90 z-0"></div>
-            </div>
-          )}
-
-          {!creatorProfile?.is_admin && highestBadge && (
-            <div className="absolute top-6 right-6 sm:top-8 sm:right-10 flex flex-col items-center justify-center hover:scale-105 transition-transform duration-300 z-10">
-              <img 
-                src={highestBadge.iconUrl} 
-                alt={highestBadge.title} 
-                title={highestBadge.title}
-                className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain drop-shadow-md"
-              />
-              <span className={`mt-1.5 text-[10px] sm:text-xs font-extrabold tracking-wide text-center whitespace-nowrap drop-shadow-sm ${highestBadge.colorClass}`}>
-                {highestBadge.title}
-              </span>
-            </div>
-          )}
-
-          {creatorProfile?.is_admin && (
-            <div className="absolute top-6 right-6 sm:top-8 sm:right-10 flex flex-col items-center justify-center z-10 hover:scale-105 transition-transform duration-300">
-              <img 
-                src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp"
-                alt="Verified Staff"
-                title="Verified Staff"
-                className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain drop-shadow-md"
-              />
-              <span className="mt-1.5 text-[10px] sm:text-xs font-extrabold tracking-wide text-amber-500 text-center whitespace-nowrap drop-shadow-sm">
-                Verified Staff
-              </span>
-            </div>
-          )}
-
-          <div className="relative w-[88px] h-[88px] flex-shrink-0 z-10">
-            <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center text-white bg-gradient-to-tr from-emerald-500 to-teal-400 shadow-lg shadow-emerald-500/20 border-4 border-white relative z-10">
-              {creatorProfile?.avatar_url ? (
-                <img src={creatorProfile.avatar_url} alt={username} className="w-full h-full object-cover" />
+              {loading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 h-28 animate-pulse"></div>
+                  ))}
+                </div>
+              ) : contributors.length === 0 ? (
+                 <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 text-center col-span-1 sm:col-span-2">
+                   <p className="text-slate-500 font-medium">Belum ada kontributor komunitas.</p>
+                 </div>
               ) : (
-                <User size={40} strokeWidth={2.2} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  {contributors.map((user) => (
+                    <div 
+                      key={user.id} 
+                      onClick={() => handleNavigateToCreator(user.username)}
+                      className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 relative group transition-all hover:shadow-md cursor-pointer flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
+                          {user.avatar_url ? (
+                            <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-black text-xl">
+                              {user.username?.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="text-base font-black text-slate-800 group-hover:text-emerald-600 transition-colors">
+                            @{user.username}
+                          </h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-[11px] text-slate-400 font-semibold">
+                              Community Contributor
+                            </p>
+                            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                            <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                              Level {user.level}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {user.highestBadge && (
+                        <div title={user.highestBadge.title} className="flex-shrink-0">
+                          <img 
+                            src={user.highestBadge.iconUrl} 
+                            alt={user.highestBadge.title} 
+                            className="w-12 h-12 object-contain drop-shadow-md group-hover:scale-110 transition-transform"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
 
-            {creatorProfile?.vip_border_url ? (
-              <AvatarBorderVip 
-                borderUrl={creatorProfile?.vip_border_url} 
-                isPremium={creatorProfile?.is_premium} 
-              />
-            ) : creatorProfile?.animation_border_url ? (
-              <img 
-                src={creatorProfile.animation_border_url} 
-                alt="Animated Border" 
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] max-w-none object-contain z-20 pointer-events-none drop-shadow-sm"
-              />
-            ) : null}
-          </div>
-          
-          <div className="flex-1 text-center md:text-left z-10">
-            <div className="flex flex-col md:flex-row items-center gap-3 mb-2 justify-center md:justify-start">
-              <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 flex items-center gap-2">
-                {creatorProfile?.username || username}
-                {creatorProfile?.is_premium && (
-                  <span title="Premium Creator" className="inline-flex items-center">
-                    <Crown size={22} className="text-amber-500 fill-amber-400 inline-block drop-shadow-sm" />
-                  </span>
-                )}
-              </h1>
-            </div>
-
-            <p className="text-slate-500 font-medium mb-6">Creator Portfolio & Archives</p>
-            
-            <div className="flex flex-wrap justify-center md:justify-start gap-4 sm:gap-6">
-              {[
-                { icon: FolderOpen, label: "Total Batches", val: stats.totalFolders },
-                { icon: Video, label: "Total Videos", val: stats.totalVideos },
-                { icon: HardDrive, label: "Total Size", val: stats.totalSizeDisplay },
-                { icon: MousePointerClick, label: "Total Downloads", val: stats.totalDownloads }
-              ].map((stat, idx) => (
-                <div key={idx} className="bg-[#F8FAFC]/90 backdrop-blur-xs px-5 py-3 rounded-2xl flex items-center gap-3 border border-slate-50 shadow-xs">
-                  <stat.icon className="text-emerald-500" size={20} />
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-100 sticky top-8">
+                
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                  <div className="p-2.5 bg-amber-50 text-amber-500 rounded-2xl flex-shrink-0">
+                    <Trophy size={20} />
+                  </div>
                   <div>
-                    <div className="text-sm text-slate-400">{stat.label}</div>
-                    <div className="font-bold text-slate-700">{stat.val}</div>
+                    <h2 className="text-lg font-bold text-slate-800 leading-tight">Leaderboard</h2>
+                    <p className="text-[11px] text-slate-400 font-semibold">Total Videos Uploaded</p>
                   </div>
                 </div>
-              ))}
+
+                {!loading && contributors.length > 0 ? (
+                  <>
+                    <div className="flex justify-center items-end gap-3 my-6">
+                      
+                      {rank2 && (
+                        <div 
+                          className="flex flex-col items-center cursor-pointer group" 
+                          onClick={() => handleNavigateToCreator(rank2.username)}
+                        >
+                          <span className="text-[11px] text-slate-500 font-medium mb-1.5 truncate w-16 text-center group-hover:text-emerald-500">
+                            @{rank2.username}
+                          </span>
+                          <div className="relative">
+                            <div className="w-16 h-16 rounded-full border-[3px] border-slate-300 p-0.5 shadow-sm">
+                              {rank2.avatar_url ? (
+                                <img src={rank2.avatar_url} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold">
+                                  {rank2.username?.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                            </div>
+                            <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-[11px] font-black border-2 border-white shadow-sm">
+                              2
+                            </div>
+                          </div>
+                          <div className="mt-4 flex items-center gap-1 bg-slate-50 px-2.5 py-0.5 rounded-full border border-slate-100">
+                            <Video size={12} className="text-slate-400" />
+                            <span className="text-xs font-bold text-slate-700">{rank2.stats.totalVideos}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {rank1 && (
+                        <div 
+                          className="flex flex-col items-center mb-4 cursor-pointer group" 
+                          onClick={() => handleNavigateToCreator(rank1.username)}
+                        >
+                          <span className="text-[12px] text-slate-800 font-bold mb-1.5 truncate w-20 text-center group-hover:text-emerald-600">
+                            @{rank1.username}
+                          </span>
+                          <div className="relative">
+                            <div className="w-20 h-20 rounded-full border-[3px] border-amber-400 p-0.5 shadow-[0_4px_20px_rgba(251,191,36,0.35)]">
+                              {rank1.avatar_url ? (
+                                <img src={rank1.avatar_url} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-amber-50 rounded-full flex items-center justify-center text-amber-600 font-bold text-xl">
+                                  {rank1.username?.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                            </div>
+                            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-amber-400 text-white flex items-center justify-center text-xs font-black border-2 border-white shadow-sm">
+                              1
+                            </div>
+                          </div>
+                          <div className="mt-5 flex items-center gap-1.5 bg-amber-50 px-3 py-1 rounded-full border border-amber-200/60 shadow-xs">
+                            <Video size={13} className="text-amber-500 fill-amber-500/20" />
+                            <span className="text-xs font-black text-amber-700">{rank1.stats.totalVideos}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {rank3 && (
+                        <div 
+                          className="flex flex-col items-center cursor-pointer group" 
+                          onClick={() => handleNavigateToCreator(rank3.username)}
+                        >
+                          <span className="text-[11px] text-slate-500 font-medium mb-1.5 truncate w-16 text-center group-hover:text-emerald-500">
+                            @{rank3.username}
+                          </span>
+                          <div className="relative">
+                            <div className="w-16 h-16 rounded-full border-[3px] border-amber-700/50 p-0.5 shadow-sm">
+                              {rank3.avatar_url ? (
+                                <img src={rank3.avatar_url} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-amber-50 rounded-full flex items-center justify-center text-amber-700 font-bold">
+                                  {rank3.username?.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                            </div>
+                            <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-amber-700 text-white flex items-center justify-center text-[11px] font-black border-2 border-white shadow-sm">
+                              3
+                            </div>
+                          </div>
+                          <div className="mt-4 flex items-center gap-1 bg-slate-50 px-2.5 py-0.5 rounded-full border border-slate-100">
+                            <Video size={12} className="text-slate-400" />
+                            <span className="text-xs font-bold text-slate-700">{rank3.stats.totalVideos}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {restOfContributors.length > 0 && (
+                      <div className="mt-6 border-t border-slate-100 pt-5">
+                        <div className="flex justify-between items-center mb-3 px-1">
+                          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Top Members</h3>
+                          <span className="text-[11px] font-semibold text-slate-400">Total Uploaded</span>
+                        </div>
+                        <div className="space-y-1">
+                          {restOfContributors.map((user, idx) => (
+                            <div 
+                              key={user.id} 
+                              onClick={() => handleNavigateToCreator(user.username)}
+                              className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-2xl transition-colors cursor-pointer group"
+                            >
+                              <span className="w-5 text-center text-xs font-bold text-slate-400 group-hover:text-slate-600">
+                                {idx + 4}
+                              </span>
+                              <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
+                                {user.avatar_url ? (
+                                  <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-xs">
+                                    {user.username?.charAt(0).toUpperCase()}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1 overflow-hidden">
+                                <p className="text-[13px] font-bold text-slate-700 truncate group-hover:text-emerald-600">
+                                  @{user.username}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1 bg-slate-100/80 px-2.5 py-1 rounded-full">
+                                <Video size={12} className="text-emerald-500" />
+                                <span className="text-xs font-extrabold text-slate-700">{user.stats.totalVideos}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : loading ? (
+                  <div className="space-y-4 py-6 animate-pulse">
+                    <div className="h-16 bg-slate-100 rounded-2xl w-full"></div>
+                    <div className="h-24 bg-slate-100 rounded-2xl w-full"></div>
+                  </div>
+                ) : (
+                  <div className="text-center text-sm text-slate-400 py-8">
+                    Belum ada data kontributor.
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div className="mb-8 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-slate-800">
-            Collection by {creatorProfile?.username || username}
-          </h2>
-        </div>
+          </div>
+        </main>
+      </div>
+      
+      <Footer onSelectCountry={(category: string) => {
+         window.location.href = category === 'Home' ? '/' : `/?category=${category}`;
+      }} />
 
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
-          </div>
-        ) : batches.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 text-slate-500">
-            No collections found for this creator.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {batches.map((batch: BatchItem) => (
-              <CreatorCard 
-                key={batch.id} 
-                data={batch}
-                creatorBadge={highestBadge}
-                isAdmin={!!creatorProfile?.is_admin} 
-                onOpenPreview={setPreviewItem}
-              />
-            ))}
-          </div>
-        )}
-      </main>
+      <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
+      
+      {showAddModal && (
+        <PostModal 
+          onClose={() => setShowAddModal(false)}
+          onSuccess={fetchTopContributors}
+          currentUser={currentUser}
+          showToast={showToast}
+          CATEGORIES={CATEGORIES}
+        />
+      )}
 
-      <Suspense fallback={null}>
-        {previewItem && (
-          <PreviewModal 
-            item={previewItem} 
-            onClose={() => setPreviewItem(null)} 
-            onDownload={handleDownloadInitiate}
-            uploaderCount={batches.length}
-            isUserPremium={isUserPremium}
-            currentUser={currentUser} 
-            onOpenUpgradeModal={onOpenUpgradeModal}
-          />
-        )}
-      </Suspense>
+      {showLoginModal && (
+        <LoginModal 
+          onClose={() => setShowLoginModal(false)}
+          onSuccess={checkUser}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 }
