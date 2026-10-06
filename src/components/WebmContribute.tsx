@@ -80,11 +80,10 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
 
   if (fetching) return <div className="p-6 text-center text-slate-500">Loading data...</div>;
 
-  // Mencari nama preset jika URL cocok untuk ditampilkan di Live Preview
   const selectedPreset = PRESET_BACKGROUNDS.find(p => p.url === webmUrl);
 
   return (
-    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm max-w-xl mx-auto relative overflow-hidden">
+    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm w-full max-w-3xl mx-auto relative overflow-hidden">
       
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -123,15 +122,15 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
 
       <form onSubmit={handleSave} className="space-y-6">
         
-        {/* AREA LIVE PREVIEW (Hanya menampilkan 1 video yang aktif) */}
+        {/* LIVE PREVIEW (Diperkecil tingginya agar lebih proporsional) */}
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-3">
             Live Preview
           </label>
           {webmUrl ? (
-            <div className="relative w-full h-28 sm:h-36 rounded-xl overflow-hidden border-2 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)] bg-slate-900">
+            <div className="relative w-full h-24 sm:h-30 rounded-xl overflow-hidden border-2 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)] bg-slate-900">
               <video 
-                key={webmUrl} // Key memastikan video player reload saat URL berubah
+                key={webmUrl}
                 autoPlay 
                 loop 
                 muted 
@@ -141,27 +140,27 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
                 <source src={webmUrl} type="video/webm" />
               </video>
               
-              <div className="absolute top-3 right-3 z-20 bg-emerald-500 text-white rounded-full p-1 shadow-sm">
+              <div className="absolute top-2 right-2 z-20 bg-emerald-500 text-white rounded-full p-1 shadow-sm">
                 <CheckCircle2 size={16} />
               </div>
 
               {selectedPreset && (
-                <div className="absolute bottom-2 left-3 z-10 bg-black/50 backdrop-blur-sm px-3 py-1 rounded-lg">
-                  <span className="text-white text-sm font-semibold shadow-sm">
+                <div className="absolute bottom-2 left-3 z-10 bg-black/50 backdrop-blur-sm px-2.5 py-0.5 rounded-lg">
+                  <span className="text-white text-xs font-semibold shadow-sm">
                     {selectedPreset.name}
                   </span>
                 </div>
               )}
             </div>
           ) : (
-            <div className="w-full h-28 sm:h-36 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center bg-slate-50 text-slate-400">
-              <Video size={28} className="mb-2 opacity-50" />
-              <span className="text-sm font-medium">No animation selected</span>
+            <div className="w-full h-24 sm:h-30 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center bg-slate-50 text-slate-400">
+              <Video size={24} className="mb-1 opacity-50" />
+              <span className="text-xs font-medium">No animation selected</span>
             </div>
           )}
         </div>
 
-        {/* PEMILIHAN ANIMASI (Berupa Tombol List) */}
+        {/* ANIMATION COLLECTION */}
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-3">
             Animation Collection
