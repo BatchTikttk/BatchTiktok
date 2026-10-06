@@ -91,20 +91,18 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
   return (
     <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm w-full max-w-3xl mx-auto relative overflow-hidden">
       
-      {/* HEADER (Ikon Tanpa Background Container) */}
+      {/* HEADER */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <div className="text-emerald-500 flex-shrink-0">
-            <Video size={28} strokeWidth={2.5} />
-          </div>
+          <Video size={28} strokeWidth={2.5} className="text-emerald-500 flex-shrink-0" />
           <div>
             <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
               Top Contribute Effect
-              <span className="text-[10px] font-extrabold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <Crown size={12} /> VIP
+              <span className="text-[11px] font-black text-amber-500 flex items-center gap-1 drop-shadow-sm ml-1">
+                <Crown size={14} strokeWidth={2.5} /> VIP
               </span>
             </h2>
-            <p className="text-xs text-slate-500">Select an exclusive WebM animation for your contributor card.</p>
+            <p className="text-xs text-slate-500 mt-0.5">Select an exclusive WebM animation for your contributor card.</p>
           </div>
         </div>
       </div>
@@ -130,7 +128,7 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
 
       <form onSubmit={handleSave} className="space-y-6">
         
-        {/* LIVE PREVIEW - OBJECT FILL & SHORTER HEIGHT */}
+        {/* LIVE PREVIEW */}
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-2 ml-1">
             Live Preview
@@ -148,9 +146,12 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
                 <source src={webmUrl} type="video/webm" />
               </video>
               
-              <div className="absolute top-2.5 right-2.5 z-20 bg-emerald-500 text-white rounded-full p-1 shadow-sm">
-                <CheckCircle2 size={14} />
-              </div>
+              {/* Ikon CheckCircle tanpa Background Container */}
+              <CheckCircle2 
+                size={22} 
+                strokeWidth={2.5} 
+                className="absolute top-3 right-3 z-20 text-emerald-400 drop-shadow-md" 
+              />
 
               {selectedPreset && (
                 <div className="absolute bottom-2.5 left-3 z-10 bg-black/50 backdrop-blur-md px-2.5 py-0.5 rounded-lg">
@@ -168,7 +169,7 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
           )}
         </div>
 
-        {/* CUSTOM DROPDOWN COLLECTION */}
+        {/* CUSTOM DROPDOWN COLLECTION - Lighweight (Tanpa Preview Video) */}
         <div className="relative z-30">
           <label className="block text-xs font-bold text-slate-700 mb-2 ml-1">
             Animation Collection
@@ -211,29 +212,13 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
                         setWebmUrl(preset.url);
                         setIsDropdownOpen(false);
                       }}
-                      className={`relative w-full overflow-hidden flex items-center justify-between px-4 py-3.5 transition-all text-left border-b border-slate-50 last:border-0 ${
+                      className={`relative w-full flex items-center justify-between px-4 py-3.5 transition-all text-left border-b border-slate-50 last:border-0 ${
                         isSelected 
-                          ? 'bg-slate-900 text-white' 
-                          : 'bg-white hover:bg-slate-50 text-slate-700'
+                          ? 'bg-slate-900 text-white font-bold' 
+                          : 'bg-white hover:bg-slate-50 text-slate-700 font-medium'
                       } ${!isAllowed ? 'opacity-75 cursor-not-allowed' : ''}`}
                     >
-                      {/* Efek WebM diputar di background item list saat diselect */}
-                      {isSelected && (
-                        <>
-                          <video 
-                            autoPlay 
-                            loop 
-                            muted 
-                            playsInline 
-                            className="absolute inset-0 w-full h-full object-fill object-center z-0 opacity-30"
-                          >
-                            <source src={preset.url} type="video/webm" />
-                          </video>
-                          <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent z-0"></div>
-                        </>
-                      )}
-
-                      <span className="relative z-10 text-xs font-bold truncate pr-2">
+                      <span className="relative z-10 text-xs truncate pr-2">
                         {preset.name}
                       </span>
                       
