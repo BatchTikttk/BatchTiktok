@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
-import { Video, CheckCircle2, Loader2, Save, Lock, Crown } from 'lucide-react';
+import { Video, CheckCircle2, Loader2, Save, Lock, Crown, ChevronDown } from 'lucide-react';
 
 const PRESET_BACKGROUNDS = [
   { id: 'lord-hades', name: 'Lord Hades', url: 'https://qu.ax/Kd5um.webm' },
@@ -27,6 +27,7 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
   const [fetching, setFetching] = useState(true);
   const [isAllowed, setIsAllowed] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     fetchCurrentBackground();
@@ -90,11 +91,11 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
   return (
     <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm w-full max-w-3xl mx-auto relative overflow-hidden">
       
-      {/* HEADER */}
+      {/* HEADER (Ikon Tanpa Background Container) */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3.5">
-          <div className="p-2.5 bg-emerald-50 text-emerald-500 rounded-2xl">
-            <Video size={20} />
+        <div className="flex items-center gap-4">
+          <div className="text-emerald-500 flex-shrink-0">
+            <Video size={28} strokeWidth={2.5} />
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -129,14 +130,13 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
 
       <form onSubmit={handleSave} className="space-y-6">
         
-        {/* LIVE PREVIEW - OBJECT FILL / CONTAIN & SHORTER HEIGHT */}
+        {/* LIVE PREVIEW - OBJECT FILL & SHORTER HEIGHT */}
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-2 ml-1">
             Live Preview
           </label>
           {webmUrl ? (
-            <div className="relative w-full h-24 sm:h-[120px] rounded-2xl overflow-hidden shadow-sm bg-slate-950">
-              {/* Perubahan Utama: object-fill agar meregang dan pas memenuhi wadah, atau gunakan object-contain jika tidak ingin distorsi */}
+            <div className="relative w-full h-24 sm:h-[120px] rounded-2xl overflow-hidden shadow-sm bg-slate-950 flex items-center justify-center">
               <video 
                 key={webmUrl}
                 autoPlay 
@@ -168,66 +168,92 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
           )}
         </div>
 
-        {/* ANIMATION COLLECTION */}
-        <div>
+        {/* CUSTOM DROPDOWN COLLECTION */}
+        <div className="relative z-30">
           <label className="block text-xs font-bold text-slate-700 mb-2 ml-1">
             Animation Collection
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            {PRESET_BACKGROUNDS.map((preset) => {
-              const isSelected = webmUrl === preset.url;
-              return (
-                <button
-                  type="button"
-                  key={preset.id}
-                  onClick={() => {
-                    if (!isAllowed) {
-                      if (onOpenUpgradeModal) onOpenUpgradeModal();
-                      return;
-                    }
-                    setWebmUrl(preset.url);
-                  }}
-                  className={`relative overflow-hidden flex items-center justify-between p-3 h-12 rounded-xl transition-all text-left ${
-                    isSelected 
-                      ? 'bg-slate-900 text-white shadow-sm' 
-                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700'
-                  } ${!isAllowed ? 'opacity-75 cursor-not-allowed' : ''}`}
-                >
-                  {/* WebM Background pada tombol - pakai object-fill agar sesuai */}
-                  {isSelected && (
-                    <>
-                      <video 
-                        autoPlay 
-                        loop 
-                        muted 
-                        playsInline 
-                        className="absolute inset-0 w-full h-full object-fill object-center z-0 opacity-40"
-                      >
-                        <source src={preset.url} type="video/webm" />
-                      </video>
-                      <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/60 to-transparent z-0"></div>
-                    </>
-                  )}
+          <button
+            type="button"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          >
+            <span className={!selectedPreset ? "text-slate-400" : ""}>
+              {selectedPreset ? selectedPreset.name : 'Select an animation...'}
+            </span>
+            <ChevronDown 
+              size={18} 
+              className={`text-slate-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} 
+            />
+          </button>
 
-                  <span className="relative z-10 text-xs font-bold truncate pr-2">
-                    {preset.name}
-                  </span>
-                  
-                  <span className="relative z-10 flex-shrink-0">
-                    {!isAllowed ? (
-                      <Lock size={14} className={isSelected ? 'text-amber-300' : 'text-amber-400'} />
-                    ) : isSelected ? (
-                      <CheckCircle2 size={16} className="text-emerald-400" />
-                    ) : null}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          {/* Dropdown Menu Container */}
+          {isDropdownOpen && (
+            <>
+              {/* Overlay untuk menutup dropdown ketika di klik di luar */}
+              <div 
+                className="fixed inset-0 z-40" 
+                onClick={() => setIsDropdownOpen(false)} 
+              ></div>
+              
+              <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] overflow-hidden border border-slate-100 max-h-60 overflow-y-auto">
+                {PRESET_BACKGROUNDS.map((preset) => {
+                  const isSelected = webmUrl === preset.url;
+                  return (
+                    <button
+                      type="button"
+                      key={preset.id}
+                      onClick={() => {
+                        if (!isAllowed) {
+                          if (onOpenUpgradeModal) onOpenUpgradeModal();
+                          return;
+                        }
+                        setWebmUrl(preset.url);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`relative w-full overflow-hidden flex items-center justify-between px-4 py-3.5 transition-all text-left border-b border-slate-50 last:border-0 ${
+                        isSelected 
+                          ? 'bg-slate-900 text-white' 
+                          : 'bg-white hover:bg-slate-50 text-slate-700'
+                      } ${!isAllowed ? 'opacity-75 cursor-not-allowed' : ''}`}
+                    >
+                      {/* Efek WebM diputar di background item list saat diselect */}
+                      {isSelected && (
+                        <>
+                          <video 
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline 
+                            className="absolute inset-0 w-full h-full object-fill object-center z-0 opacity-30"
+                          >
+                            <source src={preset.url} type="video/webm" />
+                          </video>
+                          <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent z-0"></div>
+                        </>
+                      )}
+
+                      <span className="relative z-10 text-xs font-bold truncate pr-2">
+                        {preset.name}
+                      </span>
+                      
+                      <span className="relative z-10 flex-shrink-0">
+                        {!isAllowed ? (
+                          <Lock size={14} className={isSelected ? 'text-amber-300' : 'text-amber-400'} />
+                        ) : isSelected ? (
+                          <CheckCircle2 size={16} className="text-emerald-400" />
+                        ) : null}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
 
         {/* CUSTOM URL */}
-        <div>
+        <div className="relative z-20">
           <label className="block text-xs font-bold text-slate-700 mb-2 ml-1">
             Or Custom WebM URL
           </label>
