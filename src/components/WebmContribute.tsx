@@ -129,20 +129,21 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
 
       <form onSubmit={handleSave} className="space-y-6">
         
-        {/* LIVE PREVIEW - PROPOSIONAL BANNER ASPECT RATIO */}
+        {/* LIVE PREVIEW - OBJECT FILL / CONTAIN & SHORTER HEIGHT */}
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-2 ml-1">
             Live Preview
           </label>
           {webmUrl ? (
-            <div className="relative w-full aspect-[3.2/1] max-h-32 sm:max-h-36 rounded-2xl overflow-hidden shadow-sm bg-slate-950 flex items-center justify-center">
+            <div className="relative w-full h-24 sm:h-[120px] rounded-2xl overflow-hidden shadow-sm bg-slate-950">
+              {/* Perubahan Utama: object-fill agar meregang dan pas memenuhi wadah, atau gunakan object-contain jika tidak ingin distorsi */}
               <video 
                 key={webmUrl}
                 autoPlay 
                 loop 
                 muted 
                 playsInline 
-                className="w-full h-full object-cover object-center"
+                className="w-full h-full object-fill object-center"
               >
                 <source src={webmUrl} type="video/webm" />
               </video>
@@ -160,7 +161,7 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
               )}
             </div>
           ) : (
-            <div className="w-full aspect-[3.2/1] max-h-32 sm:max-h-36 rounded-2xl bg-slate-50 flex flex-col items-center justify-center text-slate-400">
+            <div className="w-full h-24 sm:h-[120px] rounded-2xl bg-slate-50 flex flex-col items-center justify-center text-slate-400">
               <Video size={24} className="mb-1 opacity-40" />
               <span className="text-xs font-semibold">No animation selected</span>
             </div>
@@ -186,13 +187,13 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
                     }
                     setWebmUrl(preset.url);
                   }}
-                  className={`relative overflow-hidden flex items-center justify-between p-3 rounded-xl transition-all text-left ${
+                  className={`relative overflow-hidden flex items-center justify-between p-3 h-12 rounded-xl transition-all text-left ${
                     isSelected 
                       ? 'bg-slate-900 text-white shadow-sm' 
                       : 'bg-slate-50 hover:bg-slate-100 text-slate-700'
                   } ${!isAllowed ? 'opacity-75 cursor-not-allowed' : ''}`}
                 >
-                  {/* WebM Background saat terpilih tanpa merusak bentuk tombol */}
+                  {/* WebM Background pada tombol - pakai object-fill agar sesuai */}
                   {isSelected && (
                     <>
                       <video 
@@ -200,11 +201,11 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
                         loop 
                         muted 
                         playsInline 
-                        className="absolute inset-0 w-full h-full object-cover object-center z-0 opacity-30"
+                        className="absolute inset-0 w-full h-full object-fill object-center z-0 opacity-40"
                       >
                         <source src={preset.url} type="video/webm" />
                       </video>
-                      <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent z-0"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/60 to-transparent z-0"></div>
                     </>
                   )}
 
