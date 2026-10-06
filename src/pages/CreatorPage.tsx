@@ -400,8 +400,8 @@ export default function CreatorPage({
               <img 
                 src={creatorProfile.animation_border_url} 
                 alt="Animated Border" 
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] max-w-none object-contain z-20 pointer-events-none drop-shadow-sm"
-              />
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] max-w-none object-contain z-20 pointer-events-none drop-shadow-sm"
+  />
             ) : null}
           </div>
           
