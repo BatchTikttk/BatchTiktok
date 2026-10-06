@@ -37,7 +37,6 @@ interface BadgeItem {
   isUnlocked: (stats: Stats) => boolean;
 }
 
-// MENGGUNAKAN BADGE TERBARU YANG SINKRON
 const BADGES: BadgeItem[] = [
   {
     id: 'bronze',
@@ -144,7 +143,6 @@ export default function TopContributors() {
   const fetchTopContributors = async () => {
     setLoading(true);
     
-    // Semua field termasuk is_premium, is_admin, dan card_bg_url akan ikut ditarik oleh select('*')
     const { data: profiles } = await supabase.from('profiles').select('*');
     const { data: batches } = await supabase.from('batches').select('*');
 
@@ -228,69 +226,74 @@ export default function TopContributors() {
                  </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  {contributors.map((user) => (
-                    <div 
-                      key={user.id} 
-                      onClick={() => handleNavigateToCreator(user.username)}
-                      // TAMBAHAN: menambahkan `overflow-hidden` agar background tidak keluar lengkungan 3xl
-                      className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden group transition-all hover:shadow-md cursor-pointer flex items-center justify-between"
-                    >
-                      {/* LOGIKA BACKGROUND WEBM: KHUSUS PREMIUM/ADMIN */}
-                      {(user.is_premium || user.is_admin) && user.card_bg_url && (
-                        <div className="absolute inset-0 z-0 pointer-events-none">
-                          <video
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            className="w-full h-full object-cover opacity-60"
-                          >
-                            <source src={user.card_bg_url} type="video/webm" />
-                          </video>
-                          {/* Overlay putih semi-transparan agar teks tidak bertabrakan dengan warna video */}
-                          <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px]" />
-                        </div>
-                      )}
+                  {contributors.map((user) => {
+                    const hasWebm = (user.is_premium || user.is_admin) && user.card_bg_url;
 
-                      {/* KONTEN CARD (Dibungkus `relative z-10` agar selalu di atas video) */}
-                      <div className="flex items-center gap-4 relative z-10">
-                        <div className="w-14 h-14 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
-                          {user.avatar_url ? (
-                            <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-black text-xl">
-                              {user.username?.charAt(0).toUpperCase()}
+                    return (
+                      <div 
+                        key={user.id} 
+                        onClick={() => handleNavigateToCreator(user.username)}
+                        className={`p-5 relative overflow-hidden group transition-all cursor-pointer flex items-center justify-between min-h-[96px] ${
+                          hasWebm 
+                            ? 'rounded-2xl shadow-md hover:shadow-xl bg-slate-950 border border-white/10' 
+                            : 'bg-white border border-slate-100 shadow-sm hover:shadow-md rounded-3xl' 
+                        }`}
+                      >
+                        {/* BACKGROUND WEBM PRESISI SEPERTI DISCORD */}
+                        {hasWebm && (
+                          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                            <video
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              className="absolute inset-0 w-full h-full object-cover object-right"
+                            >
+                              <source src={user.card_bg_url} type="video/webm" />
+                            </video>
+                            {/* Dark overlay tipis agar teks selalu kontras */}
+                            <div className="absolute inset-0 bg-black/25" />
+                          </div>
+                        )}
+
+                        {/* KONTEN CARD */}
+                        <div className="flex items-center gap-4 relative z-10 w-full">
+                          <div className={`w-14 h-14 rounded-full flex-shrink-0 overflow-hidden ${hasWebm ? 'border-2 border-white/80 shadow-md' : 'bg-slate-100 border-2 border-white shadow-sm'}`}>
+                            {user.avatar_url ? (
+                              <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className={`w-full h-full flex items-center justify-center font-black text-xl ${hasWebm ? 'bg-slate-800 text-white' : 'bg-emerald-100 text-emerald-600'}`}>
+                                {user.username?.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            {/* USERNAME */}
+                            <h3 className={`text-base font-bold transition-colors drop-shadow-md truncate ${hasWebm ? 'text-white' : 'text-slate-800 group-hover:text-emerald-600'}`}>
+                              {user.username}
+                            </h3>
+
+                            {/* SUBTITLE & LEVEL BADGE */}
+                            <div className="flex items-center gap-2 mt-1">
+                              <p className={`text-[11px] font-semibold drop-shadow-sm ${hasWebm ? 'text-white/90' : 'text-slate-600'}`}>
+                                Community Contributor
+                              </p>
+                              <span className={`w-1 h-1 rounded-full ${hasWebm ? 'bg-white/60' : 'bg-slate-400'}`}></span>
+                              <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow-2xs backdrop-blur-md ${
+                                hasWebm 
+                                  ? 'text-white bg-white/20 border border-white/30 drop-shadow-sm' 
+                                  : 'text-emerald-800 bg-emerald-50/90 border border-emerald-200/80'
+                              }`}>
+                                Level {user.level}
+                              </span>
                             </div>
-                          )}
-                        </div>
-                        <div>
-                          <h3 className="text-base font-black text-slate-800 group-hover:text-emerald-600 transition-colors drop-shadow-sm">
-                            @{user.username}
-                          </h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <p className="text-[11px] text-slate-500 font-semibold">
-                              Community Contributor
-                            </p>
-                            <span className="w-1 h-1 rounded-full bg-slate-400"></span>
-                            <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50/90 backdrop-blur-sm px-2 py-0.5 rounded-md border border-emerald-200">
-                              Level {user.level}
-                            </span>
                           </div>
                         </div>
-                      </div>
 
-                      {/* BADGE ICON */}
-                      {user.highestBadge && (
-                        <div title={user.highestBadge.title} className="flex-shrink-0 relative z-10">
-                          <img 
-                            src={user.highestBadge.iconUrl} 
-                            alt={user.highestBadge.title} 
-                            className="w-12 h-12 object-contain drop-shadow-md group-hover:scale-110 transition-transform"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

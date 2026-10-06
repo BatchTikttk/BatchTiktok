@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { Video, CheckCircle2, Loader2, Save, Lock, Crown } from 'lucide-react';
 
-// DAFTAR ASET WEBM ANDA
 const PRESET_BACKGROUNDS = [
   { id: 'lord-hades', name: 'Lord Hades', url: 'https://qu.ax/Kd5um.webm' },
   { id: 'butterfly-waltz', name: 'Butterfly Waltz', url: 'https://qu.ax/fGDzx.webm' },
@@ -39,7 +38,6 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
       
       if (data) {
         setWebmUrl(data.card_bg_url || '');
-        // Akses hanya untuk Premium atau Admin[cite: 4]
         const hasAccess = Boolean(data.is_premium || data.is_admin);
         setIsAllowed(hasAccess);
       }
@@ -51,7 +49,7 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
     e.preventDefault();
     
     if (!isAllowed) {
-      setMessage({ text: 'Fitur ini khusus untuk member Premium atau Admin!', type: 'error' });
+      setMessage({ text: 'This feature is strictly for Premium or Admin members!', type: 'error' });
       if (onOpenUpgradeModal) onOpenUpgradeModal();
       return;
     }
@@ -61,7 +59,7 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      setMessage({ text: 'Error: Anda harus login terlebih dahulu.', type: 'error' });
+      setMessage({ text: 'Error: You must be logged in first.', type: 'error' });
       setLoading(false);
       return;
     }
@@ -72,15 +70,15 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
       .eq('id', user.id);
 
     if (error) {
-      setMessage({ text: `Gagal menyimpan: ${error.message}`, type: 'error' });
+      setMessage({ text: `Failed to save: ${error.message}`, type: 'error' });
     } else {
-      setMessage({ text: 'Background kartu Top Contribute berhasil diperbarui!', type: 'success' });
+      setMessage({ text: 'Top Contribute card background updated successfully!', type: 'success' });
       if (onSuccess) onSuccess();
     }
     setLoading(false);
   };
 
-  if (fetching) return <div className="p-6 text-center text-slate-500">Memuat data...</div>;
+  if (fetching) return <div className="p-6 text-center text-slate-500">Loading data...</div>;
 
   return (
     <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm max-w-xl mx-auto relative overflow-hidden">
@@ -93,22 +91,22 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-              Efek Kartu Top Contribute
+              Top Contribute Card Effect
               <span className="text-[10px] font-extrabold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full flex items-center gap-1">
                 <Crown size={12} /> VIP / Premium
               </span>
             </h2>
-            <p className="text-xs text-slate-500">Pilih efek animasi WebM untuk latar belakang kartu Anda di halaman Top Contributors.</p>
+            <p className="text-xs text-slate-500">Choose a WebM animation effect for your card background on the Top Contributors page.</p>
           </div>
         </div>
       </div>
 
-      {/* Banner Peringatan jika bukan Premium/Admin */}
+      {/* Access Warning Banner */}
       {!isAllowed && (
         <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200/60 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-amber-800 text-xs font-semibold">
             <Lock size={16} className="text-amber-600 flex-shrink-0" />
-            <span>Fitur ini terkunci. Khusus pengguna <strong>Premium</strong> & <strong>Admin</strong>.</span>
+            <span>This feature is locked. Exclusive for <strong>Premium</strong> & <strong>Admin</strong> users.</span>
           </div>
           {onOpenUpgradeModal && (
             <button
@@ -123,12 +121,12 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
       )}
 
       <form onSubmit={handleSave} className="space-y-6">
-        {/* GALERI PRESET ASET */}
+        {/* ANIMATION PRESET GALLERY */}
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-3">
-            Koleksi Efek Animasi
+            Animation Effects Collection
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="flex flex-col gap-4">
             {PRESET_BACKGROUNDS.map((preset) => (
               <div
                 key={preset.id}
@@ -139,7 +137,7 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
                   }
                   setWebmUrl(preset.url);
                 }}
-                className={`relative rounded-xl overflow-hidden cursor-pointer border-2 transition-all h-24 group ${
+                className={`relative w-full aspect-video rounded-xl overflow-hidden cursor-pointer border-2 transition-all group ${
                   webmUrl === preset.url 
                     ? 'border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]' 
                     : 'border-slate-200 hover:border-emerald-300'
@@ -156,20 +154,20 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
                 </video>
                 
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors z-10 flex items-center justify-center p-2 text-center">
-                  <span className="text-white text-xs font-bold drop-shadow-md">
+                  <span className="text-white text-lg font-bold drop-shadow-md">
                     {preset.name}
                   </span>
                 </div>
 
                 {!isAllowed && (
-                  <div className="absolute top-1 left-1 z-20 bg-black/60 text-amber-400 p-1 rounded-full">
-                    <Lock size={12} />
+                  <div className="absolute top-3 left-3 z-20 bg-black/60 text-amber-400 p-2 rounded-full">
+                    <Lock size={16} />
                   </div>
                 )}
 
                 {webmUrl === preset.url && (
-                  <div className="absolute top-1 right-1 z-20 bg-emerald-500 text-white rounded-full p-0.5 shadow-sm">
-                    <CheckCircle2 size={14} />
+                  <div className="absolute top-3 right-3 z-20 bg-emerald-500 text-white rounded-full p-1 shadow-sm">
+                    <CheckCircle2 size={20} />
                   </div>
                 )}
               </div>
@@ -177,17 +175,17 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
           </div>
         </div>
 
-        {/* INPUT CUSTOM URL */}
+        {/* CUSTOM URL INPUT */}
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-2">
-            Atau Custom URL WebM
+            Or Custom WebM URL
           </label>
           <input
             type="url"
             disabled={!isAllowed}
             value={webmUrl}
             onChange={(e) => setWebmUrl(e.target.value)}
-            placeholder={isAllowed ? "https://.../video.webm" : "Khusus Member Premium & Admin"}
+            placeholder={isAllowed ? "https://.../video.webm" : "Premium & Admin Members Only"}
             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
@@ -211,12 +209,12 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
           ) : !isAllowed ? (
             <>
               <Lock size={18} className="text-amber-400" />
-              Khusus Premium & Admin
+              Premium & Admin Only
             </>
           ) : (
             <>
               <Save size={18} />
-              Simpan Tampilan
+              Save Changes
             </>
           )}
         </button>
