@@ -137,7 +137,6 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
                   }
                   setWebmUrl(preset.url);
                 }}
-                {/* Menggunakan h-24 (96px) atau sm:h-28 (112px) agar bentuknya menjadi banner horizontal (tidak tinggi) */}
                 className={`relative w-full h-24 sm:h-28 rounded-xl overflow-hidden cursor-pointer border-2 transition-all group ${
                   webmUrl === preset.url 
                     ? 'border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]' 
