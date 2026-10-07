@@ -526,7 +526,7 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
           
           {/* Banner Premium */}
           {!isUserPremium && (
-            <PremiumHeroBanner onOpenUpgradeModal="{()"> onOpenUpgradeModal && onOpenUpgradeModal()} />
+            <PremiumHeroBanner onOpenUpgradeModal={() => onOpenUpgradeModal && onOpenUpgradeModal()} />
           )}
 
           {/* Search Bar */}
