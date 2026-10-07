@@ -345,7 +345,10 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
 
   // Navigasi statis ke PreviewPage
   const handleOpenPreview = (item: any) => {
-    window.history.pushState({ item }, '', `/preview/${item.id}`);
+    const seoSlug = item.username 
+      ? `@${item.username.replace(/^@/, '').replace(/\s+/g, '-').toLowerCase()}` 
+      : item.id;
+    window.history.pushState({ item }, '', `/preview/${seoSlug}`);
     window.dispatchEvent(new Event('popstate'));
   };
 

@@ -271,9 +271,12 @@ export default function CreatorPage({
     window.dispatchEvent(new Event('popstate'));
   };
 
-  // Navigasi statis ke PreviewPage persis seperti di Home.tsx
+  // Navigasi statis ke PreviewPage dengan Username (SEO Friendly)
   const handleOpenPreview = (item: BatchItem) => {
-    window.history.pushState({ item }, '', `/preview/${item.id}`);
+    const seoSlug = item.username 
+      ? `@${item.username.replace(/^@/, '').replace(/\s+/g, '-').toLowerCase()}` 
+      : item.id;
+    window.history.pushState({ item }, '', `/preview/${seoSlug}`);
     window.dispatchEvent(new Event('popstate'));
   };
 
