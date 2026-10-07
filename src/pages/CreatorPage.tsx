@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import useSWR from 'swr';
 import { 
   User, HardDrive, FolderOpen, Video, 
@@ -11,9 +11,6 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { EmeraldFolderIcon } from "../components/SharedIcons";
 import AvatarBorderVip from "../components/AvatarBorderVip";
-
-// 1. Lazy Load Modal
-const PreviewModal = lazy(() => import("../components/PreviewModal"));
 
 interface BatchItem {
   id: string;
@@ -231,7 +228,6 @@ interface CreatorPageProps {
 
 export default function CreatorPage({ 
   username, 
-  isUserPremium, 
   onOpenUpgradeModal, 
   currentUser: propCurrentUser,
   setActiveCategory,
@@ -243,7 +239,6 @@ export default function CreatorPage({
   handleLogout: propHandleLogout
 }: CreatorPageProps) {
   const [localCurrentUser, setLocalCurrentUser] = useState<any>(null); 
-  const [previewItem, setPreviewItem] = useState<BatchItem | null>(null);
 
   const currentUser = propCurrentUser !== undefined ? propCurrentUser : localCurrentUser;
 
@@ -273,6 +268,12 @@ export default function CreatorPage({
       setActiveCategory(category);
     }
     window.history.pushState({}, '', '/');
+    window.dispatchEvent(new Event('popstate'));
+  };
+
+  // Navigasi statis ke PreviewPage persis seperti di Home.tsx
+  const handleOpenPreview = (item: BatchItem) => {
+    window.history.pushState({ item }, '', `/preview/${item.id}`);
     window.dispatchEvent(new Event('popstate'));
   };
 
@@ -317,21 +318,6 @@ export default function CreatorPage({
       supabase.removeChannel(profileSubscription);
     };
   }, [username, mutate]);
-
-  const handleDownloadInitiate = async (_providerName: string, url: string, batchId?: string) => {
-    if (!url) {
-      alert("Download link is not available");
-      return;
-    }
-    if (batchId) {
-      const { error } = await supabase.rpc('increment_download_count', { batch_id: batchId });
-      if (error) console.error('Failed to update download count:', error);
-    }
-    setTimeout(() => {
-      window.open(url, '_blank');
-      setPreviewItem(null);
-    }, 600);
-  };
 
   const stats = useMemo(() => {
     const totalUploads = batches.length;
@@ -498,7 +484,7 @@ export default function CreatorPage({
                 data={batch}
                 creatorBadge={highestBadge}
                 isAdmin={!!creatorProfile?.is_admin} 
-                onOpenPreview={setPreviewItem}
+                onOpenPreview={handleOpenPreview}
               />
             ))}
           </div>
@@ -507,20 +493,6 @@ export default function CreatorPage({
 
       {/* Footer Integration */}
       <Footer onSelectCountry={handleSelectCategory} />
-
-      <Suspense fallback={null}>
-        {previewItem && (
-          <PreviewModal 
-            item={previewItem} 
-            onClose={() => setPreviewItem(null)} 
-            onDownload={handleDownloadInitiate}
-            uploaderCount={batches.length}
-            isUserPremium={isUserPremium}
-            currentUser={currentUser} 
-            onOpenUpgradeModal={onOpenUpgradeModal}
-          />
-        )}
-      </Suspense>
     </div>
   );
 }
