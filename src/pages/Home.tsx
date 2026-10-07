@@ -142,7 +142,7 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: CreatorCardProps) =
   );
 };
 
-// 2. Fetcher Data untuk SWR (Tetap memfilter status 'approved' di database)
+// Fetcher Data untuk SWR
 const fetchApprovedBatches = async () => {
   const { data: profiles } = await supabase
     .from('profiles')
@@ -193,10 +193,33 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
     type: 'success' 
   });
 
-  const [currentPage, setCurrentPage] = useState(1);
+  // Baca nilai awal page dari URL Parameter (?page=2)
+  const [currentPage, setCurrentPage] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const page = searchParams.get('page');
+      return page ? parseInt(page, 10) : 1;
+    }
+    return 1;
+  });
+
   const ITEMS_PER_PAGE = 16;
 
   const currentUser = propCurrentUser !== undefined ? propCurrentUser : localCurrentUser;
+
+  // Efek untuk scroll otomatis ke atas dan memperbarui URL saat currentPage berubah
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (currentPage > 1) {
+      url.searchParams.set('page', currentPage.toString());
+    } else {
+      url.searchParams.delete('page');
+    }
+    window.history.pushState({}, '', url);
+
+    // Scroll halus (smooth) ke paling atas halaman
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
 
   useEffect(() => {
     if (swrError) showToast(swrError.message, 'error');
@@ -493,39 +516,60 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
               )}
             </div>
 
+            {/* Section Pagination SEO Friendly + Auto Smooth Scroll */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-3 mt-12 mb-20">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors shadow-sm"
+                <a
+                  href={currentPage > 1 ? `?page=${currentPage - 1}` : '#'}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) setCurrentPage(prev => prev - 1);
+                  }}
+                  className={`p-2.5 rounded-xl border border-slate-200 text-slate-600 transition-colors shadow-sm flex items-center justify-center ${
+                    currentPage === 1 
+                      ? 'opacity-50 cursor-not-allowed bg-slate-50 pointer-events-none' 
+                      : 'bg-white hover:bg-slate-50'
+                  }`}
+                  aria-label="Previous page"
                 >
                   <ChevronLeft size={20} />
-                </button>
+                </a>
                 
                 <div className="flex items-center gap-2">
                   {[...Array(totalPages)].map((_, i) => (
-                    <button
+                    <a
                       key={i}
-                      onClick={() => setCurrentPage(i + 1)}
-                      className={`w-10 h-10 rounded-xl font-bold text-sm transition-all shadow-sm ${
+                      href={`?page=${i + 1}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setCurrentPage(i + 1);
+                      }}
+                      className={`w-10 h-10 rounded-xl font-bold text-sm transition-all shadow-sm flex items-center justify-center ${
                         currentPage === i + 1
                           ? 'bg-emerald-500 text-white border-none'
                           : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
                       {i + 1}
-                    </button>
+                    </a>
                   ))}
                 </div>
 
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors shadow-sm"
+                <a
+                  href={currentPage < totalPages ? `?page=${currentPage + 1}` : '#'}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
+                  }}
+                  className={`p-2.5 rounded-xl border border-slate-200 text-slate-600 transition-colors shadow-sm flex items-center justify-center ${
+                    currentPage === totalPages 
+                      ? 'opacity-50 cursor-not-allowed bg-slate-50 pointer-events-none' 
+                      : 'bg-white hover:bg-slate-50'
+                  }`}
+                  aria-label="Next page"
                 >
                   <ChevronRight size={20} />
-                </button>
+                </a>
               </div>
             )}
           </div>
