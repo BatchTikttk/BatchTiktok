@@ -3,7 +3,7 @@ import useSWR from 'swr';
 import { supabase } from '../supabase';
 import { 
   Search, CheckCircle2, Play, XCircle, ChevronLeft, ChevronRight, Check,
-  Folder, Film, HardDrive, Users, Crown
+  Folder, Film, HardDrive, Users, Crown, Star
 } from 'lucide-react';
 
 import Navbar from "../components/Navbar";
@@ -29,7 +29,6 @@ interface CreatorCardProps {
   uploaderCount: number;
 }
 
-// Interface tetap memiliki onCheckAccess agar App.tsx tidak error
 interface HomeProps {
   onCheckAccess?: any; 
   isUserPremium?: boolean;
@@ -43,6 +42,142 @@ const Toast = ({ message, isVisible, type = 'success' }: ToastProps) => (
     <span className="text-sm font-medium">{message}</span>
   </div>
 );
+
+// --- KOMPONEN PREMIUM HERO BANNER DENGAN SLIDER ---
+interface PremiumHeroBannerProps {
+  onOpenUpgradeModal: () => void;
+}
+
+const PremiumHeroBanner = ({ onOpenUpgradeModal }: PremiumHeroBannerProps) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const slides = [
+    {
+      title: "Stand Out With",
+      highlight: "Exclusive Visuals",
+      description: "Upgrade once and unlock animated contributor cards and VIP avatar borders.",
+      visual: (
+        <div className="relative w-full max-w-[320px] mx-auto md:mr-0 flex justify-center md:justify-end">
+          <div className="relative w-full max-w-[280px] h-[120px] rounded-2xl overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.4)] border border-white/10 bg-slate-800 transform rotate-2 group-hover:rotate-0 transition-all duration-500">
+            <div className="absolute inset-0 z-0 pointer-events-none" style={{ maskImage: 'linear-gradient(to right, rgba(0, 0, 0, 0.3) 100px, rgb(0, 0, 0) 200px)', WebkitMaskImage: 'linear-gradient(to right, rgba(0, 0, 0, 0.3) 100px, rgb(0, 0, 0) 200px)' }}>
+              <video autoPlay loop muted playsInline className="w-full h-full object-cover">
+                <source src="https://qu.ax/Kd5um.webm" type="video/webm" />
+              </video>
+            </div>
+            
+            <div className="relative z-10 flex items-center h-full px-5 gap-4">
+              <img 
+                src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Avatar%20(1).webp" 
+                alt="Creator Avatar" 
+                className="w-14 h-14 rounded-full object-cover border-2 border-white/80 shadow-md flex-shrink-0 bg-slate-800"
+              />
+              <div>
+                <div className="h-4 w-24 bg-white/90 rounded mb-2"></div>
+                <div className="h-3 w-16 bg-white/60 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: "Unlock All",
+      highlight: "Exclusive Content",
+      description: "Get full access to premium collections and exclusive locked folders across all regions.",
+      visual: (
+        <div className="relative w-full h-[140px] flex items-center justify-center md:justify-end md:pr-10 transform -rotate-2 group-hover:rotate-0 transition-all duration-500">
+           {/* Decorative background glow */}
+           <div className="absolute top-1/2 left-1/2 md:left-[80%] -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-amber-500/20 rounded-full blur-[40px] pointer-events-none"></div>
+           
+           <div className="relative transform scale-[1.5] drop-shadow-2xl">
+             <EmeraldFolderIcon country="Premium" isExclusive={true} />
+             <div className="absolute -top-[14px] -left-[6px] z-20 -rotate-[15deg] pointer-events-none filter drop-shadow-[0_2px_4px_rgba(217,119,6,0.5)]">
+               <Crown size={24} className="text-amber-500 fill-amber-400" strokeWidth={1.5} />
+             </div>
+           </div>
+        </div>
+      )
+    }
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 4500); 
+    return () => clearInterval(timer);
+  }, [slides.length]);
+
+  return (
+    <div className="relative w-full overflow-hidden bg-slate-900 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border-none flex flex-col md:flex-row items-center justify-between p-8 md:p-12 mb-8 group min-h-[300px]">
+      
+      {/* Background Glow Effect */}
+      <div className="absolute top-0 right-0 w-full md:w-1/2 h-full bg-gradient-to-l from-amber-500/10 to-transparent pointer-events-none transition-all duration-1000"></div>
+
+      {/* Left Content: Text area */}
+      <div className="relative z-10 w-full md:w-1/2 flex flex-col items-start text-left mb-8 md:mb-0">
+         <div className="relative w-full h-[160px] md:h-[140px] mb-6">
+            {slides.map((slide, index) => (
+               <div 
+                 key={`text-${index}`}
+                 className={`absolute inset-0 flex flex-col items-start text-left transition-all duration-700 ease-in-out ${
+                   currentSlide === index ? 'opacity-100 translate-y-0 z-10' : 'opacity-0 translate-y-4 z-0 pointer-events-none'
+                 }`}
+               >
+                 <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-4 leading-tight">
+                   {slide.title} <br />
+                   <span className="text-amber-400">
+                     {slide.highlight}
+                   </span>
+                 </h2>
+                 
+                 <p className="text-slate-300 font-medium max-w-md">
+                   {slide.description}
+                 </p>
+               </div>
+            ))}
+         </div>
+
+         {/* Upgrade Button */}
+         <button 
+           onClick={onOpenUpgradeModal}
+           className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-900 px-6 py-3.5 rounded-2xl font-bold transition-all shadow-[0_8px_20px_rgba(245,158,11,0.25)] border-none hover:-translate-y-0.5"
+         >
+           <Star size={18} className="fill-slate-900" />
+           Upgrade Now for Rp 50,000
+         </button>
+      </div>
+
+      {/* Right Content: Visual Showcase Mockup */}
+      <div className="relative z-10 w-full md:w-1/2 h-[140px] flex items-center justify-center md:justify-end pr-0 md:pr-4">
+         {slides.map((slide, index) => (
+            <div 
+              key={`visual-${index}`}
+              className={`absolute w-full right-0 md:pr-4 transition-all duration-700 ease-in-out flex justify-center md:justify-end ${
+                currentSlide === index ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-95 z-0 pointer-events-none'
+              }`}
+            >
+              {slide.visual}
+            </div>
+         ))}
+      </div>
+
+      {/* Slide Indicators */}
+      <div className="absolute bottom-6 right-8 md:right-12 flex gap-2 z-20">
+         {slides.map((_, index) => (
+           <button
+             key={`dot-${index}`}
+             onClick={() => setCurrentSlide(index)}
+             className={`h-1.5 rounded-full transition-all duration-300 ${
+               currentSlide === index ? 'w-6 bg-amber-400' : 'w-2 bg-white/20 hover:bg-white/40'
+             }`}
+             aria-label={`Go to slide ${index + 1}`}
+           />
+         ))}
+      </div>
+    </div>
+  );
+};
+// --- END KOMPONEN ---
 
 const CreatorCard = ({ data, onOpenPreview, uploaderCount }: CreatorCardProps) => {
   const getAchievementBadge = (count: number) => {
@@ -193,7 +328,6 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
     type: 'success' 
   });
 
-  // Baca nilai awal page dari URL Parameter (?page=2)
   const [currentPage, setCurrentPage] = useState<number>(() => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
@@ -207,7 +341,6 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
 
   const currentUser = propCurrentUser !== undefined ? propCurrentUser : localCurrentUser;
 
-  // Efek untuk scroll otomatis ke atas dan memperbarui URL saat currentPage berubah
   useEffect(() => {
     const url = new URL(window.location.href);
     if (currentPage > 1) {
@@ -217,7 +350,6 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
     }
     window.history.pushState({}, '', url);
 
-    // Scroll halus (smooth) ke paling atas halaman
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentPage]);
 
@@ -391,36 +523,37 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
         />
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-6 mb-10">
-          <div className="bg-slate-900 rounded-[2.5rem] py-12 px-8 sm:py-16 sm:px-14 shadow-2xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-950 pointer-events-none"></div>
-            
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-10">
-              
-              <div className="max-w-2xl text-center md:text-left">
-                <h1 className="text-4xl md:text-5xl lg:text-5xl font-black mb-5 tracking-tight leading-tight text-white">
-                  Curated Creator <br className="hidden md:block"/>
-                  <span className="text-emerald-400">Video Collections</span>
-                </h1>
-                <p className="text-slate-300 text-base md:text-lg font-medium max-w-xl mx-auto md:mx-0">
-                  Direct bulk ZIP archives hosted, and share your tiktok archive here exclusively on <strong className="text-white">Google Drive</strong> &amp; <strong className="text-white">TeraBox</strong>.
-                </p>
-              </div>
-
-              <div className="w-full md:w-96 relative group mx-auto md:mx-0">
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none z-10">
-                  <Search className="h-5 w-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+          
+          {/* Banner Premium */}
+          {!isUserPremium ? (
+            <PremiumHeroBanner onOpenUpgradeModal={() => onOpenUpgradeModal && onOpenUpgradeModal()} />
+          ) : (
+            <div className="bg-slate-900 rounded-[2rem] py-10 px-8 shadow-2xl relative overflow-hidden mb-8 border-none flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-3 bg-amber-500/10 px-3 py-1.5 rounded-full border-none w-max">
+                  <Crown size={16} className="text-amber-400" />
+                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Premium Member</span>
                 </div>
-                <input
-                  type="text"
-                  placeholder="Search creators, region, uploader..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-14 pr-6 py-4 bg-slate-800/80 text-white rounded-2xl shadow-lg focus:ring-2 focus:ring-emerald-500/50 focus:outline-none transition-all font-medium placeholder:text-slate-400 border border-slate-700 backdrop-blur-sm"
-                />
+                <h1 className="text-3xl font-black text-white">Welcome back to <span className="text-emerald-400">Premium</span></h1>
+                <p className="text-slate-300 mt-2 font-medium">Enjoy your exclusive visual perks and unlimited access.</p>
               </div>
-
             </div>
+          )}
+
+          {/* Search Bar */}
+          <div className="w-full relative group">
+            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none z-10">
+              <Search className="h-5 w-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search creators, region, uploader..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-14 pr-6 py-4 bg-white text-slate-800 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] focus:ring-2 focus:ring-emerald-500/30 focus:outline-none transition-all font-medium placeholder:text-slate-400 border border-slate-200"
+            />
           </div>
+
         </div>
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-12">
@@ -516,7 +649,7 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
               )}
             </div>
 
-            {/* Section Pagination SEO Friendly + Auto Smooth Scroll */}
+            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-3 mt-12 mb-20">
                 <a
