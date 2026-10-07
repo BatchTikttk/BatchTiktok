@@ -530,10 +530,7 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
           ) : (
             <div className="bg-slate-900 rounded-[2rem] py-10 px-8 shadow-2xl relative overflow-hidden mb-8 border-none flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-3 bg-amber-500/10 px-3 py-1.5 rounded-full border-none w-max">
-                  <Crown size={16} className="text-amber-400" />
-                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Premium Member</span>
-                </div>
+                {/* Bagian badge Premium Member sudah dihapus di sini */}
                 <h1 className="text-3xl font-black text-white">Welcome back to <span className="text-emerald-400">Premium</span></h1>
                 <p className="text-slate-300 mt-2 font-medium">Enjoy your exclusive visual perks and unlimited access.</p>
               </div>
