@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import useSWR from 'swr';
 import { 
-  Home, User, HardDrive, FolderOpen, Video, 
+  User, HardDrive, FolderOpen, Video, 
   MousePointerClick, Play, Check,
   Crown 
 } from 'lucide-react';
@@ -259,10 +259,6 @@ export default function CreatorPage({
   const creatorProfile = creatorData?.profile || null;
   const batches = creatorData?.batches || [];
 
-  const handleGoBack = () => {
-    window.history.back();
-  };
-
   const defaultHandleLogout = async () => {
     if (propHandleLogout) {
       propHandleLogout();
@@ -392,15 +388,8 @@ export default function CreatorPage({
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto w-full flex-grow pt-8 pb-16 px-6 sm:px-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        
-        <button 
-          onClick={handleGoBack} 
-          className="flex items-center gap-2 px-6 py-3 mb-8 rounded-2xl font-bold text-slate-700 bg-white hover:bg-slate-50 transition-all shadow-sm hover:shadow-md border border-slate-100 w-max cursor-pointer"
-        >
-          <Home size={20} /> Home
-        </button>
 
-        <div className="relative bg-white p-8 sm:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 mb-10 flex flex-col md:flex-row items-center md:items-start gap-8">
+        <div className="relative bg-white p-8 sm:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 mb-10 flex flex-col md:flex-row items-center md:items-start gap-8 mt-4">
           
           {!creatorProfile?.is_admin && highestBadge && (
             <div className="absolute top-6 right-6 sm:top-8 sm:right-10 flex flex-col items-center justify-center hover:scale-105 transition-transform duration-300 z-0">
