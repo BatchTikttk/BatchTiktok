@@ -57,6 +57,11 @@ export default function PreviewPage({
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
 
+  // Memastikan halaman otomatis berada di atas saat dimuat
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     const fetchItem = async () => {
       const targetId = itemId || window.location.pathname.split('/preview/')[1];
