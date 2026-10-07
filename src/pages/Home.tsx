@@ -525,16 +525,9 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-6 mb-10">
           
           {/* Banner Premium */}
-          {!isUserPremium ? (
-            <PremiumHeroBanner onOpenUpgradeModal={() => onOpenUpgradeModal && onOpenUpgradeModal()} />
-          ) : (
-            <div className="bg-slate-900 rounded-[2rem] py-10 px-8 shadow-2xl relative overflow-hidden mb-8 border-none flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="relative z-10">
-                {/* Bagian badge Premium Member sudah dihapus di sini */}
-                <h1 className="text-3xl font-black text-white">Welcome back to <span className="text-emerald-400">Premium</span></h1>
-                <p className="text-slate-300 mt-2 font-medium">Enjoy your exclusive visual perks and unlimited access.</p>
-              </div>
-            </div>
+         {/* Banner Premium */}
+          {!isUserPremium && (
+            <PremiumHeroBanner onOpenUpgradeModal="{()"> onOpenUpgradeModal && onOpenUpgradeModal()} />
           )}
 
           {/* Search Bar */}
