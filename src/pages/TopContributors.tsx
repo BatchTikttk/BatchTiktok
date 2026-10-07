@@ -196,6 +196,18 @@ export default function TopContributors() {
   const rank3 = contributors[2];
   const restOfContributors = contributors.slice(3, 10);
 
+  // Helper untuk menentukan Border aktif mengikuti logika Profile.tsx
+  const getBorderUrl = (user: any) => {
+    if (!user) return null;
+    if (user.is_premium && user.vip_border_url) return user.vip_border_url;
+    if (user.animation_border_url) return user.animation_border_url;
+    return null;
+  };
+
+  const rank1Border = getBorderUrl(rank1);
+  const rank2Border = getBorderUrl(rank2);
+  const rank3Border = getBorderUrl(rank3);
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans flex flex-col justify-between">
       <div>
@@ -244,7 +256,6 @@ export default function TopContributors() {
                   {contributors.map((user) => {
                     const hasWebm = (user.is_premium || user.is_admin) && user.card_bg_url;
                     
-                    // Mencari preset gradien warna yang cocok dari URL kartu user
                     const matchedPreset = PRESET_BACKGROUNDS.find(p => p.url === user.card_bg_url);
                     const cardGradient = matchedPreset?.gradient || 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)';
 
@@ -259,7 +270,6 @@ export default function TopContributors() {
                             : 'bg-white border border-slate-100 shadow-sm hover:shadow-md rounded-3xl' 
                         }`}
                       >
-                        {/* BACKGROUND WEBM PRESISI SEPERTI DISCORD (DENGAN MASKING MASUK) */}
                         {hasWebm && (
                           <div 
                             className="absolute inset-0 z-0 pointer-events-none overflow-hidden"
@@ -277,7 +287,6 @@ export default function TopContributors() {
                           </div>
                         )}
 
-                        {/* KONTEN CARD */}
                         <div className="flex items-center gap-4 relative z-10 w-full">
                           <div className={`w-14 h-14 rounded-full flex-shrink-0 overflow-hidden ${hasWebm ? 'border-2 border-white/80 shadow-md' : 'bg-slate-100 border-2 border-white shadow-sm'}`}>
                             {user.avatar_url ? (
@@ -290,12 +299,10 @@ export default function TopContributors() {
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            {/* USERNAME */}
                             <h3 className={`text-base font-bold transition-colors drop-shadow-md truncate ${hasWebm ? 'text-white' : 'text-slate-800 group-hover:text-emerald-600'}`}>
                               {user.username}
                             </h3>
 
-                            {/* SUBTITLE & LEVEL BADGE */}
                             <div className="flex items-center gap-2 mt-1">
                               <p className={`text-[11px] font-semibold drop-shadow-sm ${hasWebm ? 'text-white/90' : 'text-slate-600'}`}>
                                 Community Contributor
@@ -336,6 +343,7 @@ export default function TopContributors() {
                   <>
                     <div className="flex justify-center items-end gap-3 my-6">
                       
+                      {/* LEADERBOARD RANK 2 */}
                       {rank2 && (
                         <div 
                           className="flex flex-col items-center cursor-pointer group" 
@@ -344,27 +352,35 @@ export default function TopContributors() {
                           <span className="text-[11px] text-slate-500 font-medium mb-1.5 truncate w-16 text-center group-hover:text-emerald-500">
                             @{rank2.username}
                           </span>
-                          <div className="relative">
-                            <div className="w-16 h-16 rounded-full border-[3px] border-slate-300 p-0.5 shadow-sm bg-white">
+                          <div className="relative flex items-center justify-center w-16 h-16 my-2">
+                            {rank2Border && (
+                              <img 
+                                src={rank2Border} 
+                                alt="Border" 
+                                className="absolute inset-0 w-full h-full object-contain z-20 pointer-events-none drop-shadow-sm scale-[1.25]" 
+                              />
+                            )}
+                            <div className="rounded-full border-2 border-white bg-white w-full h-full relative z-10 overflow-hidden flex items-center justify-center shadow-sm">
                               {rank2.avatar_url ? (
-                                <img src={rank2.avatar_url} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                                <img src={rank2.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold">
+                                <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold">
                                   {rank2.username?.charAt(0).toUpperCase()}
                                 </div>
                               )}
                             </div>
-                            <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-[11px] font-black border-2 border-white shadow-sm">
+                            <div className="absolute left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-[11px] font-black border-2 border-white shadow-sm z-30 -bottom-2.5">
                               2
                             </div>
                           </div>
-                          <div className="mt-4 flex items-center gap-1 bg-slate-50 px-2.5 py-0.5 rounded-full border border-slate-100">
+                          <div className="flex items-center gap-1 bg-slate-50 px-2.5 py-0.5 rounded-full border border-slate-100 mt-3">
                             <Video size={12} className="text-slate-400" />
                             <span className="text-xs font-bold text-slate-700">{rank2.stats.totalVideos}</span>
                           </div>
                         </div>
                       )}
 
+                      {/* LEADERBOARD RANK 1 */}
                       {rank1 && (
                         <div 
                           className="flex flex-col items-center mb-4 cursor-pointer group" 
@@ -373,27 +389,35 @@ export default function TopContributors() {
                           <span className="text-[12px] text-slate-800 font-bold mb-1.5 truncate w-20 text-center group-hover:text-emerald-600">
                             @{rank1.username}
                           </span>
-                          <div className="relative">
-                            <div className="w-20 h-20 rounded-full border-[3px] border-amber-400 p-0.5 shadow-[0_4px_20px_rgba(251,191,36,0.35)] bg-white">
+                          <div className="relative flex items-center justify-center w-20 h-20 my-2">
+                            {rank1Border && (
+                              <img 
+                                src={rank1Border} 
+                                alt="Border" 
+                                className="absolute inset-0 w-full h-full object-contain z-20 pointer-events-none drop-shadow-sm scale-[1.25]" 
+                              />
+                            )}
+                            <div className="rounded-full border-2 border-white bg-white w-full h-full relative z-10 overflow-hidden flex items-center justify-center shadow-md">
                               {rank1.avatar_url ? (
-                                <img src={rank1.avatar_url} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                                <img src={rank1.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full bg-amber-50 rounded-full flex items-center justify-center text-amber-600 font-bold text-xl">
+                                <div className="w-full h-full bg-amber-50 flex items-center justify-center text-amber-600 font-bold text-xl">
                                   {rank1.username?.charAt(0).toUpperCase()}
                                 </div>
                               )}
                             </div>
-                            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-amber-400 text-white flex items-center justify-center text-xs font-black border-2 border-white shadow-sm">
+                            <div className="absolute left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-amber-400 text-white flex items-center justify-center text-xs font-black border-2 border-white shadow-sm z-30 -bottom-3">
                               1
                             </div>
                           </div>
-                          <div className="mt-5 flex items-center gap-1.5 bg-amber-50 px-3 py-1 rounded-full border border-amber-200/60 shadow-xs">
+                          <div className="flex items-center gap-1.5 bg-amber-50 px-3 py-1 rounded-full border border-amber-200/60 shadow-xs mt-4">
                             <Video size={13} className="text-amber-500 fill-amber-500/20" />
                             <span className="text-xs font-black text-amber-700">{rank1.stats.totalVideos}</span>
                           </div>
                         </div>
                       )}
 
+                      {/* LEADERBOARD RANK 3 */}
                       {rank3 && (
                         <div 
                           className="flex flex-col items-center cursor-pointer group" 
@@ -402,21 +426,28 @@ export default function TopContributors() {
                           <span className="text-[11px] text-slate-500 font-medium mb-1.5 truncate w-16 text-center group-hover:text-emerald-500">
                             @{rank3.username}
                           </span>
-                          <div className="relative">
-                            <div className="w-16 h-16 rounded-full border-[3px] border-amber-700/50 p-0.5 shadow-sm bg-white">
+                          <div className="relative flex items-center justify-center w-16 h-16 my-2">
+                            {rank3Border && (
+                              <img 
+                                src={rank3Border} 
+                                alt="Border" 
+                                className="absolute inset-0 w-full h-full object-contain z-20 pointer-events-none drop-shadow-sm scale-[1.25]" 
+                              />
+                            )}
+                            <div className="rounded-full border-2 border-white bg-white w-full h-full relative z-10 overflow-hidden flex items-center justify-center shadow-sm">
                               {rank3.avatar_url ? (
-                                <img src={rank3.avatar_url} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                                <img src={rank3.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full bg-amber-50 rounded-full flex items-center justify-center text-amber-700 font-bold">
+                                <div className="w-full h-full bg-amber-50 flex items-center justify-center text-amber-700 font-bold">
                                   {rank3.username?.charAt(0).toUpperCase()}
                                 </div>
                               )}
                             </div>
-                            <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-amber-700 text-white flex items-center justify-center text-[11px] font-black border-2 border-white shadow-sm">
+                            <div className="absolute left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-amber-700 text-white flex items-center justify-center text-[11px] font-black border-2 border-white shadow-sm z-30 -bottom-2.5">
                               3
                             </div>
                           </div>
-                          <div className="mt-4 flex items-center gap-1 bg-slate-50 px-2.5 py-0.5 rounded-full border border-slate-100">
+                          <div className="flex items-center gap-1 bg-slate-50 px-2.5 py-0.5 rounded-full border border-slate-100 mt-3">
                             <Video size={12} className="text-slate-400" />
                             <span className="text-xs font-bold text-slate-700">{rank3.stats.totalVideos}</span>
                           </div>
