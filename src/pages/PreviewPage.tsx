@@ -217,7 +217,7 @@ export default function PreviewPage({
     }
   };
 
-  const handleDownloadClick = async (source: string, url: string, id: any) => {
+  const handleDownloadClick = async (url: string, id: any) => {
     if (!url) return;
     window.open(url, '_blank');
     
@@ -649,7 +649,7 @@ export default function PreviewPage({
                   <div className="space-y-2.5">
                     <button 
                       disabled={!hasGdrive}
-                      onClick={() => hasGdrive && handleDownloadClick('Google Drive', finalGdriveLink, item.id)} 
+                      onClick={() => hasGdrive && handleDownloadClick(finalGdriveLink, item.id)} 
                       className={`w-full p-3 rounded-xl transition-all flex items-center justify-between border border-slate-100 ${hasGdrive ? 'bg-white hover:bg-blue-50/50 hover:shadow-sm group cursor-pointer' : 'bg-slate-50 opacity-60 cursor-not-allowed grayscale'}`}
                     >
                       <div className="flex items-center gap-3">
@@ -672,7 +672,7 @@ export default function PreviewPage({
 
                     <button 
                       disabled={!hasTerabox}
-                      onClick={() => hasTerabox && handleDownloadClick('TeraBox', finalTeraboxLink, item.id)} 
+                      onClick={() => hasTerabox && handleDownloadClick(finalTeraboxLink, item.id)} 
                       className={`w-full p-3 rounded-xl transition-all flex items-center justify-between border border-slate-100 ${hasTerabox ? 'bg-white hover:bg-cyan-50/50 hover:shadow-sm group cursor-pointer' : 'bg-slate-50 opacity-60 cursor-not-allowed grayscale'}`}
                     >
                       <div className="flex items-center gap-3">

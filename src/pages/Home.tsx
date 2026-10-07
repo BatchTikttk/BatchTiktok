@@ -307,7 +307,7 @@ const fetchApprovedBatches = async () => {
   });
 };
 
-export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: propCurrentUser }: HomeProps) { 
+export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser }: HomeProps) { 
   const { data: batches = [], mutate, error: swrError } = useSWR('approved_batches', fetchApprovedBatches, {
     dedupingInterval: 600000, 
     revalidateOnFocus: false,
