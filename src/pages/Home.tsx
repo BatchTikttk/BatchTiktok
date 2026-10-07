@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import useSWR from 'swr';
 import { supabase } from '../supabase';
 import { 
   Search, CheckCircle2, Play, XCircle, ChevronLeft, ChevronRight, Check,
-  Folder, Film, HardDrive, Users, Crown, Star
+  Folder, Film, HardDrive, Users, Crown, Star, ArrowUpDown, ChevronDown
 } from 'lucide-react';
 
 import Navbar from "../components/Navbar";
@@ -16,6 +16,15 @@ const PostModal = lazy(() => import("../components/PostModal"));
 const PreviewModal = lazy(() => import("../components/PreviewModal"));
 
 export const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
+
+const SORT_OPTIONS = [
+  { value: 'latest', label: 'Newest' },
+  { value: 'oldest', label: 'Oldest' },
+  { value: 'most_videos', label: 'Most Videos' },
+  { value: 'largest_size', label: 'Largest Size' },
+  { value: 'most_downloaded', label: 'Most Downloaded' },
+  { value: 'exclusive', label: 'Exclusive' },
+];
 
 interface ToastProps {
   message: string;
@@ -86,7 +95,6 @@ const PremiumHeroBanner = ({ onOpenUpgradeModal }: PremiumHeroBannerProps) => {
       description: "Get full access to premium collections and exclusive locked folders across all regions.",
       visual: (
         <div className="relative w-full h-[140px] flex items-center justify-center md:justify-end md:pr-10 transform -rotate-2 group-hover:rotate-0 transition-all duration-500">
-           {/* Decorative background glow */}
            <div className="absolute top-1/2 left-1/2 md:left-[80%] -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-amber-500/20 rounded-full blur-[40px] pointer-events-none"></div>
            
            <div className="relative transform scale-[1.5] drop-shadow-2xl">
@@ -110,10 +118,8 @@ const PremiumHeroBanner = ({ onOpenUpgradeModal }: PremiumHeroBannerProps) => {
   return (
     <div className="relative w-full overflow-hidden bg-slate-900 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border-none flex flex-col md:flex-row items-center justify-between p-8 md:p-12 mb-8 group min-h-[300px]">
       
-      {/* Background Glow Effect */}
       <div className="absolute top-0 right-0 w-full md:w-1/2 h-full bg-gradient-to-l from-amber-500/10 to-transparent pointer-events-none transition-all duration-1000"></div>
 
-      {/* Left Content: Text area */}
       <div className="relative z-10 w-full md:w-1/2 flex flex-col items-start text-left mb-8 md:mb-0">
          <div className="relative w-full h-[160px] md:h-[140px] mb-6">
             {slides.map((slide, index) => (
@@ -137,7 +143,6 @@ const PremiumHeroBanner = ({ onOpenUpgradeModal }: PremiumHeroBannerProps) => {
             ))}
          </div>
 
-         {/* Upgrade Button */}
          <button 
            onClick={onOpenUpgradeModal}
            className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-900 px-6 py-3.5 rounded-2xl font-bold transition-all shadow-[0_8px_20px_rgba(245,158,11,0.25)] border-none hover:-translate-y-0.5"
@@ -147,7 +152,6 @@ const PremiumHeroBanner = ({ onOpenUpgradeModal }: PremiumHeroBannerProps) => {
          </button>
       </div>
 
-      {/* Right Content: Visual Showcase Mockup */}
       <div className="relative z-10 w-full md:w-1/2 h-[140px] flex items-center justify-center md:justify-end pr-0 md:pr-4">
          {slides.map((slide, index) => (
             <div 
@@ -161,7 +165,6 @@ const PremiumHeroBanner = ({ onOpenUpgradeModal }: PremiumHeroBannerProps) => {
          ))}
       </div>
 
-      {/* Slide Indicators */}
       <div className="absolute bottom-6 right-8 md:right-12 flex gap-2 z-20">
          {slides.map((_, index) => (
            <button
@@ -177,7 +180,6 @@ const PremiumHeroBanner = ({ onOpenUpgradeModal }: PremiumHeroBannerProps) => {
     </div>
   );
 };
-// --- END KOMPONEN ---
 
 const CreatorCard = ({ data, onOpenPreview, uploaderCount }: CreatorCardProps) => {
   const getAchievementBadge = (count: number) => {
@@ -315,6 +317,9 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
 
   const [activeCategory, setActiveCategory] = useState('Home');
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<string>('latest');
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const sortRef = useRef<HTMLDivElement>(null);
   
   const [localCurrentUser, setLocalCurrentUser] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -341,6 +346,17 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
 
   const currentUser = propCurrentUser !== undefined ? propCurrentUser : localCurrentUser;
 
+  // Tutup dropdown saat diklik di luar area dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
+        setIsSortOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   useEffect(() => {
     const url = new URL(window.location.href);
     if (currentPage > 1) {
@@ -359,7 +375,7 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, searchQuery, sortBy]);
 
   useEffect(() => {
     if (previewItem && batches.length > 0) {
@@ -486,18 +502,52 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
     return { totalBatches, uniqueCreators, totalVideos, totalSize };
   }, [batches]);
 
-  const filteredBatches = batches.filter((batch: any) => {
-    const matchesCategory = activeCategory === 'Home' || batch.country === activeCategory;
-    const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = 
-      (batch.username && batch.username.toLowerCase().includes(searchLower)) ||
-      (batch.country && batch.country.toLowerCase().includes(searchLower)) ||
-      (batch.uploaded_by && batch.uploaded_by.toLowerCase().includes(searchLower));
-    return matchesCategory && matchesSearch;
-  });
+  const parseSizeToGB = (batch: any) => {
+    const sizeStr = (batch.size_file || `${batch.size_gb} GB` || '').toString().toUpperCase();
+    const numericValue = parseFloat(sizeStr.replace(/[^\d.]/g, ''));
+    if (isNaN(numericValue)) return 0;
+    if (sizeStr.includes('MB')) return numericValue / 1024;
+    if (sizeStr.includes('KB')) return numericValue / (1024 * 1024);
+    return numericValue;
+  };
 
-  const totalPages = Math.ceil(filteredBatches.length / ITEMS_PER_PAGE);
-  const paginatedBatches = filteredBatches.slice(
+  // Filter & Sorting Logic
+  const filteredAndSortedBatches = useMemo(() => {
+    let list = batches.filter((batch: any) => {
+      const matchesCategory = activeCategory === 'Home' || batch.country === activeCategory;
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch = 
+        (batch.username && batch.username.toLowerCase().includes(searchLower)) ||
+        (batch.country && batch.country.toLowerCase().includes(searchLower)) ||
+        (batch.uploaded_by && batch.uploaded_by.toLowerCase().includes(searchLower));
+        
+      const matchesExclusive = sortBy === 'exclusive' ? batch.is_exclusive === true : true;
+
+      return matchesCategory && matchesSearch && matchesExclusive;
+    });
+
+    return list.sort((a: any, b: any) => {
+      if (sortBy === 'latest' || sortBy === 'exclusive') {
+        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+      }
+      if (sortBy === 'oldest') {
+        return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+      }
+      if (sortBy === 'most_videos') {
+        return (parseInt(b.video_count, 10) || 0) - (parseInt(a.video_count, 10) || 0);
+      }
+      if (sortBy === 'largest_size') {
+        return parseSizeToGB(b) - parseSizeToGB(a);
+      }
+      if (sortBy === 'most_downloaded') {
+        return (b.download_count || 0) - (a.download_count || 0);
+      }
+      return 0;
+    });
+  }, [batches, activeCategory, searchQuery, sortBy]);
+
+  const totalPages = Math.ceil(filteredAndSortedBatches.length / ITEMS_PER_PAGE);
+  const paginatedBatches = filteredAndSortedBatches.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
@@ -524,7 +574,6 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-6 mb-10">
           
-          {/* Banner Premium Selalu Tampil */}
           <PremiumHeroBanner onOpenUpgradeModal={() => onOpenUpgradeModal && onOpenUpgradeModal()} />
 
           {/* Search Bar */}
@@ -543,7 +592,8 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
 
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-12">
+        {/* Stat Cards */}
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             
             <div className="bg-emerald-700 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
@@ -613,6 +663,71 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
           </div>
         </div>
 
+        {/* --- BARIS FILTER & SOFT SMOOTH DROPDOWN --- */}
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-8">
+          <div className="bg-white px-6 py-4 rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border-none flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-slate-500">
+                Showing <span className="text-slate-900 font-bold">{filteredAndSortedBatches.length}</span> archives
+              </span>
+              {activeCategory !== 'Home' && (
+                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border-none">
+                  {activeCategory}
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="relative" ref={sortRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsSortOpen(!isSortOpen)}
+                  className="flex items-center gap-2.5 bg-slate-100/70 hover:bg-slate-100 transition-all duration-200 px-4 py-2.5 rounded-2xl cursor-pointer group text-slate-700 focus:outline-none"
+                >
+                  <ArrowUpDown size={16} className="text-emerald-600 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm font-medium text-slate-500">Sort by</span>
+                  <span className="text-sm font-bold text-slate-800 flex items-center gap-1.5 ml-0.5">
+                    {SORT_OPTIONS.find((opt) => opt.value === sortBy)?.label || 'Newest'}
+                    <ChevronDown 
+                      size={14} 
+                      className={`text-slate-400 transition-transform duration-300 ${isSortOpen ? 'rotate-180 text-emerald-600' : ''}`} 
+                    />
+                  </span>
+                </button>
+
+                {/* Floating Soft Dropdown Menu */}
+                {isSortOpen && (
+                  <div className="absolute right-0 mt-2 w-52 bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.08)] py-2 border-none z-50 animate-in fade-in zoom-in-95 duration-150">
+                    {SORT_OPTIONS.map((option) => {
+                      const isActive = sortBy === option.value;
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => {
+                            setSortBy(option.value);
+                            setIsSortOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-2.5 text-sm font-semibold flex items-center justify-between transition-all duration-150 ${
+                            isActive
+                              ? 'text-emerald-600 bg-emerald-50/80 font-bold'
+                              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                          }`}
+                        >
+                          <span>{option.label}</span>
+                          {isActive && <Check size={14} className="text-emerald-600" strokeWidth={2.5} />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
         <main className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="animate-in fade-in duration-500">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -631,7 +746,7 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
                     <Search size={40} className="text-slate-300" />
                   </div>
                   <h3 className="text-xl font-bold text-slate-700 mb-2">No collections found</h3>
-                  <p className="text-slate-500 max-w-md">Try adjusting your search query or switching categories to find what you're looking for.</p>
+                  <p className="text-slate-500 max-w-md">Try adjusting your search query or switching categories/sorting to find what you're looking for.</p>
                 </div>
               )}
             </div>
