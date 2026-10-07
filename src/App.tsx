@@ -5,6 +5,7 @@ import RulesPage from './pages/RulesPage';
 import LegalPage from './pages/LegalPage';
 import TopContributors from './pages/TopContributors';
 import CreatorPage from './pages/CreatorPage'; 
+import PreviewPage from './pages/PreviewPage';
 import UpgradeModal from './components/UpgradeModal';
 import ChatGroup from './components/ChatGroup';
 import LoginModal from './components/LoginModal';
@@ -16,14 +17,11 @@ export default function App() {
   const [isPremiumUser, setIsPremiumUser] = useState<boolean>(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   
-  // State untuk mengontrol Modal Upgrade
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
-  // Fungsi untuk mengecek user yang sedang login di Supabase
   const checkUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
-      // Coba ambil username dan status premium
       const { data, error } = await supabase
         .from('profiles')
         .select('username, is_premium')
@@ -34,7 +32,6 @@ export default function App() {
         setCurrentUser(data.username);
         setIsPremiumUser(data.is_premium || false);
       } else {
-        // Fallback aman: jika kolom is_premium belum ada di database, cegah aplikasi crash
         const { data: fallbackData } = await supabase
           .from('profiles')
           .select('username')
@@ -55,7 +52,6 @@ export default function App() {
   useEffect(() => {
     checkUser();
 
-    // Listener realtime untuk perubahan status autentikasi Supabase
     const { data: authListener } = supabase.auth.onAuthStateChange(() => {
       checkUser();
     });
@@ -65,9 +61,7 @@ export default function App() {
     };
   }, []);
 
-  // Manajemen Routing Utama
   useEffect(() => {
-    // Normalisasi fallback URL berbasis hash (#) dan Upgrade routing
     const hash = window.location.hash;
     const path = window.location.pathname;
 
@@ -95,6 +89,10 @@ export default function App() {
       const targetPath = hash.replace('#', '/');
       window.history.replaceState({}, '', targetPath);
       setCurrentPath(targetPath);
+    } else if (hash.startsWith('#preview/')) {
+      const targetPath = hash.replace('#', '/');
+      window.history.replaceState({}, '', targetPath);
+      setCurrentPath(targetPath);
     } else if (hash === '#') {
       window.history.replaceState({}, '', '/');
       setCurrentPath('/');
@@ -119,7 +117,6 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [currentUser]); 
 
-  // Tambahan: Global Event Listener agar modal bisa dipanggil dari komponen manapun dengan CustomEvent
   useEffect(() => {
     const handleOpenModal = () => {
       if (!currentUser) {
@@ -132,7 +129,6 @@ export default function App() {
     return () => window.removeEventListener('openUpgradeModal', handleOpenModal);
   }, [currentUser]);
 
-  // Tambahan: Global Event Listener untuk memanggil Login Modal jika dibutuhkan dari komponen lain
   useEffect(() => {
     const handleOpenLogin = () => setShowLoginModal(true);
     window.addEventListener('openLoginModal', handleOpenLogin as EventListener);
@@ -140,7 +136,6 @@ export default function App() {
   }, []);
 
   const navigateTo = (path: string) => {
-    // Intercept path upgrade agar memunculkan modal alih-alih berpindah halaman
     if (path === '/upgrade' || path === '#upgrade') {
       if (!currentUser) {
         setShowLoginModal(true);
@@ -154,44 +149,34 @@ export default function App() {
     window.dispatchEvent(new Event('popstate'));
   };
 
-  // ---------------------------------------------------------
-  // LOGIKA GLOBAL: Penjaga Akses Konten
-  // ---------------------------------------------------------
   const handleExclusiveAccess: any = (
     isExclusive: boolean, 
     arg2: string | (() => void), 
     arg3?: () => void
   ) => {
-    // Menentukan letak variabel karena jumlah argumen yang masuk bisa berbeda
     const uploadedBy = typeof arg2 === 'string' ? arg2 : '';
     const onSuccessCallback = typeof arg2 === 'function' ? arg2 : arg3;
 
-    // 1. UTAMA & UTUH: Jika user yang sedang login adalah pengunggah asli (uploader),
-    // berikan akses langsung TANPA SYARAT (baik file eksklusif maupun biasa)
     if (uploadedBy && currentUser && currentUser.toLowerCase() === uploadedBy.toLowerCase()) {
       onSuccessCallback?.();
       return;
     }
 
-    // 2. Jika bukan konten eksklusif, berikan akses langsung
     if (!isExclusive) {
       onSuccessCallback?.(); 
       return;
     }
 
-    // 3. Jika konten eksklusif dan user belum login, arahkan ke modal login
     if (!currentUser) {
       setShowLoginModal(true); 
       return;
     }
 
-    // 4. Jika user memiliki akses Premium aktif, berikan akses
     if (isPremiumUser) {
       onSuccessCallback?.();
       return;
     }
 
-    // 5. User biasa (bukan uploader & bukan premium) -> Buka Modal Upgrade
     setIsUpgradeModalOpen(true);
   };
 
@@ -235,6 +220,27 @@ export default function App() {
       );
     }
 
+    if (currentPath.startsWith('/preview/')) {
+      const itemId = currentPath.split('/preview/')[1];
+      const itemData = window.history.state?.item || null;
+
+      return (
+        <PreviewPage 
+          itemId={itemId}
+          itemData={itemData}
+          isUserPremium={isPremiumUser}
+          currentUser={currentUser}
+          onOpenUpgradeModal={() => {
+            if (!currentUser) {
+              setShowLoginModal(true);
+            } else {
+              setIsUpgradeModalOpen(true);
+            }
+          }}
+        />
+      );
+    }
+
     return (
       <Home 
         onCheckAccess={handleExclusiveAccess}
@@ -253,16 +259,13 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen">
-      {/* Halaman aktif */}
       {renderPage()}
 
-      {/* Floating Chat Group yang muncul di semua halaman */}
       <ChatGroup 
         currentUser={currentUser} 
         setShowLoginModal={() => setShowLoginModal(true)} 
       />
 
-      {/* Modal Login jika user mencoba kirim pesan dari Chat Group saat belum login */}
       {showLoginModal && (
         <LoginModal 
           onClose={() => setShowLoginModal(false)}
@@ -271,7 +274,6 @@ export default function App() {
         />
       )}
 
-      {/* Modal Upgrade Membership */}
       <UpgradeModal 
         isOpen={isUpgradeModalOpen} 
         onClose={() => setIsUpgradeModalOpen(false)} 

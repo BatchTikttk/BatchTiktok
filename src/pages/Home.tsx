@@ -13,7 +13,6 @@ import { EmeraldFolderIcon } from "../components/SharedIcons";
 // 1. Lazy Load Modals
 const LoginModal = lazy(() => import("../components/LoginModal"));
 const PostModal = lazy(() => import("../components/PostModal"));
-const PreviewModal = lazy(() => import("../components/PreviewModal"));
 
 export const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
@@ -117,7 +116,6 @@ const PremiumHeroBanner = ({ onOpenUpgradeModal }: PremiumHeroBannerProps) => {
 
   return (
     <div className="relative w-full overflow-hidden bg-slate-900 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border-none flex flex-col md:flex-row items-center justify-between p-8 md:p-12 mb-8 group min-h-[300px]">
-      
       <div className="absolute top-0 right-0 w-full md:w-1/2 h-full bg-gradient-to-l from-amber-500/10 to-transparent pointer-events-none transition-all duration-1000"></div>
 
       <div className="relative z-10 w-full md:w-1/2 flex flex-col items-start text-left mb-8 md:mb-0">
@@ -145,7 +143,7 @@ const PremiumHeroBanner = ({ onOpenUpgradeModal }: PremiumHeroBannerProps) => {
 
          <button 
            onClick={onOpenUpgradeModal}
-           className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-900 px-6 py-3.5 rounded-2xl font-bold transition-all shadow-[0_8px_20px_rgba(245,158,11,0.25)] border-none hover:-translate-y-0.5"
+           className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-900 px-6 py-3.5 rounded-2xl font-bold transition-all shadow-[0_8px_20px_rgba(245,158,11,0.25)] border-none hover:-translate-y-0.5 cursor-pointer"
          >
            <Star size={18} className="fill-slate-900" />
            Upgrade Now for Rp 50,000
@@ -170,7 +168,7 @@ const PremiumHeroBanner = ({ onOpenUpgradeModal }: PremiumHeroBannerProps) => {
            <button
              key={`dot-${index}`}
              onClick={() => setCurrentSlide(index)}
-             className={`h-1.5 rounded-full transition-all duration-300 ${
+             className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
                currentSlide === index ? 'w-6 bg-amber-400' : 'w-2 bg-white/20 hover:bg-white/40'
              }`}
              aria-label={`Go to slide ${index + 1}`}
@@ -326,7 +324,6 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   
-  const [previewItem, setPreviewItem] = useState<any>(null);
   const [toastConfig, setToastConfig] = useState<{ message: string; isVisible: boolean; type: 'success' | 'error' | 'info' }>({ 
     message: '', 
     isVisible: false, 
@@ -346,7 +343,12 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
 
   const currentUser = propCurrentUser !== undefined ? propCurrentUser : localCurrentUser;
 
-  // Tutup dropdown saat diklik di luar area dropdown
+  // Navigasi statis ke PreviewPage
+  const handleOpenPreview = (item: any) => {
+    window.history.pushState({ item }, '', `/preview/${item.id}`);
+    window.dispatchEvent(new Event('popstate'));
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
@@ -376,15 +378,6 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
   useEffect(() => {
     setCurrentPage(1);
   }, [activeCategory, searchQuery, sortBy]);
-
-  useEffect(() => {
-    if (previewItem && batches.length > 0) {
-      const updatedItem = batches.find((b: any) => b.id === previewItem.id);
-      if (updatedItem && JSON.stringify(updatedItem) !== JSON.stringify(previewItem)) {
-        setPreviewItem(updatedItem);
-      }
-    }
-  }, [batches, previewItem]);
 
   useEffect(() => {
     checkUser();
@@ -442,23 +435,6 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
     showToast("You have been logged out.", "info");
   };
 
-  const handleDownloadInitiate = async (providerName: string, url: string, batchId?: string) => {
-    if (!url) return showToast('Download link is not available', 'error');
-
-    if (batchId) {
-      const { error } = await supabase.rpc('increment_download_count', { batch_id: batchId });
-      if (error) {
-        console.error('Failed to update download count:', error);
-      }
-    }
-
-    showToast(`Redirecting to ${providerName}...`);
-    setTimeout(() => {
-      window.open(url, '_blank');
-      setPreviewItem(null);
-    }, 600);
-  };
-
   const uploaderCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     batches.forEach((batch: any) => {
@@ -511,7 +487,6 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
     return numericValue;
   };
 
-  // Filter & Sorting Logic
   const filteredAndSortedBatches = useMemo(() => {
     let list = batches.filter((batch: any) => {
       const matchesCategory = activeCategory === 'Home' || batch.country === activeCategory;
@@ -554,7 +529,6 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-emerald-100 selection:text-emerald-900 flex flex-col justify-between">
-      
       <div>
         <Navbar 
           activeCategory={activeCategory}
@@ -573,7 +547,6 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
         />
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-6 mb-10">
-          
           <PremiumHeroBanner onOpenUpgradeModal={() => onOpenUpgradeModal && onOpenUpgradeModal()} />
 
           {/* Search Bar */}
@@ -589,13 +562,11 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
               className="w-full pl-14 pr-6 py-4 bg-white text-slate-800 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] focus:ring-2 focus:ring-emerald-500/30 focus:outline-none transition-all font-medium placeholder:text-slate-400 border border-slate-200"
             />
           </div>
-
         </div>
 
         {/* Stat Cards */}
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            
             <div className="bg-emerald-700 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
               <div className="flex justify-between items-start mb-6">
                 <span className="font-medium text-[13px] tracking-wide text-emerald-50">Total Folders</span>
@@ -659,14 +630,12 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
                 </p>
               </div>
             </div>
-
           </div>
         </div>
 
-        {/* --- BARIS FILTER & SOFT SMOOTH DROPDOWN --- */}
+        {/* Filter & Dropdown */}
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-8">
           <div className="bg-white px-6 py-4 rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border-none flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            
             <div className="flex items-center gap-3">
               <span className="text-sm font-medium text-slate-500">
                 Showing <span className="text-slate-900 font-bold">{filteredAndSortedBatches.length}</span> archives
@@ -696,7 +665,6 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
                   </span>
                 </button>
 
-                {/* Floating Soft Dropdown Menu */}
                 {isSortOpen && (
                   <div className="absolute right-0 mt-2 w-52 bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.08)] py-2 border-none z-50 animate-in fade-in zoom-in-95 duration-150">
                     {SORT_OPTIONS.map((option) => {
@@ -724,7 +692,6 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
                 )}
               </div>
             </div>
-
           </div>
         </div>
 
@@ -736,7 +703,7 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
                   <CreatorCard 
                     key={batch.id} 
                     data={batch} 
-                    onOpenPreview={setPreviewItem} 
+                    onOpenPreview={handleOpenPreview} 
                     uploaderCount={uploaderCounts[batch.uploaded_by] || 0} 
                   />
                 ))
@@ -819,18 +786,6 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
       <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
       
       <Suspense fallback={null}>
-        {previewItem && (
-          <PreviewModal 
-            item={previewItem} 
-            onClose={() => setPreviewItem(null)} 
-            onDownload={handleDownloadInitiate}
-            uploaderCount={uploaderCounts[previewItem.uploaded_by] || 0} 
-            isUserPremium={isUserPremium}
-            currentUser={currentUser} 
-            onOpenUpgradeModal={onOpenUpgradeModal}
-          />
-        )}
-
         {showAddModal && (
           <PostModal 
             onClose={() => setShowAddModal(false)}
