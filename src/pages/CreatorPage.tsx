@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { supabase } from "../supabase";
 
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { EmeraldFolderIcon } from "../components/SharedIcons";
 import AvatarBorderVip from "../components/AvatarBorderVip";
 
@@ -218,13 +220,27 @@ interface CreatorPageProps {
   isUserPremium?: boolean;
   onOpenUpgradeModal?: () => void;
   currentUser?: any; 
+  setActiveCategory?: (category: string) => void;
+  setShowAddModal?: (show: boolean) => void;
+  setShowLoginModal?: (show: boolean) => void;
+  setShowRulesModal?: (show: boolean) => void;
+  onOpenProfile?: () => void;
+  onOpenTopContributors?: () => void;
+  handleLogout?: () => void;
 }
 
 export default function CreatorPage({ 
   username, 
   isUserPremium, 
   onOpenUpgradeModal, 
-  currentUser: propCurrentUser 
+  currentUser: propCurrentUser,
+  setActiveCategory,
+  setShowAddModal = () => {},
+  setShowLoginModal = () => {},
+  setShowRulesModal,
+  onOpenProfile,
+  onOpenTopContributors,
+  handleLogout: propHandleLogout
 }: CreatorPageProps) {
   const [localCurrentUser, setLocalCurrentUser] = useState<any>(null); 
   const [previewItem, setPreviewItem] = useState<BatchItem | null>(null);
@@ -245,6 +261,23 @@ export default function CreatorPage({
 
   const handleGoBack = () => {
     window.history.back();
+  };
+
+  const defaultHandleLogout = async () => {
+    if (propHandleLogout) {
+      propHandleLogout();
+    } else {
+      await supabase.auth.signOut();
+      window.location.reload();
+    }
+  };
+
+  const handleSelectCategory = (category: string) => {
+    if (setActiveCategory) {
+      setActiveCategory(category);
+    }
+    window.history.pushState({}, '', '/');
+    window.dispatchEvent(new Event('popstate'));
   };
 
   useEffect(() => {
@@ -341,8 +374,24 @@ export default function CreatorPage({
   const highestBadge = unlockedBadges.length > 0 ? unlockedBadges[unlockedBadges.length - 1] : null;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pt-8 pb-16 px-6 sm:px-8 font-sans flex flex-col selection:bg-emerald-100 selection:text-emerald-900">
-      <main className="max-w-7xl mx-auto w-full flex-grow animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900">
+      {/* Navbar Integration */}
+      <Navbar 
+        activeCategory=""
+        setActiveCategory={handleSelectCategory}
+        currentUser={currentUser}
+        handleLogout={defaultHandleLogout}
+        setShowAddModal={setShowAddModal}
+        setShowLoginModal={setShowLoginModal}
+        setShowRulesModal={setShowRulesModal}
+        EmeraldFolderIcon={EmeraldFolderIcon}
+        onOpenProfile={onOpenProfile}
+        onOpenTopContributors={onOpenTopContributors}
+        onOpenUpgrade={onOpenUpgradeModal}
+      />
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto w-full flex-grow pt-8 pb-16 px-6 sm:px-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
         <button 
           onClick={handleGoBack} 
@@ -390,7 +439,6 @@ export default function CreatorPage({
               )}
             </div>
 
-            {/* Menampilkan VIP Border jika ada, atau Animation Border (Progress) jika tidak ada VIP */}
             {creatorProfile?.vip_border_url ? (
               <AvatarBorderVip 
                 borderUrl={creatorProfile?.vip_border_url} 
@@ -401,7 +449,7 @@ export default function CreatorPage({
                 src={creatorProfile.animation_border_url} 
                 alt="Animated Border" 
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] max-w-none object-contain z-20 pointer-events-none drop-shadow-sm"
-  />
+              />
             ) : null}
           </div>
           
@@ -467,6 +515,9 @@ export default function CreatorPage({
           </div>
         )}
       </main>
+
+      {/* Footer Integration */}
+      <Footer onSelectCountry={handleSelectCategory} />
 
       <Suspense fallback={null}>
         {previewItem && (
