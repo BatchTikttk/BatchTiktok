@@ -525,7 +525,7 @@ export default function Home({ isUserPremium, onOpenUpgradeModal, currentUser: p
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-6 mb-10">
           
           {/* Banner Premium */}
-          {!isUserPremium && (
+          {isUserPremium === false && (
             <PremiumHeroBanner onOpenUpgradeModal={() => onOpenUpgradeModal && onOpenUpgradeModal()} />
           )}
 
