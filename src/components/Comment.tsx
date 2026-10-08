@@ -9,7 +9,7 @@ interface CommentsProps {
   onRequireLogin: () => void;
 }
 
-// Konfigurasi lencana pencapaian untuk user biasa (sama dengan Profile.tsx)
+// Konfigurasi lencana pencapaian untuk user biasa
 const BADGES = [
   { target: 200, iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp', title: 'Legend Tier' },
   { target: 100, iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp', title: 'Elite Tier' },
@@ -145,7 +145,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
     } else if (data) {
       setComments(data);
 
-      // Ambil total unggahan tiap user agar lencana progres muncul
+      // Ambil total unggahan tiap user agar lencana progres bisa dihitung
       const uniqueUserIds = [...new Set(data.map((c: any) => c.user_id).filter(Boolean))];
       
       if (uniqueUserIds.length > 0) {
@@ -324,10 +324,14 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
 
   const CommentBlock = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => {
     
-    // Menghitung lencana progres untuk user yang bersangkutan
+    // Cek lencana progres untuk user yang bersangkutan
+    // Hanya berlaku jika BUKAN admin, dan jika jumlah upload memenuhi target
     const userBadge = !comment.profiles?.is_admin 
       ? BADGES.find(b => (userUploadCounts[comment.user_id] || 0) >= b.target)
       : null;
+
+    // Menentukan apakah ada lencana yang tampil (Admin atau User Achievement)
+    const hasBadge = comment.profiles?.is_admin || userBadge;
 
     return (
       <div className={`flex gap-3 lg:gap-4 group ${isReply ? 'mt-4' : ''}`}>
@@ -342,35 +346,33 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
         <div className="flex-1 min-w-0">
           <div className="bg-slate-50 rounded-2xl rounded-tl-none px-4 py-3 border-none relative">
             
-            {/* Lencana Admin Besar di Pojok Kanan */}
-            {comment.profiles?.is_admin && (
+            {/* Lencana di Pojok Kanan Atas */}
+            {comment.profiles?.is_admin ? (
               <img 
                 src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp" 
                 alt="Admin Verified" 
                 title="Official Admin"
-                className="absolute top-2 right-2 w-10 h-10 object-contain drop-shadow-md z-10" 
+                className="absolute top-2 right-2 w-10 h-10 md:w-10 md:h-10 w-8 h-8 object-contain drop-shadow-md z-10" 
               />
-            )}
+            ) : userBadge ? (
+              <img 
+                src={userBadge.iconUrl} 
+                alt={userBadge.title} 
+                title={userBadge.title}
+                className="absolute top-2 right-2 w-10 h-10 md:w-10 md:h-10 w-8 h-8 object-contain drop-shadow-md z-10 hover:scale-110 transition-transform cursor-pointer" 
+              />
+            ) : null}
 
             <div className="flex items-center justify-between gap-2 mb-1">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                   {comment.profiles?.username || 'Unknown User'}
-                  
-                  {/* Lencana Progress untuk User Biasa (Muncul di sebelah nama) */}
-                  {userBadge && (
-                    <img 
-                      src={userBadge.iconUrl} 
-                      alt={userBadge.title} 
-                      title={userBadge.title}
-                      className="w-4 h-4 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform" 
-                    />
-                  )}
                 </span>
               </div>
             </div>
             
-            <p className={`text-sm text-slate-600 break-words leading-relaxed ${comment.profiles?.is_admin ? 'pr-12' : ''}`}>
+            {/* Jika ada badge (admin/user), berikan padding pr-12 agar teks tidak tertutup badge */}
+            <p className={`text-sm text-slate-600 break-words leading-relaxed ${hasBadge ? 'pr-12' : ''}`}>
               {comment.content}
             </p>
           </div>
