@@ -1,29 +1,32 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { User, Send, Trash2, Loader2, ShieldCheck, Clock } from 'lucide-react';
-import AvatarBorderVip from './AvatarBorderVip'; // Sesuaikan path jika perlu
+import AvatarBorderVip from './AvatarBorderVip';
 
+// 1. SESUAIKAN PROPS DENGAN PREVIEWPAGE
 interface CommentsProps {
-  batchId: string | number;
-  currentUserId?: string | null;
-  onLoginNeeded: () => void;
+  itemId: string | number;
+  currentUser?: any; 
+  onRequireLogin: () => void;
 }
 
-export default function Comments({ batchId, currentUserId, onLoginNeeded }: CommentsProps) {
+export default function Comments({ itemId, currentUser, onRequireLogin }: CommentsProps) {
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
 
+  // Jika currentUser berupa object (Supabase session), ambil .id-nya. Jika string, pakai langsung.
+  const currentUserId = typeof currentUser === 'string' ? currentUser : currentUser?.id;
+
   useEffect(() => {
     fetchComments();
     if (currentUserId) {
       fetchCurrentUserProfile();
     }
-  }, [batchId, currentUserId]);
+  }, [itemId, currentUserId]);
 
-  // Mengambil profile user saat ini (untuk avatar di sebelah kolom input)
   const fetchCurrentUserProfile = async () => {
     const { data } = await supabase
       .from('profiles')
@@ -34,11 +37,10 @@ export default function Comments({ batchId, currentUserId, onLoginNeeded }: Comm
     if (data) setCurrentUserProfile(data);
   };
 
-  // Mengambil daftar komentar beserta data border dari profil masing-masing user
   const fetchComments = async () => {
     setIsLoading(true);
     const { data, error } = await supabase
-      .from('comments') // Sesuaikan dengan nama tabel komentar Anda (misal: batch_comments)
+      .from('comments') 
       .select(`
         id,
         content,
@@ -53,7 +55,8 @@ export default function Comments({ batchId, currentUserId, onLoginNeeded }: Comm
           is_admin
         )
       `)
-      .eq('batch_id', batchId)
+      // Sesuaikan nama kolom di database Anda, di sini pakai 'batch_id' tapi isinya itemId
+      .eq('batch_id', itemId) 
       .order('created_at', { ascending: false });
 
     if (!error && data) {
@@ -65,7 +68,7 @@ export default function Comments({ batchId, currentUserId, onLoginNeeded }: Comm
   const handleSumbit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUserId) {
-      onLoginNeeded();
+      onRequireLogin(); // 2. GANTI PEMANGGILAN FUNGSI
       return;
     }
 
@@ -76,7 +79,7 @@ export default function Comments({ batchId, currentUserId, onLoginNeeded }: Comm
       .from('comments')
       .insert([
         { 
-          batch_id: batchId, 
+          batch_id: itemId, // Masukkan itemId ke kolom yang relevan di tabel comments
           user_id: currentUserId, 
           content: newComment.trim() 
         }
@@ -117,7 +120,6 @@ export default function Comments({ batchId, currentUserId, onLoginNeeded }: Comm
     }
   };
 
-  // Fungsi helper untuk merender Avatar + Border
   const renderAvatarWithBorder = (profile: any, size: 'small' | 'medium' = 'medium') => {
     const isPremium = profile?.is_premium;
     const vipBorder = profile?.vip_border_url;
@@ -129,7 +131,6 @@ export default function Comments({ batchId, currentUserId, onLoginNeeded }: Comm
 
     return (
       <div className={`relative flex-shrink-0 ${containerClass}`}>
-        {/* Base Avatar */}
         <div className="w-full h-full rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-sm relative z-10">
           {avatarUrl ? (
             <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
@@ -138,7 +139,6 @@ export default function Comments({ batchId, currentUserId, onLoginNeeded }: Comm
           )}
         </div>
 
-        {/* Prioritas: VIP Border -> Jika tidak ada, tampilkan Animation Border (Umum) */}
         {isPremium && vipBorder ? (
           <AvatarBorderVip 
             isPremium={isPremium} 
@@ -167,7 +167,6 @@ export default function Comments({ batchId, currentUserId, onLoginNeeded }: Comm
         </h3>
       </div>
 
-      {/* Input Komentar */}
       <form onSubmit={handleSumbit} className="mb-8 flex gap-3 lg:gap-4 items-start">
         {renderAvatarWithBorder(currentUserProfile || {}, 'medium')}
         
@@ -176,7 +175,7 @@ export default function Comments({ batchId, currentUserId, onLoginNeeded }: Comm
             type="text"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            onClick={() => !currentUserId && onLoginNeeded()}
+            onClick={() => !currentUserId && onRequireLogin()} // 3. GANTI PEMANGGILAN FUNGSI
             placeholder={currentUserId ? "Write your comment..." : "Login to write a comment..."}
             className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] transition-all"
             disabled={isSubmitting}
@@ -191,7 +190,6 @@ export default function Comments({ batchId, currentUserId, onLoginNeeded }: Comm
         </div>
       </form>
 
-      {/* Daftar Komentar */}
       <div className="space-y-6">
         {isLoading ? (
           <div className="flex justify-center py-8">
@@ -200,7 +198,6 @@ export default function Comments({ batchId, currentUserId, onLoginNeeded }: Comm
         ) : comments.length > 0 ? (
           comments.map((comment) => (
             <div key={comment.id} className="flex gap-3 lg:gap-4 group">
-              {/* Render Avatar user yang berkomentar dengan border-nya */}
               {renderAvatarWithBorder(comment.profiles, 'medium')}
 
               <div className="flex-1 min-w-0">
@@ -232,7 +229,6 @@ export default function Comments({ batchId, currentUserId, onLoginNeeded }: Comm
                     })}
                   </span>
                   
-                  {/* Tombol hapus hanya muncul jika ini komentar user tsb atau user saat ini adalah admin */}
                   {(currentUserId === comment.user_id || currentUserProfile?.is_admin) && (
                     <button
                       onClick={() => handleDelete(comment.id)}
