@@ -441,7 +441,7 @@ export default function CreatorPage({
                     title="Premium Creator" 
                     className="inline-flex items-center justify-center bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white text-[11px] sm:text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-md shadow-amber-500/20 border border-amber-300/30 translate-y-[4px]"
                   >
-                    PREMIUM
+                    Vip Member
                   </span>
                 )}
               </h1>
