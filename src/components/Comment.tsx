@@ -47,6 +47,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
   const fetchComments = async () => {
     if (!itemId) return;
     setIsLoading(true);
+    
     const { data, error } = await supabase
       .from('comments') 
       .select(`
@@ -114,6 +115,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
 
     if (error) {
       console.error('Error submitting comment:', error);
+      alert(`Gagal mengirim komentar: ${error.message}`);
     } else if (data) {
       setComments([...comments, data]);
       setNewComment('');
@@ -161,6 +163,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
 
     if (error) {
       console.error('Error submitting reply:', error);
+      alert(`Gagal mengirim balasan: ${error.message}`);
     } else if (data) {
       setComments([...comments, data]);
       setReplyingTo(null);
