@@ -29,7 +29,7 @@ import {
   Send,
   Crown,
   Link2,
-  Trophy // Tambahan icon Trophy untuk tab Progress
+  Trophy // Icon Trophy untuk tab Progress
 } from 'lucide-react';
 import { EmeraldFolderIcon } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
@@ -42,7 +42,7 @@ const PostModal = lazy(() => import('../components/PostModal'));
 const LoginModal = lazy(() => import('../components/LoginModal'));
 const AvatarModal = lazy(() => import('../components/Avatar'));
 const CustomBatchRequest = lazy(() => import('../components/CustomBatchRequest'));
-const WebmContribute = lazy(() => import('../components/WebmContribute')); // Tambahan Import WebmContribute
+const WebmContribute = lazy(() => import('../components/WebmContribute'));
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
@@ -150,7 +150,6 @@ export default function Profile({
   const [usernameInput, setUsernameInput] = useState('');
   const [updatingUsername, setUpdatingUsername] = useState(false);
   
-  // Penambahan 'progress' ke dalam union type activeTab
   const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'request' | 'settings' | 'admin' | 'progress'>('overview');
   const [collectionSearchQuery, setCollectionSearchQuery] = useState('');
   
@@ -371,7 +370,7 @@ export default function Profile({
     }
   };
 
-  // Fungsi Memilih / Melepas Avatar Border VIP
+  // Memilih / Melepas Avatar Border VIP
   const handleSelectVipBorder = async (borderUrl: string) => {
     if (!userProfile?.is_premium) {
       handleShowToast("This feature is exclusively for Premium VIP users!", "error");
@@ -396,7 +395,7 @@ export default function Profile({
     }
   };
 
-  // Fungsi Memilih / Melepas Animation Border Umum
+  // Memilih / Melepas Animation Border Umum
   const handleSelectAnimationBorder = async (borderUrl: string | null) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
@@ -449,6 +448,10 @@ export default function Profile({
 
   const stats = useMemo(() => {
     const totalUploads = userBatches.length;
+    // Memisahkan jumlah upload biasa dan upload eksklusif
+    const regularUploads = userBatches.filter((b: any) => !b.is_exclusive).length;
+    const exclusiveUploads = userBatches.filter((b: any) => b.is_exclusive).length;
+    
     const totalVideos = userBatches.reduce((acc: number, b: any) => acc + (Number(b.video_count) || 0), 0);
     const totalClicks = userBatches.reduce((acc: number, b: any) => {
       const downloadVal = b.download_count ?? 0;
@@ -482,7 +485,7 @@ export default function Profile({
       }
     }
 
-    return { totalUploads, totalVideos, totalClicks, totalSizeDisplay };
+    return { totalUploads, regularUploads, exclusiveUploads, totalVideos, totalClicks, totalSizeDisplay };
   }, [userBatches]);
 
   const unlockedBadges = useMemo(() => {
@@ -534,6 +537,7 @@ export default function Profile({
         gdrive_url: editingBatch.gdrive_url,
         terabox_url: editingBatch.terabox_url,
         is_banned: editingBatch.is_banned,
+        is_exclusive: editingBatch.is_exclusive, // Menjaga logika is_exclusive saat edit
         download_count: downloadVal,
         is_edited: true
       };
@@ -933,6 +937,7 @@ export default function Profile({
                 </div>
               )}
 
+              {/* ===== TAB BATCH COLLECTIONS ===== */}
               {activeTab === 'collections' && (
                 <div className="animate-in fade-in duration-300">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -961,11 +966,33 @@ export default function Profile({
                           className="p-5 rounded-[24px] bg-white border border-slate-100 shadow-[0_4px_16px_-10px_rgba(0,0,0,0.05)] hover:shadow-md transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                         >
                           <div className="flex items-center gap-4">
-                            <div className="p-3 bg-slate-50 rounded-2xl">
-                              <EmeraldFolderIcon className="w-10 h-10 flex-shrink-0" country={batch.country} />
+                            {/* WADAH FOLDER DENGAN LOGIKA EKSKLUSIF & MAHKOTA */}
+                            <div className="relative p-3 bg-slate-50 rounded-2xl flex-shrink-0">
+                              <EmeraldFolderIcon 
+                                className="w-10 h-10 flex-shrink-0" 
+                                country={batch.country} 
+                                isExclusive={batch.is_exclusive}
+                                isBanned={batch.is_banned}
+                              />
+                              {batch.is_exclusive && (
+                                <div 
+                                  className="absolute -top-2 -left-1 z-20 -rotate-[15deg] pointer-events-none filter drop-shadow-[0_2px_4px_rgba(217,119,6,0.5)]"
+                                  title="Exclusive Premium Collection"
+                                >
+                                  <Crown size={18} className="text-amber-500 fill-amber-400" strokeWidth={1.5} />
+                                </div>
+                              )}
                             </div>
+
                             <div>
-                              <h3 className="text-sm font-bold text-slate-800">{batch.username}</h3>
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-sm font-bold text-slate-800">{batch.username}</h3>
+                                {batch.is_exclusive && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-md font-bold bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
+                                    <Crown size={10} className="fill-amber-500" /> Exclusive
+                                  </span>
+                                )}
+                              </div>
                               <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-500 font-medium flex-wrap">
                                 <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md font-semibold">{batch.country}</span>
                                 <span>•</span>
@@ -1033,7 +1060,7 @@ export default function Profile({
                 </div>
               )}
               
-              {/* === TAB PROGRESS (ANIMATION BORDER) === */}
+              {/* === TAB PROGRESS (ANIMATION BORDER & LOGIKA 1 EKSKLUSIF = 10 UPLOAD) === */}
               {activeTab === 'progress' && (
                 <div className="animate-in fade-in duration-300">
                   <div className="mb-8">
@@ -1041,11 +1068,13 @@ export default function Profile({
                     <p className="text-xs text-slate-500 mt-1">Collect and complete your animated borders based on your total File uploads.</p>
                   </div>
                   
-                  {/* Memanggil Komponen Animation Border */}
+                  {/* Memanggil Komponen Animation Border dengan pembagian upload biasa & exclusive */}
                   <AnimationBorder 
-                    userProgress={userProfile?.is_admin ? 999999 : stats.totalUploads} 
+                    userProgress={userProfile?.is_admin ? 999999 : stats.regularUploads} 
+                    exclusiveUploads={userProfile?.is_admin ? 0 : stats.exclusiveUploads}
                     equippedBorderUrl={userProfile?.animation_border_url} 
                     userAvatarUrl={userProfile?.avatar_url}
+                    isAdmin={userProfile?.is_admin}
                     onSelectBorder={handleSelectAnimationBorder} 
                   />
                 </div>
@@ -1083,7 +1112,7 @@ export default function Profile({
                         )}
                       </div>
                       
-                      {/* Avatar Border Preview (Mengutamakan VIP Border dibanding Animation Border umum) */}
+                      {/* Avatar Border Preview */}
                       {userProfile?.is_premium && userProfile?.vip_border_url ? (
                         <AvatarBorderVip 
                           isPremium={userProfile?.is_premium} 
@@ -1201,7 +1230,7 @@ export default function Profile({
                     </div>
                   </div>
 
-                  {/* ===== TAMBAHAN KOMPONEN WEBM CONTRIBUTE ===== */}
+                  {/* ===== KOMPONEN WEBM CONTRIBUTE ===== */}
                   <div className="mt-8 pt-6 border-t border-slate-100">
                     <Suspense fallback={
                       <div className="flex items-center justify-center p-6">
@@ -1211,7 +1240,6 @@ export default function Profile({
                       <WebmContribute />
                     </Suspense>
                   </div>
-                  {/* ============================================= */}
 
                 </div>
               )}
@@ -1315,15 +1343,34 @@ export default function Profile({
                             >
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <div className="flex items-center gap-4">
-                                  <div className="p-2 bg-slate-50 rounded-2xl">
-                                    <EmeraldFolderIcon className="w-10 h-10 flex-shrink-0" country={batch.country} />
+                                  {/* WADAH FOLDER DENGAN DUKUNGAN IS_EXCLUSIVE & IS_BANNED DI ADMIN */}
+                                  <div className="relative p-2 bg-slate-50 rounded-2xl flex-shrink-0">
+                                    <EmeraldFolderIcon 
+                                      className="w-10 h-10 flex-shrink-0" 
+                                      country={batch.country} 
+                                      isExclusive={batch.is_exclusive}
+                                      isBanned={batch.is_banned}
+                                    />
+                                    {batch.is_exclusive && (
+                                      <div 
+                                        className="absolute -top-2 -left-1 z-20 -rotate-[15deg] pointer-events-none filter drop-shadow-[0_2px_4px_rgba(217,119,6,0.5)]"
+                                        title="Exclusive Premium Collection"
+                                      >
+                                        <Crown size={18} className="text-amber-500 fill-amber-400" strokeWidth={1.5} />
+                                      </div>
+                                    )}
                                   </div>
                                   <div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 flex-wrap">
                                       <h3 className="text-sm font-bold text-slate-800">{batch.username}</h3>
                                       <span className="text-[10px] px-2 py-0.5 rounded-md font-semibold bg-blue-50 text-blue-600">
                                         {batch.country}
                                       </span>
+                                      {batch.is_exclusive && (
+                                        <span className="text-[10px] px-2 py-0.5 rounded-md font-bold bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
+                                          <Crown size={10} className="fill-amber-500" /> Exclusive
+                                        </span>
+                                      )}
                                     </div>
                                     <p className="text-[11px] text-slate-500 font-medium mt-1">
                                       {batch.video_count} Videos • {batch.size_file || `${batch.size_gb || 0} GB`} • {batch.download_count ?? 0} Downloads
@@ -1601,6 +1648,13 @@ export default function Profile({
                       Mark Account as Banned
                     </label>
                   </div>
+
+                  <div className="flex items-center gap-2 mt-2 pl-1">
+                    <input type="checkbox" name="is_exclusive" id="edit_is_exclusive" checked={editingBatch.is_exclusive || false} onChange={handleEditChange} className="w-4 h-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500 cursor-pointer" />
+                    <label htmlFor="edit_is_exclusive" className="text-xs font-bold text-slate-600 cursor-pointer select-none">
+                      Mark Folder as Exclusive (+10 Upload Points)
+                    </label>
+                  </div>
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
@@ -1633,7 +1687,7 @@ export default function Profile({
         </div>
       )}
 
-      {/* Upload/Login Modals (Lazy Loaded) */}
+      {/* Modals */}
       <Suspense fallback={null}>
         {showAddModal && <PostModal onClose={() => setShowAddModal(false)} />}
         {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
