@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
-import { User, Send, Trash2, Loader2, ShieldCheck, Clock, Reply, CornerDownRight } from 'lucide-react';
+import { User, Send, Trash2, Loader2, Clock, Reply, CornerDownRight } from 'lucide-react';
 import AvatarBorderVip from './AvatarBorderVip';
 
 interface CommentsProps {
@@ -28,8 +28,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
     return regexExp.test(String(id));
   };
 
-  // AUTO-RESOLVER USER ID: 
-  // Prevent UUID error if parent component sends username ("BatchTiktok") instead of UUID
   useEffect(() => {
     const validateAndSetUserId = async () => {
       const rawId = typeof currentUser === 'string' ? currentUser : currentUser?.id;
@@ -37,7 +35,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       if (rawId && isValidUUID(rawId)) {
         setCurrentUserId(rawId);
       } else {
-        // If data is not a UUID, forcefully fetch UUID from the active Supabase login session
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user?.id) {
           setCurrentUserId(session.user.id);
@@ -50,7 +47,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
     validateAndSetUserId();
   }, [currentUser]);
 
-  // AUTO-RESOLVER ITEM ID
   useEffect(() => {
     const resolveBatchUuid = async () => {
       if (!itemId) return;
@@ -307,18 +303,28 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       {renderAvatarWithBorder(comment.profiles, isReply ? 'small' : 'medium')}
 
       <div className="flex-1 min-w-0">
-        <div className="bg-slate-50 rounded-2xl rounded-tl-none px-4 py-3 border-none">
+        <div className="bg-slate-50 rounded-2xl rounded-tl-none px-4 py-3 border-none relative">
+          
+          {/* Lencana Admin Besar di Pojok Kanan */}
+          {comment.profiles?.is_admin && (
+            <img 
+              src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp" 
+              alt="Admin Verified" 
+              title="Official Admin"
+              className="absolute top-2 right-2 w-10 h-10 object-contain drop-shadow-md z-10" 
+            />
+          )}
+
           <div className="flex items-center justify-between gap-2 mb-1">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-xs font-bold text-slate-800">
                 {comment.profiles?.username || 'Unknown User'}
               </span>
-              {comment.profiles?.is_admin && (
-                <ShieldCheck className="text-[#fbbf24]" size={12} />
-              )}
             </div>
           </div>
-          <p className="text-sm text-slate-600 break-words leading-relaxed">
+          
+          {/* Padding right (pr-12) ditambahkan jika admin agar teks tidak tertutup lencana */}
+          <p className={`text-sm text-slate-600 break-words leading-relaxed ${comment.profiles?.is_admin ? 'pr-12' : ''}`}>
             {comment.content}
           </p>
         </div>
