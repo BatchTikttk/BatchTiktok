@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
-import { User, Send, Trash2, Loader2, ShieldCheck, Clock, Reply, CornerDownRight } from 'lucide-react';
+import { User, Send, Trash2, Loader2, ShieldCheck, Clock, Reply, CornerDownRight, AlertCircle } from 'lucide-react';
 import AvatarBorderVip from './AvatarBorderVip';
 
 interface CommentsProps {
@@ -19,13 +19,31 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
+  
+  // State untuk menangkap error jika itemId bukan UUID
+  const [uuidError, setUuidError] = useState<string | null>(null);
 
   const currentUserId = typeof currentUser === 'string' ? currentUser : currentUser?.id;
 
+  // Fungsi untuk memvalidasi format UUID
+  const isValidUUID = (id: string | number) => {
+    const regexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
+    return regexExp.test(String(id));
+  };
+
   useEffect(() => {
-    if (itemId) {
-      fetchComments();
+    if (!itemId) return;
+
+    // Cek apakah itemId adalah UUID yang valid sesuai skema database
+    if (!isValidUUID(itemId)) {
+      setUuidError(`Data itemId ("${itemId}") bukan format UUID yang valid. Harap kirimkan id (UUID) dari tabel batches.`);
+      setIsLoading(false);
+      return;
     }
+
+    setUuidError(null);
+    fetchComments();
+    
     if (currentUserId) {
       fetchCurrentUserProfile();
     }
@@ -45,9 +63,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
   };
 
   const fetchComments = async () => {
-    if (!itemId) return;
     setIsLoading(true);
-    
     const { data, error } = await supabase
       .from('comments') 
       .select(`
@@ -186,6 +202,25 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       setComments(comments.filter(c => c.id !== commentId && c.parent_id !== commentId));
     }
   };
+
+  // UI Error Handler jika itemId bukan UUID
+  if (uuidError) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-[32px] p-6 text-red-600 flex items-start gap-3 w-full shadow-sm">
+        <AlertCircle className="shrink-0 mt-0.5" size={24} />
+        <div>
+          <h3 className="font-bold text-lg mb-1">Konfigurasi Komponen Error</h3>
+          <p className="text-sm leading-relaxed mb-3">{uuidError}</p>
+          <div className="bg-white p-3 rounded-xl border border-red-100 text-xs text-slate-700">
+            <strong>Cara Perbaiki:</strong> Cari file yang memanggil komponen ini (misal di halaman detail video), dan ubah prop-nya menjadi:<br/>
+            <code className="text-emerald-600 font-bold block mt-1">
+              &lt;Comments itemId={'{batch.id}'} ... /&gt;
+            </code>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const renderAvatarWithBorder = (profile: any, size: 'small' | 'medium' = 'medium') => {
     const isPremium = profile?.is_premium;
