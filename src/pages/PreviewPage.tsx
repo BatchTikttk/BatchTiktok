@@ -346,17 +346,26 @@ export default function PreviewPage({
 
   const tikTokEmbedUrl = isTikTokLink ? getTikTokEmbedUrl(videoUrl) : null;
   
-  let finalGdriveLink = item.gdrive_url || '';
-  let finalTeraboxLink = item.terabox_url || '';
+  // LOGIKA BARU PENENTUAN LINK DRIVE DAN TERABOX
+  let finalGdriveLink = '';
+  let finalTeraboxLink = '';
 
-  if (item.is_exclusive && item.exclusive_url) {
-    if (item.exclusive_url.includes('drive.google')) finalGdriveLink = item.exclusive_url;
-    else if (item.exclusive_url.includes('tera')) finalTeraboxLink = item.exclusive_url;
-    else if (!finalGdriveLink) finalGdriveLink = item.exclusive_url;
-  } else if (!item.is_exclusive && item.download_url) {
-    if (item.download_url.includes('drive.google')) finalGdriveLink = item.download_url;
-    else if (item.download_url.includes('tera')) finalTeraboxLink = item.download_url;
-    else if (!finalGdriveLink) finalGdriveLink = item.exclusive_url || item.download_url;
+  // Pengecekan berbasis ketersediaan kolom di DB
+  if (item.gdrive_url && item.gdrive_url.trim() !== '') {
+    finalGdriveLink = (item.is_exclusive && item.exclusive_url) ? item.exclusive_url : item.gdrive_url;
+  }
+
+  if (item.terabox_url && item.terabox_url.trim() !== '') {
+    finalTeraboxLink = (item.is_exclusive && item.exclusive_url) ? item.exclusive_url : item.terabox_url;
+  }
+
+  // Fallback untuk data lama jika gdrive_url & terabox_url tidak diisi spesifik
+  if (!finalGdriveLink && !finalTeraboxLink && item.download_url) {
+    if (item.download_url.includes('drive.google')) {
+      finalGdriveLink = item.download_url;
+    } else if (item.download_url.includes('tera')) {
+      finalTeraboxLink = item.download_url;
+    }
   }
 
   const hasGdrive = Boolean(finalGdriveLink && finalGdriveLink.trim() !== '');
@@ -370,7 +379,7 @@ export default function PreviewPage({
      (item.username && typeof currentUserUsername === 'string' && currentUserUsername.toLowerCase() === item.username.toLowerCase()))
   );
   
-  // Logika Proteksi Kunci: Buka file jika is_exclusive tetapi user adalah Admin (isAdmin / currentUser.is_admin)
+  // Logika Proteksi Kunci: Buka file jika is_exclusive tetapi user adalah Admin
   const isCurrentUserAdmin = Boolean(isAdmin || currentUser?.is_admin);
   const isLocked = Boolean(item.is_exclusive && !isUserPremium && !isUploader && !isCurrentUserAdmin);
 
