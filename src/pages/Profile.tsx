@@ -29,20 +29,21 @@ import {
   Send,
   Crown,
   Link2,
-  Trophy // Tambahan icon Trophy untuk tab Progress
+  Trophy,
+  Star
 } from 'lucide-react';
 import { EmeraldFolderIcon } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import AvatarBorderVip, { VIP_BORDERS } from '../components/AvatarBorderVip';
-import AnimationBorder from '../components/AnimationBorder'; // Import komponen Animation Border
+import AnimationBorder from '../components/AnimationBorder';
 
 // Lazy load heavy components
 const PostModal = lazy(() => import('../components/PostModal'));
 const LoginModal = lazy(() => import('../components/LoginModal'));
 const AvatarModal = lazy(() => import('../components/Avatar'));
 const CustomBatchRequest = lazy(() => import('../components/CustomBatchRequest'));
-const WebmContribute = lazy(() => import('../components/WebmContribute')); // Tambahan Import WebmContribute
+const WebmContribute = lazy(() => import('../components/WebmContribute'));
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
@@ -138,7 +139,6 @@ export default function Profile({
   const [userBatches, setUserBatches] = useState<any[]>([]);
   const [allBatches, setAllBatches] = useState<any[]>([]); 
   
-  // State for Custom Batch Requests in Admin Panel
   const [adminRequests, setAdminRequests] = useState<any[]>([]);
   const [adminTab, setAdminTab] = useState<'uploads' | 'requests'>('uploads');
   const [requestResultUrls, setRequestResultUrls] = useState<Record<string, string>>({});
@@ -150,7 +150,6 @@ export default function Profile({
   const [usernameInput, setUsernameInput] = useState('');
   const [updatingUsername, setUpdatingUsername] = useState(false);
   
-  // Penambahan 'progress' ke dalam union type activeTab
   const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'request' | 'settings' | 'admin' | 'progress'>('overview');
   const [collectionSearchQuery, setCollectionSearchQuery] = useState('');
   
@@ -243,18 +242,26 @@ export default function Profile({
       .eq('id', userId)
       .single();
 
+    let activeUname = currentUser || '';
     if (profile) {
       setUserProfile(profile);
-      setUsernameInput(profile.username || currentUser || '');
+      activeUname = profile.username || currentUser || '';
+      setUsernameInput(activeUname);
       localStorage.setItem(cacheProfileKey, JSON.stringify(profile));
     } else if (currentUser) {
       setUsernameInput(currentUser);
     }
 
+    // PERBAIKAN: Membaca data baik user_id maupun uploaded_by (regular & exclusive)
+    let filterOr = `user_id.eq.${userId},uploaded_by.eq.${userId}`;
+    if (activeUname) {
+      filterOr += `,uploaded_by.eq.${activeUname}`;
+    }
+
     const { data: batches } = await supabase
       .from('batches')
       .select('*')
-      .eq('user_id', userId)
+      .or(filterOr)
       .order('created_at', { ascending: false });
 
     if (batches) {
@@ -314,6 +321,8 @@ export default function Profile({
       handleShowToast(`Batch status successfully changed to ${newStatus}`, "success");
       setAllBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: newStatus } : b));
       setUserBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: newStatus } : b));
+      
+      localStorage.removeItem('swr_admin_all_batches');
     }
   };
 
@@ -371,7 +380,6 @@ export default function Profile({
     }
   };
 
-  // Fungsi Memilih / Melepas Avatar Border VIP
   const handleSelectVipBorder = async (borderUrl: string) => {
     if (!userProfile?.is_premium) {
       handleShowToast("This feature is exclusively for Premium VIP users!", "error");
@@ -392,11 +400,10 @@ export default function Profile({
       handleShowToast(`Gagal: ${error.message}`, "error");
     } else {
       setUserProfile((prev: any) => ({ ...prev, vip_border_url: newBorderUrl }));
-      handleShowToast(newBorderUrl ? "VIP frame successfully applied.!" : "VIP frame removed!", "success");
+      handleShowToast(newBorderUrl ? "VIP frame successfully applied!" : "VIP frame removed!", "success");
     }
   };
 
-  // Fungsi Memilih / Melepas Animation Border Umum
   const handleSelectAnimationBorder = async (borderUrl: string | null) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
@@ -447,6 +454,7 @@ export default function Profile({
 
   const activeUsername = userProfile?.username || currentUser || '';
 
+  // PERBAIKAN STATS: Menghitung total folder, video, klik, dan ukuran file (MB/GB) secara akurat
   const stats = useMemo(() => {
     const totalUploads = userBatches.length;
     const totalVideos = userBatches.reduce((acc: number, b: any) => acc + (Number(b.video_count) || 0), 0);
@@ -456,17 +464,18 @@ export default function Profile({
     }, 0);
 
     const totalGB = userBatches.reduce((acc: number, b: any) => {
-      if (b.size_gb !== undefined && b.size_gb !== null && b.size_gb !== '') {
+      if (b.size_gb !== undefined && b.size_gb !== null && b.size_gb !== '' && !isNaN(Number(b.size_gb))) {
         return acc + Number(b.size_gb);
       }
       if (b.size_file) {
-        const sizeStr = b.size_file.toString().toUpperCase();
+        const sizeStr = b.size_file.toString().toUpperCase().trim();
         const val = parseFloat(sizeStr);
         if (isNaN(val)) return acc;
         
         if (sizeStr.includes('MB')) return acc + (val / 1024);
         if (sizeStr.includes('KB')) return acc + (val / (1024 * 1024));
         if (sizeStr.includes('TB')) return acc + (val * 1024);
+        if (sizeStr.includes('GB')) return acc + val;
         
         return acc + val;
       }
@@ -482,7 +491,7 @@ export default function Profile({
       }
     }
 
-    return { totalUploads, totalVideos, totalClicks, totalSizeDisplay };
+    return { totalUploads, totalVideos, totalClicks, totalSizeDisplay, totalGB };
   }, [userBatches]);
 
   const unlockedBadges = useMemo(() => {
@@ -534,6 +543,7 @@ export default function Profile({
         gdrive_url: editingBatch.gdrive_url,
         terabox_url: editingBatch.terabox_url,
         is_banned: editingBatch.is_banned,
+        is_exclusive: editingBatch.is_exclusive,
         download_count: downloadVal,
         is_edited: true
       };
@@ -644,7 +654,6 @@ export default function Profile({
                     )}
                   </div>
 
-                  {/* Prioritas: VIP Border -> Jika tidak ada, tampilkan Animation Border (Umum) */}
                   {userProfile?.is_premium && userProfile?.vip_border_url ? (
                     <AvatarBorderVip 
                       isPremium={userProfile?.is_premium} 
@@ -717,7 +726,6 @@ export default function Profile({
                   <div className="ml-auto w-2 h-2 rounded-full bg-[#f97316]"></div>
                 </button>
                 
-                {/* TAB PROGRESS / ANIMATION BORDER */}
                 <button
                   onClick={() => setActiveTab('progress')}
                   className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
@@ -914,11 +922,11 @@ export default function Profile({
                               <div className="flex justify-between items-center text-[10px] font-bold mb-1.5">
                                 <span className="text-slate-400">Target</span>
                                 <span className={unlocked ? (isLegend ? 'text-amber-500' : 'text-[#10b981]') : 'text-slate-500'}>
-                                  {badge.target} {badge.unit}
+                                  {progress} / {badge.target} {badge.unit}
                                 </span>
                               </div>
                               
-                              <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                                 <div 
                                   className={`h-full transition-all duration-500 rounded-full ${unlocked ? (isLegend ? 'bg-amber-500' : 'bg-[#10b981]') : 'bg-slate-300'}`}
                                   style={{ width: `${percent}%` }}
@@ -961,11 +969,21 @@ export default function Profile({
                           className="p-5 rounded-[24px] bg-white border border-slate-100 shadow-[0_4px_16px_-10px_rgba(0,0,0,0.05)] hover:shadow-md transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                         >
                           <div className="flex items-center gap-4">
-                            <div className="p-3 bg-slate-50 rounded-2xl">
+                            <div className="p-3 bg-slate-50 rounded-2xl relative">
                               <EmeraldFolderIcon className="w-10 h-10 flex-shrink-0" country={batch.country} />
+                              {batch.is_exclusive && (
+                                <Star size={12} className="absolute top-1 right-1 text-purple-600 fill-purple-600" />
+                              )}
                             </div>
                             <div>
-                              <h3 className="text-sm font-bold text-slate-800">{batch.username}</h3>
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-sm font-bold text-slate-800">{batch.username}</h3>
+                                {batch.is_exclusive && (
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-600 border border-purple-200">
+                                    Exclusive
+                                  </span>
+                                )}
+                              </div>
                               <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-500 font-medium flex-wrap">
                                 <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md font-semibold">{batch.country}</span>
                                 <span>•</span>
@@ -1033,7 +1051,6 @@ export default function Profile({
                 </div>
               )}
               
-              {/* === TAB PROGRESS (ANIMATION BORDER) === */}
               {activeTab === 'progress' && (
                 <div className="animate-in fade-in duration-300">
                   <div className="mb-8">
@@ -1041,7 +1058,6 @@ export default function Profile({
                     <p className="text-xs text-slate-500 mt-1">Collect and complete your animated borders based on your total File uploads.</p>
                   </div>
                   
-                  {/* Memanggil Komponen Animation Border */}
                   <AnimationBorder 
                     userProgress={userProfile?.is_admin ? 999999 : stats.totalUploads} 
                     equippedBorderUrl={userProfile?.animation_border_url} 
@@ -1083,7 +1099,6 @@ export default function Profile({
                         )}
                       </div>
                       
-                      {/* Avatar Border Preview (Mengutamakan VIP Border dibanding Animation Border umum) */}
                       {userProfile?.is_premium && userProfile?.vip_border_url ? (
                         <AvatarBorderVip 
                           isPremium={userProfile?.is_premium} 
@@ -1112,7 +1127,6 @@ export default function Profile({
                     </div>
                   </div>
 
-                  {/* ===== WADAH KUMPULAN AVATAR BORDER VIP ===== */}
                   <div className="p-6 bg-slate-50 rounded-[32px] mb-6">
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -1201,7 +1215,6 @@ export default function Profile({
                     </div>
                   </div>
 
-                  {/* ===== TAMBAHAN KOMPONEN WEBM CONTRIBUTE ===== */}
                   <div className="mt-8 pt-6 border-t border-slate-100">
                     <Suspense fallback={
                       <div className="flex items-center justify-center p-6">
@@ -1211,7 +1224,6 @@ export default function Profile({
                       <WebmContribute />
                     </Suspense>
                   </div>
-                  {/* ============================================= */}
 
                 </div>
               )}
@@ -1237,7 +1249,6 @@ export default function Profile({
                     </button>
                   </div>
 
-                  {/* Toggle Between Uploads and Requests */}
                   <div className="flex gap-3 mb-6 p-1 bg-slate-100 rounded-xl w-fit">
                     <button
                       onClick={() => setAdminTab('uploads')}
@@ -1257,7 +1268,6 @@ export default function Profile({
                     </button>
                   </div>
 
-                  {/* ===== TAB: CREATOR UPLOADS ===== */}
                   {adminTab === 'uploads' && (
                     <>
                       <div className="flex overflow-x-auto gap-3 pb-2 mb-6 [&::-webkit-scrollbar]:hidden">
@@ -1315,8 +1325,11 @@ export default function Profile({
                             >
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <div className="flex items-center gap-4">
-                                  <div className="p-2 bg-slate-50 rounded-2xl">
+                                  <div className="p-2 bg-slate-50 rounded-2xl relative">
                                     <EmeraldFolderIcon className="w-10 h-10 flex-shrink-0" country={batch.country} />
+                                    {batch.is_exclusive && (
+                                      <Star size={12} className="absolute top-1 right-1 text-purple-600 fill-purple-600" />
+                                    )}
                                   </div>
                                   <div>
                                     <div className="flex items-center gap-2">
@@ -1324,6 +1337,11 @@ export default function Profile({
                                       <span className="text-[10px] px-2 py-0.5 rounded-md font-semibold bg-blue-50 text-blue-600">
                                         {batch.country}
                                       </span>
+                                      {batch.is_exclusive && (
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-600 border border-purple-200">
+                                          Exclusive
+                                        </span>
+                                      )}
                                     </div>
                                     <p className="text-[11px] text-slate-500 font-medium mt-1">
                                       {batch.video_count} Videos • {batch.size_file || `${batch.size_gb || 0} GB`} • {batch.download_count ?? 0} Downloads
@@ -1424,7 +1442,6 @@ export default function Profile({
                     </>
                   )}
 
-                  {/* ===== TAB: USER REQUESTS ===== */}
                   {adminTab === 'requests' && (
                     <div className="space-y-4">
                       {adminRequests.length > 0 ? adminRequests.map((req: any) => (
@@ -1453,7 +1470,6 @@ export default function Profile({
                               </div>
                             </div>
                             
-                            {/* Status Label */}
                             <div className="flex flex-col items-end gap-1">
                               {req.status === 'completed' && (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#84cc16]/10 text-[#84cc16]">
@@ -1473,7 +1489,6 @@ export default function Profile({
                             </div>
                           </div>
                           
-                          {/* Admin Action Buttons with Result URL Input */}
                           <div className="flex flex-col gap-3 pt-3 border-t border-slate-50">
                             {req.result_url && (
                               <a href={req.result_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-[#10b981] hover:underline flex items-center gap-1 w-fit bg-emerald-50 px-2 py-1 rounded">
@@ -1633,7 +1648,6 @@ export default function Profile({
         </div>
       )}
 
-      {/* Upload/Login Modals (Lazy Loaded) */}
       <Suspense fallback={null}>
         {showAddModal && <PostModal onClose={() => setShowAddModal(false)} />}
         {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
