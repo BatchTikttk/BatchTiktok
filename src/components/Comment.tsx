@@ -20,19 +20,37 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
   
-  // State untuk menyimpan UUID yang valid setelah diterjemahkan
   const [resolvedUuid, setResolvedUuid] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  const currentUserId = typeof currentUser === 'string' ? currentUser : currentUser?.id;
-
-  // Fungsi untuk mengecek apakah string adalah UUID yang valid
   const isValidUUID = (id: string | number) => {
     const regexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
     return regexExp.test(String(id));
   };
 
-  // AUTO-RESOLVER: Jika itemId dari luar berupa teks (misal: "BatchTikTok" atau slug), 
-  // kita cari UUID aslinya secara otomatis dari tabel batches.
+  // AUTO-RESOLVER USER ID: 
+  // Mencegah error UUID jika parent component mengirim username ("BatchTiktok") alih-alih UUID
+  useEffect(() => {
+    const validateAndSetUserId = async () => {
+      const rawId = typeof currentUser === 'string' ? currentUser : currentUser?.id;
+      
+      if (rawId && isValidUUID(rawId)) {
+        setCurrentUserId(rawId);
+      } else {
+        // Jika data bukan UUID, paksa ambil UUID dari session login aktif di Supabase
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          setCurrentUserId(session.user.id);
+        } else {
+          setCurrentUserId(null);
+        }
+      }
+    };
+    
+    validateAndSetUserId();
+  }, [currentUser]);
+
+  // AUTO-RESOLVER ITEM ID
   useEffect(() => {
     const resolveBatchUuid = async () => {
       if (!itemId) return;
@@ -40,7 +58,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       if (isValidUUID(itemId)) {
         setResolvedUuid(String(itemId));
       } else {
-        // PERBAIKAN: Jika bukan UUID, hanya cari berdasarkan username saja untuk menghindari error 22P02 UUID
         const { data, error } = await supabase
           .from('batches')
           .select('id')
@@ -51,7 +68,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
         if (!error && data) {
           setResolvedUuid(data.id);
         } else {
-          // Fallback darurat ambil batch pertama jika tidak ketemu
           const { data: fallbackData } = await supabase
             .from('batches')
             .select('id')
@@ -72,10 +88,13 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
     if (resolvedUuid) {
       fetchComments();
     }
+  }, [resolvedUuid]);
+
+  useEffect(() => {
     if (currentUserId) {
       fetchCurrentUserProfile();
     }
-  }, [resolvedUuid, currentUserId]);
+  }, [currentUserId]);
 
   const fetchCurrentUserProfile = async () => {
     if (!currentUserId) return;
