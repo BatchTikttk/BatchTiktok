@@ -9,6 +9,15 @@ interface CommentsProps {
   onRequireLogin: () => void;
 }
 
+// Konfigurasi lencana pencapaian untuk user biasa (sama dengan Profile.tsx)
+const BADGES = [
+  { target: 200, iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp', title: 'Legend Tier' },
+  { target: 100, iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp', title: 'Elite Tier' },
+  { target: 50, iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Gold.webp', title: 'Gold Tier' },
+  { target: 30, iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Silver.webp', title: 'Silver Tier' },
+  { target: 10, iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Bronze.webp', title: 'Bronze Tier' }
+];
+
 export default function Comments({ itemId, currentUser, onRequireLogin }: CommentsProps) {
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -22,6 +31,9 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
   
   const [resolvedUuid, setResolvedUuid] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  
+  // State untuk menyimpan total unggahan per user (untuk lencana progres)
+  const [userUploadCounts, setUserUploadCounts] = useState<Record<string, number>>({});
 
   const isValidUUID = (id: string | number) => {
     const regexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
@@ -132,6 +144,24 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       console.error('Error fetching comments:', error);
     } else if (data) {
       setComments(data);
+
+      // Ambil total unggahan tiap user agar lencana progres muncul
+      const uniqueUserIds = [...new Set(data.map((c: any) => c.user_id).filter(Boolean))];
+      
+      if (uniqueUserIds.length > 0) {
+        const { data: batchesData, error: batchError } = await supabase
+          .from('batches')
+          .select('user_id')
+          .in('user_id', uniqueUserIds);
+          
+        if (!batchError && batchesData) {
+          const counts: Record<string, number> = {};
+          batchesData.forEach((b: any) => {
+            counts[b.user_id] = (counts[b.user_id] || 0) + 1;
+          });
+          setUserUploadCounts(counts);
+        }
+      }
     }
     setIsLoading(false);
   };
@@ -292,83 +322,100 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       .filter(c => c.parent_id === parentId)
       .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
-  const CommentBlock = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => (
-    <div className={`flex gap-3 lg:gap-4 group ${isReply ? 'mt-4' : ''}`}>
-      {isReply && (
-        <div className="mt-3 text-slate-300 hidden md:block">
-          <CornerDownRight size={16} />
-        </div>
-      )}
-      
-      {renderAvatarWithBorder(comment.profiles, isReply ? 'small' : 'medium')}
+  const CommentBlock = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => {
+    
+    // Menghitung lencana progres untuk user yang bersangkutan
+    const userBadge = !comment.profiles?.is_admin 
+      ? BADGES.find(b => (userUploadCounts[comment.user_id] || 0) >= b.target)
+      : null;
 
-      <div className="flex-1 min-w-0">
-        <div className="bg-slate-50 rounded-2xl rounded-tl-none px-4 py-3 border-none relative">
-          
-          {/* Lencana Admin Besar di Pojok Kanan */}
-          {comment.profiles?.is_admin && (
-            <img 
-              src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp" 
-              alt="Admin Verified" 
-              title="Official Admin"
-              className="absolute top-2 right-2 w-10 h-10 object-contain drop-shadow-md z-10" 
-            />
-          )}
+    return (
+      <div className={`flex gap-3 lg:gap-4 group ${isReply ? 'mt-4' : ''}`}>
+        {isReply && (
+          <div className="mt-3 text-slate-300 hidden md:block">
+            <CornerDownRight size={16} />
+          </div>
+        )}
+        
+        {renderAvatarWithBorder(comment.profiles, isReply ? 'small' : 'medium')}
 
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs font-bold text-slate-800">
-                {comment.profiles?.username || 'Unknown User'}
-              </span>
+        <div className="flex-1 min-w-0">
+          <div className="bg-slate-50 rounded-2xl rounded-tl-none px-4 py-3 border-none relative">
+            
+            {/* Lencana Admin Besar di Pojok Kanan */}
+            {comment.profiles?.is_admin && (
+              <img 
+                src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp" 
+                alt="Admin Verified" 
+                title="Official Admin"
+                className="absolute top-2 right-2 w-10 h-10 object-contain drop-shadow-md z-10" 
+              />
+            )}
+
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  {comment.profiles?.username || 'Unknown User'}
+                  
+                  {/* Lencana Progress untuk User Biasa (Muncul di sebelah nama) */}
+                  {userBadge && (
+                    <img 
+                      src={userBadge.iconUrl} 
+                      alt={userBadge.title} 
+                      title={userBadge.title}
+                      className="w-4 h-4 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform" 
+                    />
+                  )}
+                </span>
+              </div>
             </div>
+            
+            <p className={`text-sm text-slate-600 break-words leading-relaxed ${comment.profiles?.is_admin ? 'pr-12' : ''}`}>
+              {comment.content}
+            </p>
           </div>
           
-          {/* Padding right (pr-12) ditambahkan jika admin agar teks tidak tertutup lencana */}
-          <p className={`text-sm text-slate-600 break-words leading-relaxed ${comment.profiles?.is_admin ? 'pr-12' : ''}`}>
-            {comment.content}
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-4 mt-1.5 px-2">
-          <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
-            <Clock size={10} />
-            {new Date(comment.created_at).toLocaleString('en-US', {
-              day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-            })}
-          </span>
+          <div className="flex items-center gap-4 mt-1.5 px-2">
+            <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+              <Clock size={10} />
+              {new Date(comment.created_at).toLocaleString('en-US', {
+                day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+              })}
+            </span>
 
-          {!isReply && (
-            <button
-              type="button"
-              onClick={() => {
-                if (!currentUserId) {
-                  onRequireLogin();
-                  return;
-                }
-                setReplyingTo(replyingTo === comment.id ? null : comment.id);
-                setReplyText('');
-              }}
-              className={`text-[10px] font-bold transition-colors flex items-center gap-1 ${
-                replyingTo === comment.id ? 'text-[#10b981]' : 'text-slate-400 hover:text-[#10b981]'
-              }`}
-            >
-              <Reply size={10} /> Reply
-            </button>
-          )}
-          
-          {(currentUserId === comment.user_id || currentUserProfile?.is_admin) && (
-            <button
-              type="button"
-              onClick={() => handleDelete(comment.id)}
-              className="text-[10px] font-bold text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
-            >
-              <Trash2 size={10} /> Delete
-            </button>
-          )}
+            {!isReply && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (!currentUserId) {
+                    onRequireLogin();
+                    return;
+                  }
+                  setReplyingTo(replyingTo === comment.id ? null : comment.id);
+                  setReplyText('');
+                }}
+                className={`text-[10px] font-bold transition-colors flex items-center gap-1 ${
+                  replyingTo === comment.id ? 'text-[#10b981]' : 'text-slate-400 hover:text-[#10b981]'
+                }`}
+              >
+                <Reply size={10} /> Reply
+              </button>
+            )}
+            
+            {(currentUserId === comment.user_id || currentUserProfile?.is_admin) && (
+              <button
+                type="button"
+                onClick={() => handleDelete(comment.id)}
+                className="text-[10px] font-bold text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
+              >
+                <Trash2 size={10} /> Delete
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-8 w-full border-none">
