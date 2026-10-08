@@ -8,7 +8,8 @@ import Footer from '../components/Footer';
 // Komponen Lazy Load
 const LoginModal = lazy(() => import('../components/LoginModal'));
 const PostModal = lazy(() => import('../components/PostModal'));
-const Comment = lazy(() => import('../components/Comment')); // Tambahkan import Comment
+// Pastikan nama file di folder components Anda adalah 'Comment.tsx' atau sesuaikan importnya jika 'Comments.tsx'
+const Comment = lazy(() => import('../components/Comment')); 
 
 const MOCK_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
 const BANNED_LOGO_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/BannedLogo.webp";
@@ -31,7 +32,7 @@ interface PreviewPageProps {
   itemId?: string;
   itemData?: any;
   isUserPremium?: boolean;
-  currentUser?: any | null; // Diubah jadi any agar bisa menangkap user object dari Supabase
+  currentUser?: any | null; 
   onOpenUpgradeModal?: () => void;
 }
 
@@ -59,7 +60,6 @@ export default function PreviewPage({
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
 
-  // Memastikan halaman otomatis berada di atas saat dimuat
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -348,7 +348,7 @@ export default function PreviewPage({
             window.history.pushState({}, '', '/');
             window.dispatchEvent(new Event('popstate'));
           }}
-          currentUser={currentUserUsername} // Menyesuaikan dengan Navbar yang sebelumnya menerima string
+          currentUser={currentUserUsername}
           handleLogout={handleLogout}
           setShowAddModal={() => setShowAddModal(true)}
           setShowLoginModal={() => setShowLoginModal(true)}
@@ -466,7 +466,6 @@ export default function PreviewPage({
                   </span>
                   
                   {isUploaderVip ? (
-                    /* SPECIAL WEBM CONTRIBUTOR CARD UNTUK ADMIN/PREMIUM (BERSIH TANPA BADGE SUDUT) */
                     <div 
                       onClick={handleUploaderClick}
                       className="relative w-full rounded-2xl overflow-hidden shadow-md cursor-pointer group flex flex-col items-center justify-center text-center transition-all hover:scale-[1.01] my-1"
@@ -538,7 +537,6 @@ export default function PreviewPage({
                       </div>
                     </div>
                   ) : (
-                    /* KARTU REGULER DENGAN STYLE STANDAR */
                     <div 
                       onClick={handleUploaderClick}
                       className="inline-flex flex-col items-center gap-2 cursor-pointer hover:opacity-90 transition-opacity"
@@ -708,17 +706,19 @@ export default function PreviewPage({
             </div>
           </div>
           
-          {/* ---> SECTION KOMENTAR DITAMBAHKAN DI SINI <--- */}
-          <div className="w-full max-w-[800px] mt-8">
-            <Suspense fallback={<div className="h-40 bg-white rounded-[2rem] shadow-sm animate-pulse border border-slate-100 mt-8"></div>}>
-              <Comment 
-                itemId={item.id} 
-                currentUser={currentUser} 
-                onRequireLogin={() => setShowLoginModal(true)} 
-              />
-            </Suspense>
-          </div>
-          {/* ----------------------------------------------- */}
+          {/* ---> UPDATE PROTEKSI SECTION KOMENTAR DITAMBAHKAN DI SINI <--- */}
+          {item?.id && (
+            <div className="w-full max-w-[800px] mt-8">
+              <Suspense fallback={<div className="h-40 bg-white rounded-[2rem] shadow-sm animate-pulse border border-slate-100 mt-8"></div>}>
+                <Comment 
+                  itemId={item.id} 
+                  currentUser={currentUser} 
+                  onRequireLogin={() => setShowLoginModal(true)} 
+                />
+              </Suspense>
+            </div>
+          )}
+          {/* ----------------------------------------------------------- */}
 
         </div>
       </div>
