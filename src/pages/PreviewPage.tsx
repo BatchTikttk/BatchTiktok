@@ -8,7 +8,6 @@ import Footer from '../components/Footer';
 // Komponen Lazy Load
 const LoginModal = lazy(() => import('../components/LoginModal'));
 const PostModal = lazy(() => import('../components/PostModal'));
-// Pastikan nama file di folder components Anda adalah 'Comment.tsx' atau sesuaikan importnya jika 'Comments.tsx'
 const Comment = lazy(() => import('../components/Comment')); 
 
 const MOCK_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
@@ -47,6 +46,7 @@ export default function PreviewPage({
   const [loading, setLoading] = useState<boolean>(!initialItemData);
   const [isMuted, setIsMuted] = useState<boolean>(true);
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -64,12 +64,30 @@ export default function PreviewPage({
     window.scrollTo(0, 0);
   }, []);
 
+  // Pengecekan status Admin User saat ini
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', session.user.id)
+          .single();
+        if (data) {
+          setIsAdmin(!!data.is_admin);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+    };
+    checkAdminStatus();
+  }, [currentUser]);
+
   useEffect(() => {
     const fetchItem = async () => {
-      // Ambil parameter dari prop atau URL
       let targetId = itemId || window.location.pathname.split('/preview/')[1];
       
-      // Bersihkan slash di akhir URL jika ada
       if (targetId && targetId.endsWith('/')) {
         targetId = targetId.slice(0, -1);
       }
@@ -87,18 +105,15 @@ export default function PreviewPage({
 
       try {
         setLoading(true);
-        // Decode URI untuk membaca karakter '@' dengan benar (mencegah %40 error)
         const decodedTarget = decodeURIComponent(targetId);
 
         let query = supabase.from('batches').select('*');
 
-        // Pengecekan cerdas: Apakah ini UUID atau Username?
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(decodedTarget);
 
         if (isUUID) {
           query = query.eq('id', decodedTarget);
         } else {
-          // Jika bukan UUID, cari berdasarkan username (case-insensitive)
           query = query.ilike('username', decodedTarget);
         }
 
@@ -355,7 +370,9 @@ export default function PreviewPage({
      (item.username && typeof currentUserUsername === 'string' && currentUserUsername.toLowerCase() === item.username.toLowerCase()))
   );
   
-  const isLocked = Boolean(item.is_exclusive && !isUserPremium && !isUploader);
+  // Logika Proteksi Kunci: Buka file jika is_exclusive tetapi user adalah Admin (isAdmin / currentUser.is_admin)
+  const isCurrentUserAdmin = Boolean(isAdmin || currentUser?.is_admin);
+  const isLocked = Boolean(item.is_exclusive && !isUserPremium && !isUploader && !isCurrentUserAdmin);
 
   const isUploaderVip = Boolean(uploaderIsAdmin || uploaderIsPremium);
   const activeWebmUrl = uploaderCardBgUrl || "https://qu.ax/Kd5um.webm";
@@ -728,7 +745,7 @@ export default function PreviewPage({
             </div>
           </div>
           
-          {/* ---> UPDATE PROTEKSI SECTION KOMENTAR DITAMBAHKAN DI SINI <--- */}
+          {/* Section Komentar */}
           {item?.id && (
             <div className="w-full max-w-[800px] mt-8">
               <Suspense fallback={<div className="h-40 bg-white rounded-[2rem] shadow-sm animate-pulse border border-slate-100 mt-8"></div>}>
@@ -740,7 +757,6 @@ export default function PreviewPage({
               </Suspense>
             </div>
           )}
-          {/* ----------------------------------------------------------- */}
 
         </div>
       </div>
