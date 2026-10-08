@@ -29,7 +29,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
   };
 
   // AUTO-RESOLVER USER ID: 
-  // Mencegah error UUID jika parent component mengirim username ("BatchTiktok") alih-alih UUID
+  // Prevent UUID error if parent component sends username ("BatchTiktok") instead of UUID
   useEffect(() => {
     const validateAndSetUserId = async () => {
       const rawId = typeof currentUser === 'string' ? currentUser : currentUser?.id;
@@ -37,7 +37,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       if (rawId && isValidUUID(rawId)) {
         setCurrentUserId(rawId);
       } else {
-        // Jika data bukan UUID, paksa ambil UUID dari session login aktif di Supabase
+        // If data is not a UUID, forcefully fetch UUID from the active Supabase login session
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user?.id) {
           setCurrentUserId(session.user.id);
@@ -179,7 +179,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
 
     if (error) {
       console.error('Error submitting comment:', error);
-      alert(`Gagal mengirim komentar: ${error.message}`);
+      alert(`Failed to send comment: ${error.message}`);
     } else if (data) {
       setComments([...comments, data]);
       setNewComment('');
@@ -227,7 +227,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
 
     if (error) {
       console.error('Error submitting reply:', error);
-      alert(`Gagal mengirim balasan: ${error.message}`);
+      alert(`Failed to send reply: ${error.message}`);
     } else if (data) {
       setComments([...comments, data]);
       setReplyingTo(null);
@@ -237,7 +237,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
   };
 
   const handleDelete = async (commentId: string) => {
-    if (!window.confirm("Hapus komentar ini?")) return;
+    if (!window.confirm("Delete this comment?")) return;
 
     const { error } = await supabase
       .from('comments')
@@ -326,7 +326,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
         <div className="flex items-center gap-4 mt-1.5 px-2">
           <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
             <Clock size={10} />
-            {new Date(comment.created_at).toLocaleString('id-ID', {
+            {new Date(comment.created_at).toLocaleString('en-US', {
               day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
             })}
           </span>
@@ -448,7 +448,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
           ))
         ) : (
           <div className="text-center py-8">
-            <p className="text-sm text-slate-400 font-medium">Belum ada komentar. Jadilah yang pertama!</p>
+            <p className="text-sm text-slate-400 font-medium">No comments yet. Be the first to comment!</p>
           </div>
         )}
       </div>
