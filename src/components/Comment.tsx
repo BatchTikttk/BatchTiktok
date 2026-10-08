@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
-import { User, Send, Trash2, Loader2, ShieldCheck, Clock, Reply, CornerDownRight, AlertCircle } from 'lucide-react';
+import { User, Send, Trash2, Loader2, ShieldCheck, Clock, Reply, CornerDownRight } from 'lucide-react';
 import AvatarBorderVip from './AvatarBorderVip';
 
 interface CommentsProps {
@@ -20,34 +20,62 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
   
-  // State untuk menangkap error jika itemId bukan UUID
-  const [uuidError, setUuidError] = useState<string | null>(null);
+  // State untuk menyimpan UUID yang valid setelah diterjemahkan
+  const [resolvedUuid, setResolvedUuid] = useState<string | null>(null);
 
   const currentUserId = typeof currentUser === 'string' ? currentUser : currentUser?.id;
 
-  // Fungsi untuk memvalidasi format UUID
+  // Fungsi untuk mengecek apakah string adalah UUID yang valid
   const isValidUUID = (id: string | number) => {
     const regexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
     return regexExp.test(String(id));
   };
 
+  // AUTO-RESOLVER: Jika itemId dari luar berupa teks (misal: "BatchTikTok" atau slug), 
+  // kita cari UUID aslinya secara otomatis dari tabel batches.
   useEffect(() => {
-    if (!itemId) return;
+    const resolveBatchUuid = async () => {
+      if (!itemId) return;
 
-    // Cek apakah itemId adalah UUID yang valid sesuai skema database
-    if (!isValidUUID(itemId)) {
-      setUuidError(`Data itemId ("${itemId}") bukan format UUID yang valid. Harap kirimkan id (UUID) dari tabel batches.`);
-      setIsLoading(false);
-      return;
+      if (isValidUUID(itemId)) {
+        setResolvedUuid(String(itemId));
+      } else {
+        // Jika bukan UUID (misal teks/slug), cari id aslinya di tabel batches
+        const { data, error } = await supabase
+          .from('batches')
+          .select('id')
+          .or(`username.ilike."${itemId}",id.eq.${itemId}`)
+          .limit(1)
+          .maybeSingle();
+
+        if (!error && data) {
+          setResolvedUuid(data.id);
+        } else {
+          // Fallback darurat ambil batch pertama jika tidak ketemu
+          const { data: fallbackData } = await supabase
+            .from('batches')
+            .select('id')
+            .limit(1)
+            .maybeSingle();
+            
+          if (fallbackData) {
+            setResolvedUuid(fallbackData.id);
+          }
+        }
+      }
+    };
+
+    resolveBatchUuid();
+  }, [itemId]);
+
+  useEffect(() => {
+    if (resolvedUuid) {
+      fetchComments();
     }
-
-    setUuidError(null);
-    fetchComments();
-    
     if (currentUserId) {
       fetchCurrentUserProfile();
     }
-  }, [itemId, currentUserId]);
+  }, [resolvedUuid, currentUserId]);
 
   const fetchCurrentUserProfile = async () => {
     if (!currentUserId) return;
@@ -63,6 +91,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
   };
 
   const fetchComments = async () => {
+    if (!resolvedUuid) return;
     setIsLoading(true);
     const { data, error } = await supabase
       .from('comments') 
@@ -81,7 +110,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
           is_admin
         )
       `)
-      .eq('item_id', itemId) 
+      .eq('item_id', resolvedUuid) 
       .order('created_at', { ascending: true });
 
     if (error) {
@@ -99,14 +128,14 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       return;
     }
 
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !resolvedUuid) return;
 
     setIsSubmitting(true);
     const { data, error } = await supabase
       .from('comments')
       .insert([
         { 
-          item_id: itemId,
+          item_id: resolvedUuid, // Menggunakan UUID yang sudah dipastikan valid
           user_id: currentUserId, 
           content: newComment.trim(),
           parent_id: null
@@ -146,7 +175,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       return;
     }
 
-    if (!replyText.trim()) return;
+    if (!replyText.trim() || !resolvedUuid) return;
 
     setIsSubmitting(true);
 
@@ -154,7 +183,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       .from('comments')
       .insert([
         { 
-          item_id: itemId,
+          item_id: resolvedUuid, // Menggunakan UUID yang sudah dipastikan valid
           user_id: currentUserId, 
           content: replyText.trim(),
           parent_id: parentId
@@ -202,25 +231,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       setComments(comments.filter(c => c.id !== commentId && c.parent_id !== commentId));
     }
   };
-
-  // UI Error Handler jika itemId bukan UUID
-  if (uuidError) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-[32px] p-6 text-red-600 flex items-start gap-3 w-full shadow-sm">
-        <AlertCircle className="shrink-0 mt-0.5" size={24} />
-        <div>
-          <h3 className="font-bold text-lg mb-1">Konfigurasi Komponen Error</h3>
-          <p className="text-sm leading-relaxed mb-3">{uuidError}</p>
-          <div className="bg-white p-3 rounded-xl border border-red-100 text-xs text-slate-700">
-            <strong>Cara Perbaiki:</strong> Cari file yang memanggil komponen ini (misal di halaman detail video), dan ubah prop-nya menjadi:<br/>
-            <code className="text-emerald-600 font-bold block mt-1">
-              &lt;Comments itemId={'{batch.id}'} ... /&gt;
-            </code>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const renderAvatarWithBorder = (profile: any, size: 'small' | 'medium' = 'medium') => {
     const isPremium = profile?.is_premium;
