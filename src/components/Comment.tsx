@@ -1,261 +1,254 @@
-import React, { useState, useEffect } from 'react';
-import { MessageCircle, Send, User, Trash2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
+import { User, Send, Trash2, Loader2, ShieldCheck, Clock } from 'lucide-react';
+import AvatarBorderVip from './AvatarBorderVip'; // Sesuaikan path jika perlu
 
-interface CommentType {
-  id: string;
-  item_id: string; // Can be batch_id
-  user_id: string;
-  content: string;
-  created_at: string;
-  profiles: {
-    username: string;
-    avatar_url: string;
-    is_admin: boolean;
-    is_premium: boolean;
-  };
+interface CommentsProps {
+  batchId: string | number;
+  currentUserId?: string | null;
+  onLoginNeeded: () => void;
 }
 
-interface CommentProps {
-  itemId: string; // ID of the post/batch currently being viewed (e.g., in PreviewPage)
-  currentUser: any; // Currently logged in user
-  onRequireLogin: () => void; // Function to show login modal if user is not logged in
-}
-
-export default function Comment({ itemId, currentUser, onRequireLogin }: CommentProps) {
-  const [comments, setComments] = useState<CommentType[]>([]);
+export default function Comments({ batchId, currentUserId, onLoginNeeded }: CommentsProps) {
+  const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
 
-  // Fetch comments from Supabase
   useEffect(() => {
-    if (!itemId) return;
-
-    const fetchComments = async () => {
-      setIsLoading(true);
-      const { data, error } = await supabase
-        .from('comments')
-        .select(`
-          id,
-          item_id,
-          user_id,
-          content,
-          created_at,
-          profiles (username, avatar_url, is_admin, is_premium)
-        `)
-        .eq('item_id', itemId)
-        .order('created_at', { ascending: false });
-
-      if (!error && data) {
-        setComments(data as any);
-      }
-      setIsLoading(false);
-    };
-
     fetchComments();
+    if (currentUserId) {
+      fetchCurrentUserProfile();
+    }
+  }, [batchId, currentUserId]);
 
-    // Subscribe to comment changes in real-time
-    const channel = supabase
-      .channel(`public:comments:item_id=eq.${itemId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'comments', filter: `item_id=eq.${itemId}` },
-        () => {
-          fetchComments();
-        }
-      )
-      .subscribe();
+  // Mengambil profile user saat ini (untuk avatar di sebelah kolom input)
+  const fetchCurrentUserProfile = async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('avatar_url, vip_border_url, animation_border_url, is_premium, is_admin')
+      .eq('id', currentUserId)
+      .single();
+    
+    if (data) setCurrentUserProfile(data);
+  };
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [itemId]);
+  // Mengambil daftar komentar beserta data border dari profil masing-masing user
+  const fetchComments = async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('comments') // Sesuaikan dengan nama tabel komentar Anda (misal: batch_comments)
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        profiles (
+          username,
+          avatar_url,
+          vip_border_url,
+          animation_border_url,
+          is_premium,
+          is_admin
+        )
+      `)
+      .eq('batch_id', batchId)
+      .order('created_at', { ascending: false });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    if (!error && data) {
+      setComments(data);
+    }
+    setIsLoading(false);
+  };
+
+  const handleSumbit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentUserId) {
+      onLoginNeeded();
+      return;
+    }
 
     if (!newComment.trim()) return;
 
     setIsSubmitting(true);
-
-    // MENGAMBIL USER LANGSUNG DARI SESI AUTH SUPABASE
-    // Ini menjamin kita mendapatkan UUID yang valid dan mencegah error 403 RLS
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      setIsSubmitting(false);
-      onRequireLogin(); // Munculkan popup login jika sesi tidak valid
-      return;
-    }
-
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('comments')
       .insert([
-        {
-          item_id: itemId,
-          user_id: user.id, // Menggunakan UUID valid langsung dari session Auth
-          content: newComment.trim(),
+        { 
+          batch_id: batchId, 
+          user_id: currentUserId, 
+          content: newComment.trim() 
         }
-      ]);
+      ])
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        profiles (
+          username,
+          avatar_url,
+          vip_border_url,
+          animation_border_url,
+          is_premium,
+          is_admin
+        )
+      `)
+      .single();
 
-    if (!error) {
+    if (!error && data) {
+      setComments([data, ...comments]);
       setNewComment('');
-    } else {
-      console.error('Failed to send comment:', error);
-      alert(`Gagal mengirim komentar: ${error.message}`); // Tambahan alert agar error terlihat jelas di UI
     }
-    
     setIsSubmitting(false);
   };
 
   const handleDelete = async (commentId: string) => {
-    // Memastikan user menghapus dengan session yang valid
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      onRequireLogin();
-      return;
-    }
+    if (!window.confirm("Hapus komentar ini?")) return;
 
     const { error } = await supabase
       .from('comments')
       .delete()
       .eq('id', commentId);
 
-    if (error) {
-      console.error('Failed to delete comment:', error);
-      alert(`Gagal menghapus komentar: ${error.message}`);
+    if (!error) {
+      setComments(comments.filter(c => c.id !== commentId));
     }
   };
 
-  // Date format (e.g., "Oct 12, 2026")
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
+  // Fungsi helper untuk merender Avatar + Border
+  const renderAvatarWithBorder = (profile: any, size: 'small' | 'medium' = 'medium') => {
+    const isPremium = profile?.is_premium;
+    const vipBorder = profile?.vip_border_url;
+    const animBorder = profile?.animation_border_url;
+    const avatarUrl = profile?.avatar_url;
+    
+    const containerClass = size === 'medium' ? 'w-10 h-10' : 'w-8 h-8';
+    const iconSize = size === 'medium' ? 20 : 16;
+
+    return (
+      <div className={`relative flex-shrink-0 ${containerClass}`}>
+        {/* Base Avatar */}
+        <div className="w-full h-full rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-sm relative z-10">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+          ) : (
+            <User size={iconSize} />
+          )}
+        </div>
+
+        {/* Prioritas: VIP Border -> Jika tidak ada, tampilkan Animation Border (Umum) */}
+        {isPremium && vipBorder ? (
+          <AvatarBorderVip 
+            isPremium={isPremium} 
+            borderUrl={vipBorder}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[135%] h-[135%] max-w-none object-contain z-20 pointer-events-none"
+          />
+        ) : animBorder ? (
+          <img 
+            src={animBorder} 
+            alt="Animation Border" 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[135%] h-[135%] max-w-none object-contain z-20 pointer-events-none" 
+          />
+        ) : null}
+      </div>
+    );
   };
 
   return (
-    <div className="w-full bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 p-6 sm:p-8 mt-8">
-      <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
-        <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
-          <MessageCircle size={24} strokeWidth={2.5} />
+    <div className="bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-8 w-full">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-emerald-50 text-[#10b981] rounded-2xl">
+          <Send size={20} />
         </div>
-        <h3 className="text-xl font-bold text-slate-800">
-          Comments <span className="text-slate-400 font-medium text-lg">({comments.length})</span>
+        <h3 className="text-lg font-bold text-slate-800">
+          Comments <span className="text-slate-400 text-sm font-medium">({comments.length})</span>
         </h3>
       </div>
 
-      {/* Comment Input Form */}
-      <form onSubmit={handleSubmit} className="mb-8 flex items-start gap-4">
-        <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-slate-100 border border-slate-200">
-          {currentUser?.user_metadata?.avatar_url ? (
-            <img 
-              src={currentUser.user_metadata.avatar_url} 
-              alt="Avatar" 
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-slate-400">
-              <User size={20} />
-            </div>
-          )}
-        </div>
-        <div className="flex-1 relative group">
-          <textarea
+      {/* Input Komentar */}
+      <form onSubmit={handleSumbit} className="mb-8 flex gap-3 lg:gap-4 items-start">
+        {renderAvatarWithBorder(currentUserProfile || {}, 'medium')}
+        
+        <div className="flex-1 relative">
+          <input
+            type="text"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder={currentUser ? "Write your comment..." : "Login to write a comment..."}
-            className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-2xl px-4 py-3 min-h-[50px] resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all placeholder:text-slate-400"
-            rows={2}
+            onClick={() => !currentUserId && onLoginNeeded()}
+            placeholder={currentUserId ? "Write your comment..." : "Login to write a comment..."}
+            className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] transition-all"
             disabled={isSubmitting}
-            onClick={() => !currentUser && onRequireLogin()}
           />
-          <button
+          <button 
             type="submit"
             disabled={!newComment.trim() || isSubmitting}
-            className={`absolute right-3 bottom-3 p-2 rounded-xl flex items-center justify-center transition-all ${
-              newComment.trim() && !isSubmitting
-                ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:-translate-y-0.5 shadow-md'
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-            }`}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-[#10b981] disabled:opacity-50 transition-colors"
           >
-            <Send size={16} className="translate-x-[-1px] translate-y-[1px]" />
+            {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
           </button>
         </div>
       </form>
 
-      {/* Comments List */}
+      {/* Daftar Komentar */}
       <div className="space-y-6">
         {isLoading ? (
           <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+            <Loader2 className="animate-spin text-slate-300" size={24} />
           </div>
-        ) : comments.length === 0 ? (
-          <div className="text-center py-10 text-slate-400">
-            <MessageCircle size={40} className="mx-auto mb-3 opacity-20" />
-            <p className="font-medium">No comments yet. Be the first to comment!</p>
-          </div>
-        ) : (
+        ) : comments.length > 0 ? (
           comments.map((comment) => (
-            <div key={comment.id} className="flex gap-4 group">
-              {/* Commentator Avatar */}
-              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-slate-100 border border-slate-200">
-                {comment.profiles?.avatar_url ? (
-                  <img 
-                    src={comment.profiles.avatar_url} 
-                    alt={comment.profiles.username} 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-400">
-                    <User size={20} />
-                  </div>
-                )}
-              </div>
+            <div key={comment.id} className="flex gap-3 lg:gap-4 group">
+              {/* Render Avatar user yang berkomentar dengan border-nya */}
+              {renderAvatarWithBorder(comment.profiles, 'medium')}
 
-              {/* Comment Content */}
-              <div className="flex-1 bg-slate-50 rounded-2xl rounded-tl-none p-4 relative group-hover:bg-slate-100/70 transition-colors">
-                <div className="flex justify-between items-start mb-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-slate-800 text-sm">
-                      {comment.profiles?.username || 'User'}
-                    </span>
-                    {comment.profiles?.is_admin && (
-                      <img 
-                        src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp" 
-                        alt="Admin" 
-                        className="w-3.5 h-3.5"
-                      />
-                    )}
+              <div className="flex-1 min-w-0">
+                <div className="bg-slate-50 rounded-2xl rounded-tl-none px-4 py-3 border border-slate-100">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-bold text-slate-800">
+                        {comment.profiles?.username || 'Unknown User'}
+                      </span>
+                      {comment.profiles?.is_admin && (
+                        <ShieldCheck size={12} className="text-[#fbbf24]" />
+                      )}
+                    </div>
                   </div>
-                  <span className="text-[11px] font-medium text-slate-400">
-                    {formatDate(comment.created_at)}
-                  </span>
+                  <p className="text-sm text-slate-600 break-words leading-relaxed">
+                    {comment.content}
+                  </p>
                 </div>
                 
-                <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">
-                  {comment.content}
-                </p>
-
-                {/* Delete Button */}
-                {currentUser && (currentUser.id === comment.user_id || currentUser.user_metadata?.is_admin) && (
-                  <button 
-                    onClick={() => handleDelete(comment.id)}
-                    className="absolute top-4 right-4 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                    title="Delete Comment"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                )}
+                <div className="flex items-center gap-4 mt-1.5 px-2">
+                  <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+                    <Clock size={10} />
+                    {new Date(comment.created_at).toLocaleString('id-ID', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                  
+                  {/* Tombol hapus hanya muncul jika ini komentar user tsb atau user saat ini adalah admin */}
+                  {(currentUserId === comment.user_id || currentUserProfile?.is_admin) && (
+                    <button
+                      onClick={() => handleDelete(comment.id)}
+                      className="text-[10px] font-bold text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
+                    >
+                      <Trash2 size={10} /> Delete
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-sm text-slate-400 font-medium">Belum ada komentar. Jadilah yang pertama!</p>
+          </div>
         )}
       </div>
     </div>
