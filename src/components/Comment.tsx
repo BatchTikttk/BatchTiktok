@@ -40,11 +40,11 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       if (isValidUUID(itemId)) {
         setResolvedUuid(String(itemId));
       } else {
-        // Jika bukan UUID (misal teks/slug), cari id aslinya di tabel batches
+        // PERBAIKAN: Jika bukan UUID, hanya cari berdasarkan username saja untuk menghindari error 22P02 UUID
         const { data, error } = await supabase
           .from('batches')
           .select('id')
-          .or(`username.ilike."${itemId}",id.eq.${itemId}`)
+          .ilike('username', String(itemId))
           .limit(1)
           .maybeSingle();
 
@@ -135,7 +135,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       .from('comments')
       .insert([
         { 
-          item_id: resolvedUuid, // Menggunakan UUID yang sudah dipastikan valid
+          item_id: resolvedUuid,
           user_id: currentUserId, 
           content: newComment.trim(),
           parent_id: null
@@ -183,7 +183,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       .from('comments')
       .insert([
         { 
-          item_id: resolvedUuid, // Menggunakan UUID yang sudah dipastikan valid
+          item_id: resolvedUuid,
           user_id: currentUserId, 
           content: replyText.trim(),
           parent_id: parentId
