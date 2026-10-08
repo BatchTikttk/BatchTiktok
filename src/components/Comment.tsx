@@ -55,8 +55,8 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
           is_admin
         )
       `)
-      // Sesuaikan nama kolom di database Anda, di sini pakai 'batch_id' tapi isinya itemId
-      .eq('batch_id', itemId) 
+      // PERBAIKAN: Mengubah 'batch_id' menjadi 'item_id' sesuai skema database
+      .eq('item_id', itemId) 
       .order('created_at', { ascending: false });
 
     if (!error && data) {
@@ -79,7 +79,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       .from('comments')
       .insert([
         { 
-          batch_id: itemId, // Masukkan itemId ke kolom yang relevan di tabel comments
+          item_id: itemId, // PERBAIKAN: Mengubah batch_id menjadi item_id
           user_id: currentUserId, 
           content: newComment.trim() 
         }
