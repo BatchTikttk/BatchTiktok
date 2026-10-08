@@ -155,7 +155,7 @@ export default function WebmContribute({ onOpenUpgradeModal, onSuccess }: WebmCo
           <Video size={28} strokeWidth={2.5} className="text-emerald-500 flex-shrink-0" />
           <div>
             <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-              Top Contribute Effect
+              Top Contribute Effect And Card
               <span className="text-[11px] font-black text-amber-500 flex items-center gap-1 drop-shadow-sm ml-1">
                 <Crown size={14} strokeWidth={2.5} /> VIP
               </span>
