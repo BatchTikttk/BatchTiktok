@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
-import { User, Send, Trash2, Loader2, ShieldCheck, Clock } from 'lucide-react';
+import { User, Send, Trash2, Loader2, ShieldCheck, Clock, Reply } from 'lucide-react';
 import AvatarBorderVip from './AvatarBorderVip';
 
-// 1. SESUAIKAN PROPS DENGAN PREVIEWPAGE
 interface CommentsProps {
   itemId: string | number;
   currentUser?: any; 
@@ -13,11 +12,15 @@ interface CommentsProps {
 export default function Comments({ itemId, currentUser, onRequireLogin }: CommentsProps) {
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
+  
+  // State untuk fitur Reply
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
 
-  // Jika currentUser berupa object (Supabase session), ambil .id-nya. Jika string, pakai langsung.
   const currentUserId = typeof currentUser === 'string' ? currentUser : currentUser?.id;
 
   useEffect(() => {
@@ -55,7 +58,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
           is_admin
         )
       `)
-      // PERBAIKAN: Mengubah 'batch_id' menjadi 'item_id' sesuai skema database
       .eq('item_id', itemId) 
       .order('created_at', { ascending: false });
 
@@ -68,7 +70,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
   const handleSumbit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUserId) {
-      onRequireLogin(); // 2. GANTI PEMANGGILAN FUNGSI
+      onRequireLogin();
       return;
     }
 
@@ -79,7 +81,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       .from('comments')
       .insert([
         { 
-          item_id: itemId, // PERBAIKAN: Mengubah batch_id menjadi item_id
+          item_id: itemId,
           user_id: currentUserId, 
           content: newComment.trim() 
         }
@@ -103,6 +105,55 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
     if (!error && data) {
       setComments([data, ...comments]);
       setNewComment('');
+    }
+    setIsSubmitting(false);
+  };
+
+  // Fungsi khusus untuk submit balasan (reply)
+  const handleReplySubmit = async (e: React.FormEvent, parentComment: any) => {
+    e.preventDefault();
+    if (!currentUserId) {
+      onRequireLogin();
+      return;
+    }
+
+    if (!replyText.trim()) return;
+
+    setIsSubmitting(true);
+    
+    // Format balasan dengan mention, misal: "@username balasannya..."
+    const mentionedUser = parentComment.profiles?.username || 'User';
+    const finalContent = `@${mentionedUser} ${replyText.trim()}`;
+
+    const { data, error } = await supabase
+      .from('comments')
+      .insert([
+        { 
+          item_id: itemId,
+          user_id: currentUserId, 
+          content: finalContent 
+        }
+      ])
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        profiles (
+          username,
+          avatar_url,
+          vip_border_url,
+          animation_border_url,
+          is_premium,
+          is_admin
+        )
+      `)
+      .single();
+
+    if (!error && data) {
+      setComments([data, ...comments]); // Tambahkan komentar ke list utama
+      setReplyingTo(null); // Tutup form reply
+      setReplyText(''); // Kosongkan input
     }
     setIsSubmitting(false);
   };
@@ -156,6 +207,24 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
     );
   };
 
+  // Fungsi untuk memberi highlight hijau pada @username
+  const renderCommentContent = (content: string) => {
+    if (content.startsWith('@')) {
+      const spaceIndex = content.indexOf(' ');
+      if (spaceIndex !== -1) {
+        const mention = content.substring(0, spaceIndex);
+        const text = content.substring(spaceIndex + 1);
+        return (
+          <>
+            <span className="text-[#10b981] font-medium mr-1">{mention}</span>
+            {text}
+          </>
+        );
+      }
+    }
+    return content;
+  };
+
   return (
     <div className="bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-8 w-full">
       <div className="flex items-center gap-3 mb-6">
@@ -167,6 +236,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
         </h3>
       </div>
 
+      {/* Main Comment Input */}
       <form onSubmit={handleSumbit} className="mb-8 flex gap-3 lg:gap-4 items-start">
         {renderAvatarWithBorder(currentUserProfile || {}, 'medium')}
         
@@ -175,7 +245,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
             type="text"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            onClick={() => !currentUserId && onRequireLogin()} // 3. GANTI PEMANGGILAN FUNGSI
+            onClick={() => !currentUserId && onRequireLogin()}
             placeholder={currentUserId ? "Write your comment..." : "Login to write a comment..."}
             className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] transition-all"
             disabled={isSubmitting}
@@ -185,7 +255,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
             disabled={!newComment.trim() || isSubmitting}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-[#10b981] disabled:opacity-50 transition-colors"
           >
-            {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+            {isSubmitting && !replyingTo ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
           </button>
         </div>
       </form>
@@ -213,10 +283,11 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
                     </div>
                   </div>
                   <p className="text-sm text-slate-600 break-words leading-relaxed">
-                    {comment.content}
+                    {renderCommentContent(comment.content)}
                   </p>
                 </div>
                 
+                {/* Action Buttons */}
                 <div className="flex items-center gap-4 mt-1.5 px-2">
                   <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
                     <Clock size={10} />
@@ -228,9 +299,29 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
                       minute: '2-digit'
                     })}
                   </span>
+
+                  {/* Tombol Reply */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!currentUserId) {
+                        onRequireLogin();
+                        return;
+                      }
+                      // Toggle buka/tutup form reply
+                      setReplyingTo(replyingTo === comment.id ? null : comment.id);
+                      setReplyText('');
+                    }}
+                    className={`text-[10px] font-bold transition-colors flex items-center gap-1 ${
+                      replyingTo === comment.id ? 'text-[#10b981]' : 'text-slate-400 hover:text-[#10b981]'
+                    }`}
+                  >
+                    <Reply size={10} /> Reply
+                  </button>
                   
                   {(currentUserId === comment.user_id || currentUserProfile?.is_admin) && (
                     <button
+                      type="button"
                       onClick={() => handleDelete(comment.id)}
                       className="text-[10px] font-bold text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
                     >
@@ -238,6 +329,35 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
                     </button>
                   )}
                 </div>
+
+                {/* Input Reply (Muncul saat tombol Reply diklik) */}
+                {replyingTo === comment.id && (
+                  <form 
+                    onSubmit={(e) => handleReplySubmit(e, comment)} 
+                    className="mt-3 flex gap-3 items-start animate-in fade-in duration-200"
+                  >
+                    {renderAvatarWithBorder(currentUserProfile || {}, 'small')}
+                    
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        placeholder={`Reply to ${comment.profiles?.username || 'User'}...`}
+                        className="w-full pl-3 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] transition-all shadow-sm"
+                        disabled={isSubmitting}
+                        autoFocus
+                      />
+                      <button 
+                        type="submit"
+                        disabled={!replyText.trim() || isSubmitting}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-[#10b981] disabled:opacity-50 transition-colors"
+                      >
+                        {isSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
             </div>
           ))
