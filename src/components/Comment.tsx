@@ -23,23 +23,29 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
   const currentUserId = typeof currentUser === 'string' ? currentUser : currentUser?.id;
 
   useEffect(() => {
-    fetchComments();
+    if (itemId) {
+      fetchComments();
+    }
     if (currentUserId) {
       fetchCurrentUserProfile();
     }
   }, [itemId, currentUserId]);
 
   const fetchCurrentUserProfile = async () => {
-    const { data } = await supabase
+    if (!currentUserId) return;
+    const { data, error } = await supabase
       .from('profiles')
       .select('avatar_url, vip_border_url, animation_border_url, is_premium, is_admin')
       .eq('id', currentUserId)
       .single();
     
-    if (data) setCurrentUserProfile(data);
+    if (!error && data) {
+      setCurrentUserProfile(data);
+    }
   };
 
   const fetchComments = async () => {
+    if (!itemId) return;
     setIsLoading(true);
     const { data, error } = await supabase
       .from('comments') 
@@ -59,15 +65,17 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
         )
       `)
       .eq('item_id', itemId) 
-      .order('created_at', { ascending: true }); // Mengambil data kronologis
+      .order('created_at', { ascending: true });
 
-    if (!error && data) {
+    if (error) {
+      console.error('Error fetching comments:', error);
+    } else if (data) {
       setComments(data);
     }
     setIsLoading(false);
   };
 
-  const handleSumbit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUserId) {
       onRequireLogin();
@@ -104,7 +112,9 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       `)
       .single();
 
-    if (!error && data) {
+    if (error) {
+      console.error('Error submitting comment:', error);
+    } else if (data) {
       setComments([...comments, data]);
       setNewComment('');
     }
@@ -129,7 +139,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
           item_id: itemId,
           user_id: currentUserId, 
           content: replyText.trim(),
-          parent_id: parentId // Menyimpan ID komentar induk
+          parent_id: parentId
         }
       ])
       .select(`
@@ -149,7 +159,9 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       `)
       .single();
 
-    if (!error && data) {
+    if (error) {
+      console.error('Error submitting reply:', error);
+    } else if (data) {
       setComments([...comments, data]);
       setReplyingTo(null);
       setReplyText('');
@@ -165,8 +177,9 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       .delete()
       .eq('id', commentId);
 
-    if (!error) {
-      // Hapus komentar dari state (beserta child/balasan jika ada)
+    if (error) {
+      console.error('Error deleting comment:', error);
+    } else {
       setComments(comments.filter(c => c.id !== commentId && c.parent_id !== commentId));
     }
   };
@@ -207,11 +220,15 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
     );
   };
 
-  // Memisahkan komentar utama dan balasan
-  const mainComments = comments.filter(c => !c.parent_id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  const getReplies = (parentId: string) => comments.filter(c => c.parent_id === parentId);
+  const mainComments = comments
+    .filter(c => !c.parent_id)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    
+  const getReplies = (parentId: string) => 
+    comments
+      .filter(c => c.parent_id === parentId)
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
-  // Komponen Helper untuk me-render satu block komentar (agar kode tidak berulang)
   const CommentBlock = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => (
     <div className={`flex gap-3 lg:gap-4 group ${isReply ? 'mt-4' : ''}`}>
       {isReply && (
@@ -242,7 +259,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
         <div className="flex items-center gap-4 mt-1.5 px-2">
           <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
             <Clock size={10} />
-            {new Date(comment.created_at).toLocaleString('en-US', {
+            {new Date(comment.created_at).toLocaleString('id-ID', {
               day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
             })}
           </span>
@@ -291,7 +308,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
         </h3>
       </div>
 
-      <form onSubmit={handleSumbit} className="mb-8 flex gap-3 lg:gap-4 items-start">
+      <form onSubmit={handleSubmit} className="mb-8 flex gap-3 lg:gap-4 items-start">
         {renderAvatarWithBorder(currentUserProfile || {}, 'medium')}
         
         <div className="flex-1 relative">
@@ -323,18 +340,14 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
           mainComments.map((comment) => (
             <div key={comment.id} className="w-full">
               
-              {/* Komentar Utama */}
               <CommentBlock comment={comment} />
 
-              {/* Area Balasan & Form Reply (Menjorok ke kanan) */}
               <div className="ml-12 md:ml-16 mt-2 border-l-2 border-slate-100 pl-4">
                 
-                {/* Daftar Balasan */}
                 {getReplies(comment.id).map(reply => (
                   <CommentBlock comment={reply} isReply={true} key={reply.id} />
                 ))}
 
-                {/* Form Reply */}
                 {replyingTo === comment.id && (
                   <form 
                     onSubmit={(e) => handleReplySubmit(e, comment.id)} 
