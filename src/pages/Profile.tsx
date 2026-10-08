@@ -1059,7 +1059,7 @@ export default function Profile({
                   </div>
                   
                   <AnimationBorder 
-                    userProgress={userProfile?.is_admin ? 999999 : stats.totalUploads} 
+                    userProgress={stats.totalUploads} 
                     equippedBorderUrl={userProfile?.animation_border_url} 
                     userAvatarUrl={userProfile?.avatar_url}
                     onSelectBorder={handleSelectAnimationBorder} 
