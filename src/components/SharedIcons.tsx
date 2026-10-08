@@ -124,8 +124,8 @@ export const EmeraldFolderIcon = ({
     );
   };
 
-  // Logika warna: Merah Dop (#991B1B) jika dibanned, Emas (#F59E0B) jika eksklusif, Hijau (#10b981) jika normal
-  const folderColor = isBanned ? "#991B1B" : isExclusive ? "#F59E0B" : "#10b981";
+  // PERBAIKAN LOGIKA: Emas (#F59E0B) jika eksklusif (prioritas), Merah (#991B1B) jika dibanned & reguler, Hijau (#10b981) jika normal
+  const folderColor = isExclusive ? "#F59E0B" : isBanned ? "#991B1B" : "#10b981";
 
   return (
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className={className}>
