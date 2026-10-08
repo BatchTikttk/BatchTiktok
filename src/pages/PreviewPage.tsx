@@ -5,8 +5,10 @@ import { supabase } from '../supabase';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
+// Komponen Lazy Load
 const LoginModal = lazy(() => import('../components/LoginModal'));
 const PostModal = lazy(() => import('../components/PostModal'));
+const Comment = lazy(() => import('../components/Comment')); // Tambahkan import Comment
 
 const MOCK_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
 const BANNED_LOGO_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/BannedLogo.webp";
@@ -29,7 +31,7 @@ interface PreviewPageProps {
   itemId?: string;
   itemData?: any;
   isUserPremium?: boolean;
-  currentUser?: string | null;
+  currentUser?: any | null; // Diubah jadi any agar bisa menangkap user object dari Supabase
   onOpenUpgradeModal?: () => void;
 }
 
@@ -323,10 +325,12 @@ export default function PreviewPage({
   const hasGdrive = Boolean(finalGdriveLink && finalGdriveLink.trim() !== '');
   const hasTerabox = Boolean(finalTeraboxLink && finalTeraboxLink.trim() !== '');
 
+  const currentUserUsername = currentUser?.user_metadata?.username || currentUser?.email || currentUser;
+
   const isUploader = Boolean(
-    currentUser && 
-    ((item.uploaded_by && currentUser.toLowerCase() === item.uploaded_by.toLowerCase()) ||
-     (item.username && currentUser.toLowerCase() === item.username.toLowerCase()))
+    currentUserUsername && 
+    ((item.uploaded_by && typeof currentUserUsername === 'string' && currentUserUsername.toLowerCase() === item.uploaded_by.toLowerCase()) ||
+     (item.username && typeof currentUserUsername === 'string' && currentUserUsername.toLowerCase() === item.username.toLowerCase()))
   );
   
   const isLocked = Boolean(item.is_exclusive && !isUserPremium && !isUploader);
@@ -344,7 +348,7 @@ export default function PreviewPage({
             window.history.pushState({}, '', '/');
             window.dispatchEvent(new Event('popstate'));
           }}
-          currentUser={currentUser}
+          currentUser={currentUserUsername} // Menyesuaikan dengan Navbar yang sebelumnya menerima string
           handleLogout={handleLogout}
           setShowAddModal={() => setShowAddModal(true)}
           setShowLoginModal={() => setShowLoginModal(true)}
@@ -703,6 +707,19 @@ export default function PreviewPage({
 
             </div>
           </div>
+          
+          {/* ---> SECTION KOMENTAR DITAMBAHKAN DI SINI <--- */}
+          <div className="w-full max-w-[800px] mt-8">
+            <Suspense fallback={<div className="h-40 bg-white rounded-[2rem] shadow-sm animate-pulse border border-slate-100 mt-8"></div>}>
+              <Comment 
+                itemId={item.id} 
+                currentUser={currentUser} 
+                onRequireLogin={() => setShowLoginModal(true)} 
+              />
+            </Suspense>
+          </div>
+          {/* ----------------------------------------------- */}
+
         </div>
       </div>
 
@@ -716,7 +733,7 @@ export default function PreviewPage({
           <PostModal 
             onClose={() => setShowAddModal(false)}
             onSuccess={() => {}} 
-            currentUser={currentUser}
+            currentUser={currentUserUsername}
             showToast={() => {}}
             CATEGORIES={['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam']}
             isAdmin={false}
