@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, Send, User, MoreVertical, Trash2 } from 'lucide-react';
+import { MessageCircle, Send, User, Trash2 } from 'lucide-react';
 import { supabase } from '../supabase';
 
 interface CommentType {
