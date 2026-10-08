@@ -66,7 +66,14 @@ export default function PreviewPage({
 
   useEffect(() => {
     const fetchItem = async () => {
-      const targetId = itemId || window.location.pathname.split('/preview/')[1];
+      // Ambil parameter dari prop atau URL
+      let targetId = itemId || window.location.pathname.split('/preview/')[1];
+      
+      // Bersihkan slash di akhir URL jika ada
+      if (targetId && targetId.endsWith('/')) {
+        targetId = targetId.slice(0, -1);
+      }
+
       if (!targetId && !initialItemData) {
         setLoading(false);
         return;
@@ -80,17 +87,32 @@ export default function PreviewPage({
 
       try {
         setLoading(true);
-        const { data, error } = await supabase
-          .from('batches')
-          .select('*')
-          .eq('id', targetId)
-          .single();
+        // Decode URI untuk membaca karakter '@' dengan benar (mencegah %40 error)
+        const decodedTarget = decodeURIComponent(targetId);
 
-        if (!error && data) {
+        let query = supabase.from('batches').select('*');
+
+        // Pengecekan cerdas: Apakah ini UUID atau Username?
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(decodedTarget);
+
+        if (isUUID) {
+          query = query.eq('id', decodedTarget);
+        } else {
+          // Jika bukan UUID, cari berdasarkan username (case-insensitive)
+          query = query.ilike('username', decodedTarget);
+        }
+
+        const { data, error } = await query.single();
+
+        if (error) {
+          console.error('Supabase fetch error:', error);
+          setItem(null);
+        } else if (data) {
           setItem(data);
         }
       } catch (err) {
         console.error('Failed to fetch batch item:', err);
+        setItem(null);
       } finally {
         setLoading(false);
       }
