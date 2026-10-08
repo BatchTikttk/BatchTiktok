@@ -75,21 +75,26 @@ export default function Comment({ itemId, currentUser, onRequireLogin }: Comment
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!currentUser) {
-      onRequireLogin();
-      return;
-    }
-
     if (!newComment.trim()) return;
 
     setIsSubmitting(true);
+
+    // MENGAMBIL USER LANGSUNG DARI SESI AUTH SUPABASE
+    // Ini menjamin kita mendapatkan UUID yang valid dan mencegah error 403 RLS
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      setIsSubmitting(false);
+      onRequireLogin(); // Munculkan popup login jika sesi tidak valid
+      return;
+    }
 
     const { error } = await supabase
       .from('comments')
       .insert([
         {
           item_id: itemId,
-          user_id: currentUser.id,
+          user_id: user.id, // Menggunakan UUID valid langsung dari session Auth
           content: newComment.trim(),
         }
       ]);
@@ -98,20 +103,32 @@ export default function Comment({ itemId, currentUser, onRequireLogin }: Comment
       setNewComment('');
     } else {
       console.error('Failed to send comment:', error);
+      alert(`Gagal mengirim komentar: ${error.message}`); // Tambahan alert agar error terlihat jelas di UI
     }
+    
     setIsSubmitting(false);
   };
 
   const handleDelete = async (commentId: string) => {
+    // Memastikan user menghapus dengan session yang valid
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      onRequireLogin();
+      return;
+    }
+
     const { error } = await supabase
       .from('comments')
       .delete()
       .eq('id', commentId);
 
-    if (error) console.error('Failed to delete comment:', error);
+    if (error) {
+      console.error('Failed to delete comment:', error);
+      alert(`Gagal menghapus komentar: ${error.message}`);
+    }
   };
 
-  // Date format (e.g., "2 hours ago" or "Oct 12, 2026")
+  // Date format (e.g., "Oct 12, 2026")
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-US', {
@@ -226,7 +243,7 @@ export default function Comment({ itemId, currentUser, onRequireLogin }: Comment
                   {comment.content}
                 </p>
 
-                {/* Delete Button (Only appears if this comment belongs to the logged-in user, or the user is an Admin) */}
+                {/* Delete Button */}
                 {currentUser && (currentUser.id === comment.user_id || currentUser.user_metadata?.is_admin) && (
                   <button 
                     onClick={() => handleDelete(comment.id)}
