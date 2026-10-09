@@ -269,7 +269,7 @@ export default function Navbar({
             onClick={() => handleGoToHome('Home')}
           >
             <img 
-              src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/DutaKlip.webp" 
+              src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/DutaKlip2.webp" 
               alt="DutaKlip Logo" 
               className="h-10 w-auto object-contain transform group-hover:scale-105 transition-transform"
             />
