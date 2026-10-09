@@ -4,8 +4,8 @@ import { supabase } from '../supabase';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { Turnstile } from '@marsidev/react-turnstile';
 
-const GOOGLE_CLIENT_ID = "1067355347912-mvrekrrcgai9sbibseamcbtq4e65ce4v.apps.googleusercontent.com";
-const TURNSTILE_SITE_KEY = "0x4AAAAAAFL5HA7QswddqBV1";
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
 export default function LoginModalWrapper(props: any) {
   return (
