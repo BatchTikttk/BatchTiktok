@@ -274,10 +274,10 @@ export default function Navbar({
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-xl font-black text-slate-900 tracking-tight">
-                Galeri
+                Duta
               </span>
               <span className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[11px] font-black px-2 py-0.5 rounded-lg shadow-sm shadow-emerald-500/30 tracking-wider uppercase">
-                VT
+                KLIP
               </span>
             </div>
           </div>
