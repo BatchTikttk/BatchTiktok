@@ -87,7 +87,7 @@ interface NavbarProps {
   setShowAddModal: (show: boolean) => void;
   setShowLoginModal: (show: boolean) => void;
   setShowRulesModal?: any; 
-  EmeraldFolderIcon: React.ElementType;
+  EmeraldFolderIcon?: React.ElementType;
   onOpenProfile?: () => void;
   onOpenTopContributors?: () => void;
   onOpenUpgrade?: () => void;
@@ -103,7 +103,6 @@ export default function Navbar({
   setShowAddModal, 
   setShowLoginModal,
   setShowRulesModal,
-  EmeraldFolderIcon,
   onOpenProfile,
   onOpenTopContributors,
   onOpenUpgrade
@@ -264,22 +263,16 @@ export default function Navbar({
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
-          {/* Logo & Brand Name */}
+          {/* Logo */}
           <div 
-            className="flex items-center gap-3 cursor-pointer group"
+            className="flex items-center cursor-pointer group"
             onClick={() => handleGoToHome('Home')}
           >
-            <div className="w-10 h-10 flex items-center justify-center transform group-hover:scale-105 transition-transform">
-              <EmeraldFolderIcon className="w-8 h-8 drop-shadow-md" />
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xl font-black text-slate-900 tracking-tight">
-                Duta
-              </span>
-              <span className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[11px] font-black px-2 py-0.5 rounded-lg shadow-sm shadow-emerald-500/30 tracking-wider uppercase">
-                KLIP
-              </span>
-            </div>
+            <img 
+              src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/DutaKlip.webp" 
+              alt="DutaKlip Logo" 
+              className="h-10 w-auto object-contain transform group-hover:scale-105 transition-transform"
+            />
           </div>
 
           {/* Navigasi Utama */}
