@@ -1,5 +1,4 @@
 import { ShieldCheck, FolderHeart, Scale, Shield, Globe } from 'lucide-react';
-import { EmeraldFolderIcon } from './SharedIcons';
 
 // Komponen helper bendera untuk footer (serasi dengan Navbar)
 const FooterFlag = ({ country, className = "w-4 h-4" }: { country: string, className?: string }) => {
@@ -91,11 +90,13 @@ export default function Footer({ onSelectCountry }: FooterProps) {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           
           <div className="md:col-span-2 space-y-3">
-            <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigateTo('/')}>
-              <EmeraldFolderIcon className="w-8 h-8 flex-shrink-0" />
-              <span className="font-extrabold text-xl text-slate-800 tracking-tight">
-                Batch<span className="text-emerald-600">TikTok</span>
-              </span>
+            {/* Logo DutaKlip (serasi dengan Navbar) */}
+            <div className="flex items-center gap-2.5 cursor-pointer group" onClick={() => navigateTo('/')}>
+              <img 
+                src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/DutaKlip2.webp" 
+                alt="DutaKlip Logo" 
+                className="h-10 w-auto object-contain transform group-hover:scale-105 transition-transform"
+              />
             </div>
             <p className="text-slate-500 text-sm max-w-sm font-medium leading-relaxed">
               A structured, clean, and distraction-free platform for archiving and sharing regional TikTok video collections.
