@@ -207,7 +207,7 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: CreatorCardProps) =
           
           {data.uploader_is_admin ? (
             <img 
-              src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp" 
+              src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Admin.webp" 
               alt="Admin Verified" 
               title="Admin Verified"
               className="w-5 h-5 object-contain drop-shadow-sm cursor-help hover:scale-110 transition-transform ml-0.5"

@@ -378,7 +378,7 @@ export default function ChatGroup({ currentUser, setShowLoginModal }: ChatGroupP
                       
                       {senderProfile?.is_admin && (
                         <img
-                          src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp"
+                          src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Admin.webp"
                           alt="Admin"
                           title="Admin Verified"
                           className="absolute -bottom-1 -right-1 sm:-bottom-1.5 sm:-right-1.5 w-5 h-5 sm:w-[22px] sm:h-[22px] object-contain drop-shadow-md z-30"

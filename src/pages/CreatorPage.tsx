@@ -103,7 +103,7 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorB
           {isAdmin ? (
             <span title="Admin Verified">
               <img 
-                src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp" 
+                src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Admin.webp" 
                 alt="Admin Verified"
                 className="w-6 h-6 object-contain drop-shadow-sm cursor-pointer hover:scale-110 transition-transform ml-0.5"
               />
