@@ -272,12 +272,17 @@ export default function Navbar({
             <div className="w-10 h-10 flex items-center justify-center transform group-hover:scale-105 transition-transform">
               <EmeraldFolderIcon className="w-8 h-8 drop-shadow-md" />
             </div>
-            <span className="text-xl font-extrabold text-slate-800 tracking-tight">
-              Batch<span className="text-emerald-500">Tiktok</span>
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xl font-black text-slate-900 tracking-tight">
+                Galeri
+              </span>
+              <span className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[11px] font-black px-2 py-0.5 rounded-lg shadow-sm shadow-emerald-500/30 tracking-wider uppercase">
+                VT
+              </span>
+            </div>
           </div>
 
-          {/* Navigasi Utama (Container Kotak Putih Dihapus) */}
+          {/* Navigasi Utama */}
           <div className="hidden md:flex items-center gap-1.5 relative">
             <button
               onClick={() => handleGoToHome('Home')}
@@ -341,7 +346,7 @@ export default function Navbar({
             </button>
           </div>
 
-          {/* Area Kanan (Rules & Avatar) tanpa Background Card */}
+          {/* Area Kanan (Rules & Avatar) */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             <button 
               onClick={handleGoToRules}
@@ -360,7 +365,6 @@ export default function Navbar({
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="px-3 py-2 rounded-xl text-sm font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 flex items-center gap-2.5 transition-all border-none cursor-pointer"
                 >
-                  {/* Container Avatar + Border (Ukuran & Gap Tetap Dijaga) */}
                   <div className="relative w-8 h-8 flex items-center justify-center flex-shrink-0">
                     <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center overflow-hidden flex-shrink-0 relative z-10">
                       {avatarUrl ? (
