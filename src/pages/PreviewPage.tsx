@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import useSWR from 'swr';
 import { Cloud, Box, Download, User, Volume2, VolumeX, Crown, Lock, Play } from 'lucide-react';
 import { EmeraldFolderIcon } from '../components/SharedIcons';
 import { supabase } from '../supabase';
@@ -27,6 +28,42 @@ const PRESET_BACKGROUNDS = [
   { id: 'carberus', name: 'Carberus', url: 'https://qu.ax/Yf3Q0.webm', gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)' }
 ];
 
+// SWR Fetcher untuk Item Utama
+const fetchBatchItem = async (key: string) => {
+  const targetId = key.replace('batch_item_', '');
+  const decodedTarget = decodeURIComponent(targetId);
+
+  let query = supabase.from('batches').select('*');
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(decodedTarget);
+
+  if (isUUID) {
+    query = query.eq('id', decodedTarget);
+  } else {
+    query = query.ilike('username', decodedTarget);
+  }
+
+  const { data, error } = await query.single();
+  if (error) throw error;
+  return data;
+};
+
+// SWR Fetcher untuk Related Folders
+const fetchRelatedFolders = async ([_, currentId]: [string, any]) => {
+  let query = supabase
+    .from('batches')
+    .select('*')
+    .eq('status', 'approved')
+    .limit(5);
+
+  if (currentId) {
+    query = query.neq('id', currentId);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+};
+
 interface PreviewPageProps {
   itemId?: string;
   itemData?: any;
@@ -42,12 +79,9 @@ export default function PreviewPage({
   currentUser = null,
   onOpenUpgradeModal
 }: PreviewPageProps) {
-  const [item, setItem] = useState<any>(initialItemData || null);
-  const [loading, setLoading] = useState<boolean>(!initialItemData);
   const [isMuted, setIsMuted] = useState<boolean>(true);
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [relatedFolders, setRelatedFolders] = useState<any[]>([]);
   
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -84,83 +118,30 @@ export default function PreviewPage({
     checkAdminStatus();
   }, [currentUser]);
 
-  useEffect(() => {
-    const fetchItem = async () => {
-      let targetId = itemId || window.location.pathname.split('/preview/')[1];
-      
-      if (targetId && targetId.endsWith('/')) {
-        targetId = targetId.slice(0, -1);
-      }
+  // Mendapatkan target ID dari props atau URL
+  let targetId = itemId || (typeof window !== 'undefined' ? window.location.pathname.split('/preview/')[1] : '');
+  if (targetId && targetId.endsWith('/')) {
+    targetId = targetId.slice(0, -1);
+  }
 
-      if (!targetId && !initialItemData) {
-        setLoading(false);
-        return;
-      }
+  // Menggunakan SWR untuk fetch item utama
+  const { data: fetchedItem, error: itemError, isLoading: itemLoading } = useSWR(
+    initialItemData ? null : (targetId ? `batch_item_${targetId}` : null),
+    fetchBatchItem,
+    { revalidateOnFocus: false }
+  );
 
-      if (initialItemData) {
-        setItem(initialItemData);
-        setLoading(false);
-        return;
-      }
+  const item = initialItemData || fetchedItem;
+  const loading = !initialItemData && itemLoading && !item;
 
-      try {
-        setLoading(true);
-        const decodedTarget = decodeURIComponent(targetId);
+  // Menggunakan SWR untuk fetch related folders di sidebar kanan
+  const { data: fetchedRelated } = useSWR(
+    item?.id ? ['related-folders', item.id] : null,
+    fetchRelatedFolders,
+    { revalidateOnFocus: false }
+  );
 
-        let query = supabase.from('batches').select('*');
-
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(decodedTarget);
-
-        if (isUUID) {
-          query = query.eq('id', decodedTarget);
-        } else {
-          query = query.ilike('username', decodedTarget);
-        }
-
-        const { data, error } = await query.single();
-
-        if (error) {
-          console.error('Supabase fetch error:', error);
-          setItem(null);
-        } else if (data) {
-          setItem(data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch batch item:', err);
-        setItem(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchItem();
-  }, [itemId, initialItemData]);
-
-  // Fetch related folders for the right sidebar
-  useEffect(() => {
-    const fetchRelatedFolders = async () => {
-      try {
-        let query = supabase
-          .from('batches')
-          .select('*')
-          .eq('status', 'approved')
-          .limit(5);
-
-        if (item?.id) {
-          query = query.neq('id', item.id);
-        }
-
-        const { data, error } = await query;
-        if (!error && data) {
-          setRelatedFolders(data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch related folders:', err);
-      }
-    };
-
-    fetchRelatedFolders();
-  }, [item]);
+  const relatedFolders = fetchedRelated || [];
 
   useEffect(() => {
     let channel: any;
@@ -334,7 +315,7 @@ export default function PreviewPage({
     );
   }
 
-  if (!item) {
+  if (!item || itemError) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-between font-sans">
         <Navbar 
@@ -795,7 +776,7 @@ export default function PreviewPage({
 
             </div>
 
-            {/* Right Column: Related Folders Sidebar (Header count without background container) */}
+            {/* Right Column: Related Folders Sidebar */}
             <div className="lg:col-span-1 w-full bg-white rounded-[2rem] shadow-xl border border-slate-100 p-6 sticky top-24">
               <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center justify-between">
                 <span>Related Folders</span>
