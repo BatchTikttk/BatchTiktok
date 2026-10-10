@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, Suspense, lazy } from 'react';
+import useSWR from 'swr';
 import { supabase } from '../supabase';
 import { 
   User, 
@@ -29,13 +30,13 @@ import {
   Send,
   Crown,
   Link2,
-  Trophy // Icon Trophy untuk tab Progress
+  Trophy 
 } from 'lucide-react';
 import { EmeraldFolderIcon } from '../components/SharedIcons';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import AvatarBorderVip, { VIP_BORDERS } from '../components/AvatarBorderVip';
-import AnimationBorder from '../components/AnimationBorder'; // Import komponen Animation Border
+import AnimationBorder from '../components/AnimationBorder';
 
 // Lazy load heavy components
 const PostModal = lazy(() => import('../components/PostModal'));
@@ -116,6 +117,33 @@ const Toast = ({ message, isVisible, type = 'success' }: any) => (
   </div>
 );
 
+// SWR Fetchers
+const fetchUserProfile = async (key: string) => {
+  const userId = key.replace('profile_', '');
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+  if (error) throw error;
+  return data;
+};
+
+const fetchUserBatches = async (key: string) => {
+  const userId = key.replace('batches_', '');
+  const { data, error } = await supabase.from('batches').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+};
+
+const fetchAllBatches = async () => {
+  const { data, error } = await supabase.from('batches').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+};
+
+const fetchAllRequests = async () => {
+  const { data, error } = await supabase.from('batch_requests').select('*, profiles (username, avatar_url)').order('is_priority', { ascending: false }).order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+};
+
 interface ProfileProps {
   currentUser: string | null;
   onBack: () => void;
@@ -133,16 +161,51 @@ export default function Profile({
   showToast: propShowToast,
   onProfileUpdate
 }: ProfileProps) {
-  const [loading, setLoading] = useState(true);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [userBatches, setUserBatches] = useState<any[]>([]);
-  const [allBatches, setAllBatches] = useState<any[]>([]); 
-  
-  // State for Custom Batch Requests in Admin Panel
-  const [adminRequests, setAdminRequests] = useState<any[]>([]);
+  const [sessionUserId, setSessionUserId] = useState<string | null>(null);
+
+  // Get active session user ID first
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.id) {
+        setSessionUserId(session.user.id);
+      }
+    });
+  }, [currentUser]);
+
+  // SWR hooks for automatic caching and bandwidth saving
+  const { data: userProfileData, mutate: mutateProfile } = useSWR(
+    sessionUserId ? `profile_${sessionUserId}` : null,
+    fetchUserProfile,
+    { revalidateOnFocus: false }
+  );
+
+  const { data: userBatchesData, mutate: mutateBatches } = useSWR(
+    sessionUserId ? `batches_${sessionUserId}` : null,
+    fetchUserBatches,
+    { revalidateOnFocus: false }
+  );
+
+  const { data: allBatchesData, mutate: mutateAllBatches } = useSWR(
+    userProfileData?.is_admin ? 'admin_all_batches' : null,
+    fetchAllBatches,
+    { revalidateOnFocus: false }
+  );
+
+  const { data: adminRequestsData, mutate: mutateAdminRequests } = useSWR(
+    userProfileData?.is_admin ? 'admin_all_requests' : null,
+    fetchAllRequests,
+    { revalidateOnFocus: false }
+  );
+
+  const userProfile = userProfileData || null;
+  const userBatches = userBatchesData || [];
+  const allBatches = allBatchesData || [];
+  const adminRequests = adminRequestsData || [];
+
+  const loading = !sessionUserId || (!userProfileData && !userBatchesData);
+
   const [adminTab, setAdminTab] = useState<'uploads' | 'requests'>('uploads');
   const [requestResultUrls, setRequestResultUrls] = useState<Record<string, string>>({});
-
   const [, setAdminList] = useState<string[]>([]);
   const [deletingId, setDeletingId] = useState<string | number | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<string | number | null>(null);
@@ -174,22 +237,18 @@ export default function Profile({
   };
 
   useEffect(() => {
-    fetchUserData(true);
-    fetchAdmins();
-  }, [currentUser]);
+    if (userProfile?.username) {
+      setUsernameInput(userProfile.username);
+    } else if (currentUser) {
+      setUsernameInput(currentUser);
+    }
+  }, [userProfile, currentUser]);
 
   useEffect(() => {
-    if (userProfile?.is_admin) {
-      fetchAllBatches();
-      fetchAllRequests();
-    }
-  }, [userProfile?.is_admin]);
+    fetchAdmins();
+  }, []);
 
   const fetchAdmins = async () => {
-    const cacheKey = 'swr_admin_list';
-    const cachedData = localStorage.getItem(cacheKey);
-    if (cachedData) setAdminList(JSON.parse(cachedData));
-
     const { data } = await supabase
       .from('profiles')
       .select('username')
@@ -198,102 +257,6 @@ export default function Profile({
     if (data) {
       const list = data.map((p: any) => (p.username || '').toLowerCase());
       setAdminList(list);
-      localStorage.setItem(cacheKey, JSON.stringify(list));
-    }
-  };
-
-  const fetchUserData = async (isInitial = false) => {
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      setUserProfile(null);
-      setUserBatches([]);
-      setLoading(false);
-      return;
-    }
-
-    const userId = session.user.id;
-    const cacheProfileKey = `swr_profile_${userId}`;
-    const cacheBatchesKey = `swr_batches_${userId}`;
-
-    if (isInitial) {
-      const cachedProfile = localStorage.getItem(cacheProfileKey);
-      const cachedBatches = localStorage.getItem(cacheBatchesKey);
-      
-      if (cachedProfile) {
-        const parsed = JSON.parse(cachedProfile);
-        setUserProfile(parsed);
-        setUsernameInput(parsed.username || currentUser || '');
-      }
-      if (cachedBatches) {
-        setUserBatches(JSON.parse(cachedBatches));
-      }
-      
-      if (cachedProfile && cachedBatches) {
-        setLoading(false); 
-      } else {
-        setLoading(true);
-      }
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (profile) {
-      setUserProfile(profile);
-      setUsernameInput(profile.username || currentUser || '');
-      localStorage.setItem(cacheProfileKey, JSON.stringify(profile));
-    } else if (currentUser) {
-      setUsernameInput(currentUser);
-    }
-
-    const { data: batches } = await supabase
-      .from('batches')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (batches) {
-      setUserBatches(batches);
-      localStorage.setItem(cacheBatchesKey, JSON.stringify(batches));
-    }
-
-    setLoading(false);
-  };
-
-  const fetchAllBatches = async () => {
-    const cacheKey = 'swr_admin_all_batches';
-    const cachedData = localStorage.getItem(cacheKey);
-    if (cachedData) setAllBatches(JSON.parse(cachedData));
-
-    const { data } = await supabase
-      .from('batches')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (data) {
-      setAllBatches(data);
-      localStorage.setItem(cacheKey, JSON.stringify(data));
-    }
-  };
-
-  const fetchAllRequests = async () => {
-    const cacheKey = 'swr_admin_all_requests';
-    const cachedData = localStorage.getItem(cacheKey);
-    if (cachedData) setAdminRequests(JSON.parse(cachedData));
-
-    const { data } = await supabase
-      .from('batch_requests')
-      .select('*, profiles (username, avatar_url)')
-      .order('is_priority', { ascending: false })
-      .order('created_at', { ascending: false });
-
-    if (data) {
-      setAdminRequests(data);
-      localStorage.setItem(cacheKey, JSON.stringify(data));
     }
   };
 
@@ -311,8 +274,8 @@ export default function Profile({
       handleShowToast(`Failed to update status: ${error.message}`, "error");
     } else {
       handleShowToast(`Batch status successfully changed to ${newStatus}`, "success");
-      setAllBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: newStatus } : b));
-      setUserBatches(prev => prev.map(b => b.id === batchId ? { ...b, status: newStatus } : b));
+      mutateAllBatches();
+      mutateBatches();
     }
   };
 
@@ -339,7 +302,7 @@ export default function Profile({
       handleShowToast(`Failed to update request status: ${error.message}`, "error");
     } else {
       handleShowToast(`Request status successfully changed to ${newStatus}`, "success");
-      setAdminRequests(prev => prev.map(req => req.id === reqId ? { ...req, ...updateData } : req));
+      mutateAdminRequests();
       
       if (newStatus === 'completed') {
         setRequestResultUrls(prev => {
@@ -352,63 +315,57 @@ export default function Profile({
   };
 
   const handleUpdateAvatar = async (avatarUrl: string) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) return;
+    if (!sessionUserId) return;
 
     const { error } = await supabase
       .from('profiles')
       .update({ avatar_url: avatarUrl })
-      .eq('id', session.user.id);
+      .eq('id', sessionUserId);
 
     if (error) {
       handleShowToast("Failed to update profile avatar", "error");
     } else {
-      setUserProfile((prev: any) => ({ ...prev, avatar_url: avatarUrl }));
+      mutateProfile();
       if (onProfileUpdate) onProfileUpdate(userProfile?.username || currentUser || '', avatarUrl);
       handleShowToast("Avatar successfully updated!", "success");
     }
   };
 
-  // Memilih / Melepas Avatar Border VIP
   const handleSelectVipBorder = async (borderUrl: string) => {
     if (!userProfile?.is_premium) {
       handleShowToast("This feature is exclusively for Premium VIP users!", "error");
       return;
     }
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+    if (!sessionUserId) return;
 
     const newBorderUrl = userProfile?.vip_border_url === borderUrl ? null : borderUrl;
 
     const { error } = await supabase
       .from('profiles')
       .update({ vip_border_url: newBorderUrl })
-      .eq('id', session.user.id);
+      .eq('id', sessionUserId);
 
     if (error) {
       handleShowToast(`Gagal: ${error.message}`, "error");
     } else {
-      setUserProfile((prev: any) => ({ ...prev, vip_border_url: newBorderUrl }));
+      mutateProfile();
       handleShowToast(newBorderUrl ? "VIP frame successfully applied.!" : "VIP frame removed!", "success");
     }
   };
 
-  // Memilih / Melepas Animation Border Umum
   const handleSelectAnimationBorder = async (borderUrl: string | null) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+    if (!sessionUserId) return;
 
     const { error } = await supabase
       .from('profiles')
       .update({ animation_border_url: borderUrl })
-      .eq('id', session.user.id);
+      .eq('id', sessionUserId);
 
     if (error) {
       handleShowToast(`Gagal: ${error.message}`, "error");
     } else {
-      setUserProfile((prev: any) => ({ ...prev, animation_border_url: borderUrl }));
+      mutateProfile();
       handleShowToast(borderUrl ? "Animation border successfully equipped!" : "Animation border removed successfully!", "success");
     }
   };
@@ -420,25 +377,20 @@ export default function Profile({
       return;
     }
 
+    if (!sessionUserId) return;
+
     setUpdatingUsername(true);
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      setUpdatingUsername(false);
-      return;
-    }
-
     const { error } = await supabase
       .from('profiles')
       .update({ username: trimmedUsername })
-      .eq('id', session.user.id);
+      .eq('id', sessionUserId);
 
     setUpdatingUsername(false);
 
     if (error) {
       handleShowToast("Failed to update username", "error");
     } else {
-      setUserProfile((prev: any) => ({ ...prev, username: trimmedUsername }));
+      mutateProfile();
       if (onProfileUpdate) onProfileUpdate(trimmedUsername, userProfile?.avatar_url);
       handleShowToast("Username successfully updated!", "success");
     }
@@ -448,7 +400,6 @@ export default function Profile({
 
   const stats = useMemo(() => {
     const totalUploads = userBatches.length;
-    // Memisahkan jumlah upload biasa dan upload eksklusif
     const regularUploads = userBatches.filter((b: any) => !b.is_exclusive).length;
     const exclusiveUploads = userBatches.filter((b: any) => b.is_exclusive).length;
     
@@ -506,8 +457,8 @@ export default function Profile({
     if (error) {
       handleShowToast("Failed to delete folder", "error");
     } else {
-      setUserBatches(prev => prev.filter(b => b.id !== batchId));
-      setAllBatches(prev => prev.filter(b => b.id !== batchId));
+      mutateBatches();
+      mutateAllBatches();
       handleShowToast("Folder successfully deleted", "success");
     }
   };
@@ -537,7 +488,7 @@ export default function Profile({
         gdrive_url: editingBatch.gdrive_url,
         terabox_url: editingBatch.terabox_url,
         is_banned: editingBatch.is_banned,
-        is_exclusive: editingBatch.is_exclusive, // Menjaga logika is_exclusive saat edit
+        is_exclusive: editingBatch.is_exclusive,
         download_count: downloadVal,
         is_edited: true
       };
@@ -551,8 +502,8 @@ export default function Profile({
 
       handleShowToast("Batch successfully updated!", "success");
       
-      setUserBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...updateData } : b));
-      setAllBatches(prev => prev.map(b => b.id === editingBatch.id ? { ...b, ...updateData } : b));
+      mutateBatches();
+      mutateAllBatches();
       setEditingBatch(null);
     } catch (error: any) {
       const errorMsg = error?.message || "Failed to update batch";
@@ -648,7 +599,6 @@ export default function Profile({
                     )}
                   </div>
 
-                  {/* Prioritas: VIP Border -> Jika tidak ada, tampilkan Animation Border (Umum) */}
                   {userProfile?.is_premium && userProfile?.vip_border_url ? (
                     <AvatarBorderVip 
                       isPremium={userProfile?.is_premium} 
@@ -721,7 +671,6 @@ export default function Profile({
                   <div className="ml-auto w-2 h-2 rounded-full bg-[#f97316]"></div>
                 </button>
                 
-                {/* TAB PROGRESS / ANIMATION BORDER */}
                 <button
                   onClick={() => setActiveTab('progress')}
                   className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
@@ -756,8 +705,8 @@ export default function Profile({
                   <button
                     onClick={() => {
                       setActiveTab('admin');
-                      fetchAllBatches();
-                      fetchAllRequests();
+                      mutateAllBatches();
+                      mutateAdminRequests();
                     }}
                     className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
                       activeTab === 'admin' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
@@ -966,7 +915,6 @@ export default function Profile({
                           className="p-5 rounded-[24px] bg-white border border-slate-100 shadow-[0_4px_16px_-10px_rgba(0,0,0,0.05)] hover:shadow-md transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                         >
                           <div className="flex items-center gap-4">
-                            {/* WADAH FOLDER DENGAN LOGIKA EKSKLUSIF & MAHKOTA */}
                             <div className="relative p-3 bg-slate-50 rounded-2xl flex-shrink-0">
                               <EmeraldFolderIcon 
                                 className="w-10 h-10 flex-shrink-0" 
@@ -1060,7 +1008,7 @@ export default function Profile({
                 </div>
               )}
               
-              {/* === TAB PROGRESS (ANIMATION BORDER & LOGIKA 1 EKSKLUSIF = 10 UPLOAD) === */}
+              {/* === TAB PROGRESS === */}
               {activeTab === 'progress' && (
                 <div className="animate-in fade-in duration-300">
                   <div className="mb-8">
@@ -1068,7 +1016,6 @@ export default function Profile({
                     <p className="text-xs text-slate-500 mt-1">Collect and complete your animated borders based on your total File uploads.</p>
                   </div>
                   
-                  {/* Memanggil Komponen Animation Border dengan pembagian upload biasa & exclusive */}
                   <AnimationBorder 
                     userProgress={userProfile?.is_admin ? 999999 : stats.regularUploads} 
                     exclusiveUploads={userProfile?.is_admin ? 0 : stats.exclusiveUploads}
@@ -1112,7 +1059,6 @@ export default function Profile({
                         )}
                       </div>
                       
-                      {/* Avatar Border Preview */}
                       {userProfile?.is_premium && userProfile?.vip_border_url ? (
                         <AvatarBorderVip 
                           isPremium={userProfile?.is_premium} 
@@ -1141,7 +1087,6 @@ export default function Profile({
                     </div>
                   </div>
 
-                  {/* ===== WADAH KUMPULAN AVATAR BORDER VIP ===== */}
                   <div className="p-6 bg-slate-50 rounded-[32px] mb-6">
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -1230,7 +1175,6 @@ export default function Profile({
                     </div>
                   </div>
 
-                  {/* ===== KOMPONEN WEBM CONTRIBUTE ===== */}
                   <div className="mt-8 pt-6 border-t border-slate-100">
                     <Suspense fallback={
                       <div className="flex items-center justify-center p-6">
@@ -1256,8 +1200,8 @@ export default function Profile({
 
                     <button
                       onClick={() => {
-                        if (adminTab === 'uploads') fetchAllBatches();
-                        else fetchAllRequests();
+                        if (adminTab === 'uploads') mutateAllBatches();
+                        else mutateAdminRequests();
                       }}
                       className="px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-full transition-all flex items-center gap-2"
                     >
@@ -1265,7 +1209,6 @@ export default function Profile({
                     </button>
                   </div>
 
-                  {/* Toggle Between Uploads and Requests */}
                   <div className="flex gap-3 mb-6 p-1 bg-slate-100 rounded-xl w-fit">
                     <button
                       onClick={() => setAdminTab('uploads')}
@@ -1285,7 +1228,6 @@ export default function Profile({
                     </button>
                   </div>
 
-                  {/* ===== TAB: CREATOR UPLOADS ===== */}
                   {adminTab === 'uploads' && (
                     <>
                       <div className="flex overflow-x-auto gap-3 pb-2 mb-6 [&::-webkit-scrollbar]:hidden">
@@ -1343,7 +1285,6 @@ export default function Profile({
                             >
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <div className="flex items-center gap-4">
-                                  {/* WADAH FOLDER DENGAN DUKUNGAN IS_EXCLUSIVE & IS_BANNED DI ADMIN */}
                                   <div className="relative p-2 bg-slate-50 rounded-2xl flex-shrink-0">
                                     <EmeraldFolderIcon 
                                       className="w-10 h-10 flex-shrink-0" 
@@ -1471,7 +1412,6 @@ export default function Profile({
                     </>
                   )}
 
-                  {/* ===== TAB: USER REQUESTS ===== */}
                   {adminTab === 'requests' && (
                     <div className="space-y-4">
                       {adminRequests.length > 0 ? adminRequests.map((req: any) => (
@@ -1500,7 +1440,6 @@ export default function Profile({
                               </div>
                             </div>
                             
-                            {/* Status Label */}
                             <div className="flex flex-col items-end gap-1">
                               {req.status === 'completed' && (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#84cc16]/10 text-[#84cc16]">
@@ -1520,7 +1459,6 @@ export default function Profile({
                             </div>
                           </div>
                           
-                          {/* Admin Action Buttons with Result URL Input */}
                           <div className="flex flex-col gap-3 pt-3 border-t border-slate-50">
                             {req.result_url && (
                               <a href={req.result_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-[#10b981] hover:underline flex items-center gap-1 w-fit bg-emerald-50 px-2 py-1 rounded">
@@ -1586,12 +1524,11 @@ export default function Profile({
         </main>
       </div>
 
-      <Footer onSelectCountry={(category: string) => {
+      <Footer onSelectCategory={(category: string) => {
         if (onSelectCategory) onSelectCategory(category);
         onBack();
       }} />
 
-      {/* Modal Edit Batch */}
       {editingBatch && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setEditingBatch(null)}></div>
@@ -1687,7 +1624,6 @@ export default function Profile({
         </div>
       )}
 
-      {/* Modals */}
       <Suspense fallback={null}>
         {showAddModal && <PostModal onClose={() => setShowAddModal(false)} />}
         {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
