@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Check, ShieldCheck } from 'lucide-react';
 
 // Import pointing to the supabase.ts file inside the src folder
@@ -13,10 +12,9 @@ interface UpgradeModalProps {
 const CONTENT = {
   title: 'Upgrade to',
   titleHighlight: 'Premium',
-  subtitle: 'One-time payment for unlimited access to all folder collections.',
+  subtitle: 'Pembayaran satu kali untuk akses tanpa batas ke semua koleksi folder.',
   price: 'Rp 50,000',
-  guarantee: 'Instant activation after payment verification',
-  ctaButton: 'Get Premium Access',
+  guarantee: 'Scan QRIS di bawah ini menggunakan aplikasi e-wallet atau m-banking',
   secureNotice: 'Secure & Verified Payment',
   featuresHeader: 'Member Benefits',
   features: [
@@ -27,101 +25,8 @@ const CONTENT = {
   ]
 };
 
-// Global declaration for the window object so TypeScript doesn't throw an error when calling window.snap
-declare global {
-  interface Window {
-    snap: any;
-  }
-}
-
-export default function UpgradeModal({ isOpen, onClose, onOpenLoginModal }: UpgradeModalProps) {
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Load Midtrans Snap.js script when the modal is opened
-  useEffect(() => {
-    if (!isOpen) return;
-
-    // Midtrans Sandbox URL
-    const snapScriptUrl = 'https://app.sandbox.midtrans.com/snap/snap.js';
-    
-    // Call Client Key from the Vite .env file
-    const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY; 
-
-    // Check to ensure the script is not loaded repeatedly
-    let scriptTag = document.querySelector(`script[src="${snapScriptUrl}"]`) as HTMLScriptElement;
-    
-    if (!scriptTag) {
-      scriptTag = document.createElement('script');
-      scriptTag.src = snapScriptUrl;
-      scriptTag.setAttribute('data-client-key', clientKey);
-      scriptTag.async = true;
-      document.body.appendChild(scriptTag);
-    }
-  }, [isOpen]);
-
+export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
   if (!isOpen) return null;
-
-  const handlePayment = async () => {
-    setIsLoading(true);
-    try {
-      // 1. Get the currently logged-in user data from Supabase
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-      // SMART LOGIC: If the user is NOT LOGGED IN
-      if (userError || !user) {
-        onClose(); // Close the upgrade modal
-        if (onOpenLoginModal) {
-          onOpenLoginModal(); // Open the login modal
-        } else {
-          // Fallback event if the prop is not explicitly passed
-          window.dispatchEvent(new CustomEvent('openLoginModal'));
-        }
-        return;
-      }
-
-      // 2. If the user IS LOGGED IN: Call the Supabase Edge Function 'midtrans-payment'
-      const { data, error } = await supabase.functions.invoke('midtrans-payment', {
-        body: { 
-          amount: 50000,
-          user_id: user.id // Send the active user ID so the webhook can read its destination
-        }
-      });
-
-      if (error) {
-        console.error('Supabase Error:', error);
-        throw new Error('Failed to invoke function from Supabase');
-      }
-
-      if (!data?.token) {
-        throw new Error('Payment token not found');
-      }
-
-      // 3. Show the Midtrans UI popup
-      window.snap.pay(data.token, {
-        onSuccess: function (result: any) {
-          console.log('Sandbox Payment SUCCESS:', result);
-          alert('Payment Successful! Your account status will be updated shortly.');
-          onClose(); // Auto-close the modal upon success
-        },
-        onPending: function (result: any) {
-          console.log('Sandbox Payment PENDING:', result);
-          alert('Waiting for the payment to be completed.');
-        },
-        onError: function (result: any) {
-          console.log('Sandbox Payment FAILED:', result);
-          alert('Payment failed.');
-        },
-        onClose: function () {
-          console.log('User closed the popup without completing the payment');
-        }
-      });
-    } catch (error: any) {
-      console.error('An error occurred:', error);
-      alert(error.message || 'Failed to process payment. Check the browser console for details.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     // Backdrop
@@ -158,14 +63,14 @@ export default function UpgradeModal({ isOpen, onClose, onOpenLoginModal }: Upgr
           </div>
 
           {/* Content Body */}
-          <div className="p-8 md:p-10 flex flex-col items-center w-full">
+          <div className="p-8 md:p-10 flex flex-col items-center w-full max-h-[70vh] overflow-y-auto">
             
             {/* Features Section */}
-            <div className="w-full flex flex-col items-center mb-8">
-              <h3 className="text-zinc-100 font-bold text-lg mb-6 text-center tracking-wide">
+            <div className="w-full flex flex-col items-center mb-6">
+              <h3 className="text-zinc-100 font-bold text-lg mb-4 text-center tracking-wide">
                 {CONTENT.featuresHeader}
               </h3>
-              <ul className="w-full max-w-md space-y-4 flex flex-col items-center text-center mx-auto">
+              <ul className="w-full max-w-md space-y-3 flex flex-col items-center text-center mx-auto">
                 {CONTENT.features.map((feature, idx) => (
                   <li key={idx} className="flex items-center justify-center gap-2.5 text-center w-full">
                     <Check 
@@ -180,29 +85,39 @@ export default function UpgradeModal({ isOpen, onClose, onOpenLoginModal }: Upgr
               </ul>
             </div>
 
-            <div className="w-full border-t border-zinc-800/80 mb-8"></div>
+            <div className="w-full border-t border-zinc-800/80 mb-6"></div>
 
-            {/* Pricing Section */}
+            {/* Pricing & QRIS Section */}
             <div className="w-full flex flex-col items-center">
-              <div className="mb-6 text-center">
+              <div className="mb-4 text-center">
                 <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-4xl md:text-5xl font-black text-amber-500 tracking-tight">
+                  <span className="text-3xl md:text-4xl font-black text-amber-500 tracking-tight">
                     {CONTENT.price}
                   </span>
                 </div>
-                <p className="text-zinc-400 text-xs mt-2 font-medium">
+                <p className="text-zinc-400 text-xs mt-1 font-medium">
                   {CONTENT.guarantee}
                 </p>
               </div>
 
-              {/* CTA Button with Loading State */}
+              {/* QRIS Image Container */}
+              <div className="bg-white p-4 rounded-2xl shadow-inner mb-6 flex flex-col items-center max-w-[240px] w-full">
+                <img 
+                  src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Qris/DutaKlipQR.jpeg" 
+                  alt="QRIS DutaKlip" 
+                  className="w-full h-auto object-contain rounded-xl"
+                />
+                <span className="text-zinc-600 text-[11px] font-bold mt-2">Scan dengan E-Wallet / M-Banking</span>
+              </div>
+
+              {/* Close / Done Button */}
               <button
-                onClick={handlePayment}
-                disabled={isLoading}
-                className="w-full max-w-md bg-amber-600 hover:bg-amber-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-amber-600/20 text-sm border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={onClose}
+                className="w-full max-w-md bg-amber-600 hover:bg-amber-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-amber-600/25 text-sm border-none cursor-pointer"
               >
-                {isLoading ? 'Connecting to Midtrans...' : CONTENT.ctaButton}
+                Selesai / Tutup
               </button>
+
               <p className="text-zinc-400 text-xs mt-4 font-medium flex items-center justify-center gap-1.5">
                 <ShieldCheck size={16} className="text-amber-500" />
                 {CONTENT.secureNotice}
