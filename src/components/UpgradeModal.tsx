@@ -1,12 +1,9 @@
 import { Check, ShieldCheck } from 'lucide-react';
 
-// Import pointing to the supabase.ts file inside the src folder
-import { supabase } from '../supabase'; 
-
 interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onOpenLoginModal?: () => void; // Optional prop to trigger the login modal
+  onOpenLoginModal?: () => void;
 }
 
 const CONTENT = {
