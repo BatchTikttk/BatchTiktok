@@ -157,6 +157,13 @@ export default function App() {
     navigateTo('/pay');
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setCurrentUser(null);
+    setIsPremiumUser(false);
+    navigateTo('/');
+  };
+
   const renderPage = () => {
     if (currentPath === '/profile') {
       return (
@@ -180,7 +187,12 @@ export default function App() {
     }
 
     if (currentPath === '/pay') {
-      return <Pay />;
+      return (
+        <Pay 
+          currentUser={currentUser} 
+          handleLogout={handleLogout}
+        />
+      );
     }
 
     if (currentPath.startsWith('/creator/')) {
