@@ -108,6 +108,15 @@ export default function TopContributors() {
     fetchTopContributors();
     checkUser();
 
+    // Handler sinkronisasi real-time saat profil atau window fokus diperbarui
+    const handleProfileUpdate = () => {
+      checkUser();
+      fetchTopContributors();
+    };
+
+    window.addEventListener('profile-updated', handleProfileUpdate);
+    window.addEventListener('focus', handleProfileUpdate);
+
     const channel = supabase
       .channel('schema-db-changes-top')
       .on(
@@ -118,9 +127,18 @@ export default function TopContributors() {
           fetchTopContributors();
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'batches' },
+        () => {
+          fetchTopContributors();
+        }
+      )
       .subscribe();
 
     return () => {
+      window.removeEventListener('profile-updated', handleProfileUpdate);
+      window.removeEventListener('focus', handleProfileUpdate);
       supabase.removeChannel(channel);
     };
   }, []);
@@ -196,7 +214,6 @@ export default function TopContributors() {
   const rank3 = contributors[2];
   const restOfContributors = contributors.slice(3, 10);
 
-  // Helper untuk menentukan Border aktif mengikuti logika Profile.tsx
   const getBorderUrl = (user: any) => {
     if (!user) return null;
     if (user.is_premium && user.vip_border_url) return user.vip_border_url;
