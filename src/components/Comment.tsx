@@ -18,6 +18,8 @@ const BADGES = [
   { target: 10, iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/ActiveUser.webp', title: 'Active User' }
 ];
 
+const VIP_BADGE_URL = 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/VIP.webp';
+
 export default function Comments({ itemId, currentUser, onRequireLogin }: CommentsProps) {
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -32,7 +34,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
   const [resolvedUuid, setResolvedUuid] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
-  // State untuk menyimpan total unggahan per user (untuk lencana progres)
+  // State untuk menyimpan total aktivitas/unggahan per user (untuk lencana progres)
   const [userUploadCounts, setUserUploadCounts] = useState<Record<string, number>>({});
 
   const isValidUUID = (id: string | number) => {
@@ -145,8 +147,17 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
     } else if (data) {
       setComments(data);
 
+      // Hitung frekuensi komentar per user sebagai fallback aktivitas
+      const commentCounts: Record<string, number> = {};
+      data.forEach((c: any) => {
+        if (c.user_id) {
+          commentCounts[c.user_id] = (commentCounts[c.user_id] || 0) + 1;
+        }
+      });
+
       // Ambil total unggahan tiap user agar lencana progres bisa dihitung
       const uniqueUserIds = [...new Set(data.map((c: any) => c.user_id).filter(Boolean))];
+      const counts: Record<string, number> = {};
       
       if (uniqueUserIds.length > 0) {
         const { data: batchesData, error: batchError } = await supabase
@@ -155,13 +166,18 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
           .in('user_id', uniqueUserIds);
           
         if (!batchError && batchesData) {
-          const counts: Record<string, number> = {};
           batchesData.forEach((b: any) => {
             counts[b.user_id] = (counts[b.user_id] || 0) + 1;
           });
-          setUserUploadCounts(counts);
         }
       }
+
+      // Gabungkan dengan jumlah komentar sebagai aktivitas tambahan agar lencana selalu tampil akurat
+      Object.keys(commentCounts).forEach(uid => {
+        counts[uid] = (counts[uid] || 0) + commentCounts[uid];
+      });
+
+      setUserUploadCounts(counts);
     }
     setIsLoading(false);
   };
@@ -207,8 +223,12 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       console.error('Error submitting comment:', error);
       alert(`Failed to send comment: ${error.message}`);
     } else if (data) {
-      setComments([...comments, data]);
+      setComments(prev => [...prev, data]);
       setNewComment('');
+      setUserUploadCounts(prev => ({
+        ...prev,
+        [currentUserId]: (prev[currentUserId] || 0) + 1
+      }));
     }
     setIsSubmitting(false);
   };
@@ -255,9 +275,13 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       console.error('Error submitting reply:', error);
       alert(`Failed to send reply: ${error.message}`);
     } else if (data) {
-      setComments([...comments, data]);
+      setComments(prev => [...prev, data]);
       setReplyingTo(null);
       setReplyText('');
+      setUserUploadCounts(prev => ({
+        ...prev,
+        [currentUserId]: (prev[currentUserId] || 0) + 1
+      }));
     }
     setIsSubmitting(false);
   };
@@ -296,9 +320,9 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
           )}
         </div>
 
-        {isPremium && vipBorder ? (
+        {isPremium ? (
           <AvatarBorderVip 
-            borderUrl={vipBorder} 
+            borderUrl={vipBorder || animBorder || VIP_BADGE_URL} 
             isPremium={isPremium} 
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[135%] h-[135%] max-w-none object-contain z-20 pointer-events-none" 
           />
@@ -323,15 +347,16 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
   const CommentBlock = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => {
+    const isAdmin = comment.profiles?.is_admin;
+    const isPremium = comment.profiles?.is_premium;
     
-    // Cek lencana progres untuk user yang bersangkutan
-    // Hanya berlaku jika BUKAN admin, dan jika jumlah upload memenuhi target
-    const userBadge = !comment.profiles?.is_admin 
+    // Cek lencana progres untuk user biasa jika bukan admin dan bukan premium
+    const userBadge = !isAdmin && !isPremium 
       ? BADGES.find(b => (userUploadCounts[comment.user_id] || 0) >= b.target)
       : null;
 
-    // Menentukan apakah ada lencana yang tampil (Admin atau User Achievement)
-    const hasBadge = comment.profiles?.is_admin || userBadge;
+    // Menentukan apakah ada lencana yang tampil
+    const hasBadge = isAdmin || isPremium || userBadge;
 
     return (
       <div className={`flex gap-3 lg:gap-4 group ${isReply ? 'mt-4' : ''}`}>
@@ -347,12 +372,19 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
           <div className="bg-slate-50 rounded-2xl rounded-tl-none px-4 py-3 border-none relative">
             
             {/* Lencana di Pojok Kanan Atas */}
-            {comment.profiles?.is_admin ? (
+            {isAdmin ? (
               <img 
                 src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Admin.webp" 
                 alt="Admin Verified" 
                 title="Official Admin"
                 className="absolute top-2 right-2 w-10 h-10 md:w-10 md:h-10 w-8 h-8 object-contain drop-shadow-md z-10" 
+              />
+            ) : isPremium ? (
+              <img 
+                src={VIP_BADGE_URL} 
+                alt="VIP Premium" 
+                title="VIP Premium User"
+                className="absolute top-2 right-2 w-10 h-10 md:w-10 md:h-10 w-8 h-8 object-contain drop-shadow-md z-10 hover:scale-110 transition-transform cursor-pointer" 
               />
             ) : userBadge ? (
               <img 
@@ -371,7 +403,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
               </div>
             </div>
             
-            {/* Jika ada badge (admin/user), berikan padding pr-12 agar teks tidak tertutup badge */}
+            {/* Jika ada badge, berikan padding pr-12 agar teks tidak tertutup badge */}
             <p className={`text-sm text-slate-600 break-words leading-relaxed ${hasBadge ? 'pr-12' : ''}`}>
               {comment.content}
             </p>
