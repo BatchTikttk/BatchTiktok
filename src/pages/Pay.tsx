@@ -30,7 +30,7 @@ export default function Pay({ currentUser, handleLogout }: PayProps) {
   }, []);
 
   // --- Konfigurasi WhatsApp Bisnis ---
-  const whatsappNumber = '6281234567890'; // Ganti dengan nomor WhatsApp Bisnis kamu
+  const whatsappNumber = '6283149071753'; // Ganti dengan nomor WhatsApp Bisnis kamu
   const whatsappMessage = encodeURIComponent(
     `Halo Admin DutaKlip, akun saya @${currentUser || 'User'} sudah melakukan pembayaran Rp 50.000 untuk Upgrade Premium. Berikut adalah bukti transfernya:`
   );
