@@ -9,15 +9,6 @@ interface CommentsProps {
   onRequireLogin: () => void;
 }
 
-// Konfigurasi lencana pencapaian untuk user biasa
-const BADGES = [
-  { target: 200, iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/TopCreator.webp', title: 'Top Creator' },
-  { target: 100, iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Archivement.webp', title: 'Achievement' },
-  { target: 50, iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/LoyalUser.webp', title: 'Loyal User' },
-  { target: 30, iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Suporter.webp', title: 'Supporter' },
-  { target: 10, iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/ActiveUser.webp', title: 'Active User' }
-];
-
 export default function Comments({ itemId, currentUser, onRequireLogin }: CommentsProps) {
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -31,9 +22,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
   
   const [resolvedUuid, setResolvedUuid] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  
-  // State untuk menyimpan total unggahan/aktivitas per user
-  const [userUploadCounts, setUserUploadCounts] = useState<Record<string, number>>({});
 
   const isValidUUID = (id: string | number) => {
     const regexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
@@ -144,30 +132,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       console.error('Error fetching comments:', error);
     } else if (data) {
       setComments(data);
-
-      const uniqueUserIds = [...new Set(data.map((c: any) => c.user_id).filter(Boolean))];
-      const counts: Record<string, number> = {};
-      
-      data.forEach((c: any) => {
-        if (c.user_id) {
-          counts[c.user_id] = (counts[c.user_id] || 0) + 1;
-        }
-      });
-
-      if (uniqueUserIds.length > 0) {
-        const { data: batchesData, error: batchError } = await supabase
-          .from('batches')
-          .select('user_id')
-          .in('user_id', uniqueUserIds);
-          
-        if (!batchError && batchesData) {
-          batchesData.forEach((b: any) => {
-            counts[b.user_id] = (counts[b.user_id] || 0) + 1;
-          });
-        }
-      }
-
-      setUserUploadCounts(counts);
     }
     setIsLoading(false);
   };
@@ -215,10 +179,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
     } else if (data) {
       setComments(prev => [...prev, data]);
       setNewComment('');
-      setUserUploadCounts(prev => ({
-        ...prev,
-        [currentUserId]: (prev[currentUserId] || 0) + 1
-      }));
     }
     setIsSubmitting(false);
   };
@@ -268,10 +228,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       setComments(prev => [...prev, data]);
       setReplyingTo(null);
       setReplyText('');
-      setUserUploadCounts(prev => ({
-        ...prev,
-        [currentUserId]: (prev[currentUserId] || 0) + 1
-      }));
     }
     setIsSubmitting(false);
   };
@@ -339,12 +295,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
   const CommentBlock = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => {
     const isAdmin = comment.profiles?.is_admin;
     const isPremium = comment.profiles?.is_premium;
-    
-    const userBadge = !isAdmin 
-      ? BADGES.find(b => (userUploadCounts[comment.user_id] || 0) >= b.target)
-      : null;
-
-    const hasTopBadge = isAdmin || userBadge;
 
     return (
       <div className={`flex gap-3 lg:gap-4 group ${isReply ? 'mt-4' : ''}`}>
@@ -359,27 +309,22 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
         <div className="flex-1 min-w-0">
           <div className="bg-slate-50 rounded-2xl rounded-tl-none px-4 py-3 border-none relative">
             
-            {isAdmin ? (
+            {/* Admin Badge di Pojok Kanan Atas */}
+            {isAdmin && (
               <img 
                 src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Admin.webp" 
                 alt="Admin Verified" 
                 title="Official Admin"
                 className="absolute top-2 right-2 w-10 h-10 md:w-10 md:h-10 w-8 h-8 object-contain drop-shadow-md z-10" 
               />
-            ) : userBadge ? (
-              <img 
-                src={userBadge.iconUrl} 
-                alt={userBadge.title} 
-                title={userBadge.title}
-                className="absolute top-2 right-2 w-10 h-10 md:w-10 md:h-10 w-8 h-8 object-contain drop-shadow-md z-10 hover:scale-110 transition-transform cursor-pointer" 
-              />
-            ) : null}
+            )}
 
             <div className="flex items-center justify-between gap-2 mb-1">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
                   {comment.profiles?.username || 'Unknown User'}
                   
+                  {/* Crown Badge di samping nama jika is_premium */}
                   {isPremium && (
                     <span title="Premium VIP Member" className="inline-flex items-center">
                       <Crown 
@@ -392,7 +337,8 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
               </div>
             </div>
             
-            <p className={`text-sm text-slate-600 break-words leading-relaxed ${hasTopBadge ? 'pr-12' : ''}`}>
+            {/* Berikan padding pr-12 khusus admin agar teks tidak menabrak badge */}
+            <p className={`text-sm text-slate-600 break-words leading-relaxed ${isAdmin ? 'pr-12' : ''}`}>
               {comment.content}
             </p>
           </div>
