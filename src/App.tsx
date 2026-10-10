@@ -9,6 +9,7 @@ import PreviewPage from './pages/PreviewPage';
 import Pay from './pages/Pay';
 import ChatGroup from './components/ChatGroup';
 import LoginModal from './components/LoginModal';
+import UpgradeModal from './components/UpgradeModal';
 import { supabase } from './supabase';
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [isPremiumUser, setIsPremiumUser] = useState<boolean>(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const checkUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -105,9 +107,10 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []); 
 
+  // Event listener untuk memunculkan UpgradeModal terlebih dahulu
   useEffect(() => {
     const handleOpenModal = () => {
-      navigateTo('/pay');
+      setShowUpgradeModal(true);
     };
     window.addEventListener('openUpgradeModal', handleOpenModal);
     return () => window.removeEventListener('openUpgradeModal', handleOpenModal);
@@ -154,7 +157,8 @@ export default function App() {
       return;
     }
 
-    navigateTo('/pay');
+    // Tampilkan modal benefit terlebih dahulu sebelum ke halaman pembayaran
+    setShowUpgradeModal(true);
   };
 
   const handleLogout = async () => {
@@ -202,7 +206,7 @@ export default function App() {
           username={username} 
           isUserPremium={isPremiumUser}
           currentUser={currentUser}
-          onOpenUpgradeModal={() => navigateTo('/pay')}
+          onOpenUpgradeModal={() => setShowUpgradeModal(true)}
         />
       );
     }
@@ -217,7 +221,7 @@ export default function App() {
           itemData={itemData}
           isUserPremium={isPremiumUser}
           currentUser={currentUser}
-          onOpenUpgradeModal={() => navigateTo('/pay')}
+          onOpenUpgradeModal={() => setShowUpgradeModal(true)}
         />
       );
     }
@@ -227,7 +231,7 @@ export default function App() {
         onCheckAccess={handleExclusiveAccess}
         isUserPremium={isPremiumUser}
         currentUser={currentUser}
-        onOpenUpgradeModal={() => navigateTo('/pay')}
+        onOpenUpgradeModal={() => setShowUpgradeModal(true)}
       />
     );
   };
@@ -246,6 +250,14 @@ export default function App() {
           onClose={() => setShowLoginModal(false)}
           onSuccess={checkUser}
           showToast={(msg: string) => console.log(msg)}
+        />
+      )}
+
+      {showUpgradeModal && (
+        <UpgradeModal 
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          onOpenLoginModal={() => setShowLoginModal(true)}
         />
       )}
     </div>
