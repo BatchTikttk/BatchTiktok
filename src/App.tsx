@@ -6,7 +6,7 @@ import LegalPage from './pages/LegalPage';
 import TopContributors from './pages/TopContributors';
 import CreatorPage from './pages/CreatorPage'; 
 import PreviewPage from './pages/PreviewPage';
-import UpgradeModal from './components/UpgradeModal';
+import Pay from './pages/Pay';
 import ChatGroup from './components/ChatGroup';
 import LoginModal from './components/LoginModal';
 import { supabase } from './supabase';
@@ -16,8 +16,6 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [isPremiumUser, setIsPremiumUser] = useState<boolean>(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   const checkUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -65,14 +63,9 @@ export default function App() {
     const hash = window.location.hash;
     const path = window.location.pathname;
 
-    if (hash === '#upgrade' || path === '/upgrade') {
-      window.history.replaceState({}, '', '/');
-      setCurrentPath('/');
-      if (!currentUser) {
-        setShowLoginModal(true);
-      } else {
-        setIsUpgradeModalOpen(true);
-      }
+    if (hash === '#upgrade' || path === '/upgrade' || hash === '#pay' || path === '/pay') {
+      window.history.replaceState({}, '', '/pay');
+      setCurrentPath('/pay');
     } else if (hash === '#profile') {
       window.history.replaceState({}, '', '/profile');
       setCurrentPath('/profile');
@@ -100,14 +93,9 @@ export default function App() {
 
     const handlePopState = () => {
       const currentLoc = window.location.pathname;
-      if (currentLoc === '/upgrade' || window.location.hash === '#upgrade') {
-        if (!currentUser) {
-          setShowLoginModal(true);
-        } else {
-          setIsUpgradeModalOpen(true);
-        }
-        window.history.replaceState({}, '', '/');
-        setCurrentPath('/');
+      if (currentLoc === '/upgrade' || window.location.hash === '#upgrade' || currentLoc === '/pay' || window.location.hash === '#pay') {
+        window.history.replaceState({}, '', '/pay');
+        setCurrentPath('/pay');
       } else {
         setCurrentPath(currentLoc);
       }
@@ -115,19 +103,15 @@ export default function App() {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [currentUser]); 
+  }, []); 
 
   useEffect(() => {
     const handleOpenModal = () => {
-      if (!currentUser) {
-        setShowLoginModal(true);
-      } else {
-        setIsUpgradeModalOpen(true);
-      }
+      navigateTo('/pay');
     };
     window.addEventListener('openUpgradeModal', handleOpenModal);
     return () => window.removeEventListener('openUpgradeModal', handleOpenModal);
-  }, [currentUser]);
+  }, []);
 
   useEffect(() => {
     const handleOpenLogin = () => setShowLoginModal(true);
@@ -136,16 +120,9 @@ export default function App() {
   }, []);
 
   const navigateTo = (path: string) => {
-    if (path === '/upgrade' || path === '#upgrade') {
-      if (!currentUser) {
-        setShowLoginModal(true);
-      } else {
-        setIsUpgradeModalOpen(true);
-      }
-      return;
-    }
-    window.history.pushState({}, '', path);
-    setCurrentPath(path);
+    const targetPath = (path === '/upgrade' || path === '#upgrade') ? '/pay' : path;
+    window.history.pushState({}, '', targetPath);
+    setCurrentPath(targetPath);
     window.dispatchEvent(new Event('popstate'));
   };
 
@@ -177,7 +154,7 @@ export default function App() {
       return;
     }
 
-    setIsUpgradeModalOpen(true);
+    navigateTo('/pay');
   };
 
   const renderPage = () => {
@@ -202,6 +179,10 @@ export default function App() {
       return <TopContributors />;
     }
 
+    if (currentPath === '/pay') {
+      return <Pay />;
+    }
+
     if (currentPath.startsWith('/creator/')) {
       const username = decodeURIComponent(currentPath.split('/creator/')[1] || '');
       return (
@@ -209,13 +190,7 @@ export default function App() {
           username={username} 
           isUserPremium={isPremiumUser}
           currentUser={currentUser}
-          onOpenUpgradeModal={() => {
-            if (!currentUser) {
-              setShowLoginModal(true);
-            } else {
-              setIsUpgradeModalOpen(true);
-            }
-          }}
+          onOpenUpgradeModal={() => navigateTo('/pay')}
         />
       );
     }
@@ -230,13 +205,7 @@ export default function App() {
           itemData={itemData}
           isUserPremium={isPremiumUser}
           currentUser={currentUser}
-          onOpenUpgradeModal={() => {
-            if (!currentUser) {
-              setShowLoginModal(true);
-            } else {
-              setIsUpgradeModalOpen(true);
-            }
-          }}
+          onOpenUpgradeModal={() => navigateTo('/pay')}
         />
       );
     }
@@ -246,13 +215,7 @@ export default function App() {
         onCheckAccess={handleExclusiveAccess}
         isUserPremium={isPremiumUser}
         currentUser={currentUser}
-        onOpenUpgradeModal={() => {
-          if (!currentUser) {
-            setShowLoginModal(true);
-          } else {
-            setIsUpgradeModalOpen(true);
-          }
-        }}
+        onOpenUpgradeModal={() => navigateTo('/pay')}
       />
     );
   };
@@ -273,12 +236,6 @@ export default function App() {
           showToast={(msg: string) => console.log(msg)}
         />
       )}
-
-      <UpgradeModal 
-        isOpen={isUpgradeModalOpen} 
-        onClose={() => setIsUpgradeModalOpen(false)} 
-        onOpenLoginModal={() => setShowLoginModal(true)}
-      />
     </div>
   );
 }
