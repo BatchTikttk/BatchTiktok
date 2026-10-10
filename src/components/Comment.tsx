@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
-import { User, Send, Trash2, Loader2, Clock, Reply, CornerDownRight } from 'lucide-react';
+import { User, Send, Trash2, Loader2, Clock, Reply, CornerDownRight, Crown } from 'lucide-react';
 import AvatarBorderVip from './AvatarBorderVip';
 
 interface CommentsProps {
@@ -18,8 +18,6 @@ const BADGES = [
   { target: 10, iconUrl: 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/ActiveUser.webp', title: 'Active User' }
 ];
 
-const VIP_BADGE_URL = 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/VIP.webp';
-
 export default function Comments({ itemId, currentUser, onRequireLogin }: CommentsProps) {
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -34,7 +32,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
   const [resolvedUuid, setResolvedUuid] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
-  // State untuk menyimpan total aktivitas/unggahan per user (untuk lencana progres)
+  // State untuk menyimpan total unggahan/aktivitas per user
   const [userUploadCounts, setUserUploadCounts] = useState<Record<string, number>>({});
 
   const isValidUUID = (id: string | number) => {
@@ -147,18 +145,16 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
     } else if (data) {
       setComments(data);
 
-      // Hitung frekuensi komentar per user sebagai fallback aktivitas
-      const commentCounts: Record<string, number> = {};
-      data.forEach((c: any) => {
-        if (c.user_id) {
-          commentCounts[c.user_id] = (commentCounts[c.user_id] || 0) + 1;
-        }
-      });
-
-      // Ambil total unggahan tiap user agar lencana progres bisa dihitung
       const uniqueUserIds = [...new Set(data.map((c: any) => c.user_id).filter(Boolean))];
       const counts: Record<string, number> = {};
       
+      // Ambil jumlah komentar per user di seluruh database/postingan untuk lencana progres
+      data.forEach((c: any) => {
+        if (c.user_id) {
+          counts[c.user_id] = (counts[c.user_id] || 0) + 1;
+        }
+      });
+
       if (uniqueUserIds.length > 0) {
         const { data: batchesData, error: batchError } = await supabase
           .from('batches')
@@ -171,11 +167,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
           });
         }
       }
-
-      // Gabungkan dengan jumlah komentar sebagai aktivitas tambahan agar lencana selalu tampil akurat
-      Object.keys(commentCounts).forEach(uid => {
-        counts[uid] = (counts[uid] || 0) + commentCounts[uid];
-      });
 
       setUserUploadCounts(counts);
     }
@@ -320,9 +311,9 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
           )}
         </div>
 
-        {isPremium ? (
+        {isPremium && vipBorder ? (
           <AvatarBorderVip 
-            borderUrl={vipBorder || animBorder || VIP_BADGE_URL} 
+            borderUrl={vipBorder} 
             isPremium={isPremium} 
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[135%] h-[135%] max-w-none object-contain z-20 pointer-events-none" 
           />
@@ -350,13 +341,12 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
     const isAdmin = comment.profiles?.is_admin;
     const isPremium = comment.profiles?.is_premium;
     
-    // Cek lencana progres untuk user biasa jika bukan admin dan bukan premium
-    const userBadge = !isAdmin && !isPremium 
+    // Cek lencana progres untuk user biasa (jika bukan admin)
+    const userBadge = !isAdmin 
       ? BADGES.find(b => (userUploadCounts[comment.user_id] || 0) >= b.target)
       : null;
 
-    // Menentukan apakah ada lencana yang tampil
-    const hasBadge = isAdmin || isPremium || userBadge;
+    const hasTopBadge = isAdmin || userBadge;
 
     return (
       <div className={`flex gap-3 lg:gap-4 group ${isReply ? 'mt-4' : ''}`}>
@@ -371,20 +361,13 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
         <div className="flex-1 min-w-0">
           <div className="bg-slate-50 rounded-2xl rounded-tl-none px-4 py-3 border-none relative">
             
-            {/* Lencana di Pojok Kanan Atas */}
+            {/* Lencana Progres / Admin di Pojok Kanan Atas */}
             {isAdmin ? (
               <img 
                 src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Admin.webp" 
                 alt="Admin Verified" 
                 title="Official Admin"
                 className="absolute top-2 right-2 w-10 h-10 md:w-10 md:h-10 w-8 h-8 object-contain drop-shadow-md z-10" 
-              />
-            ) : isPremium ? (
-              <img 
-                src={VIP_BADGE_URL} 
-                alt="VIP Premium" 
-                title="VIP Premium User"
-                className="absolute top-2 right-2 w-10 h-10 md:w-10 md:h-10 w-8 h-8 object-contain drop-shadow-md z-10 hover:scale-110 transition-transform cursor-pointer" 
               />
             ) : userBadge ? (
               <img 
@@ -397,14 +380,22 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
 
             <div className="flex items-center justify-between gap-2 mb-1">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
                   {comment.profiles?.username || 'Unknown User'}
+                  
+                  {/* Crown Badge jika user is_premium di ujung nama */}
+                  {isPremium && (
+                    <Crown 
+                      size={14} 
+                      className="text-amber-500 fill-amber-400 drop-shadow-[0_1px_3px_rgba(245,158,11,0.5)] shrink-0" 
+                      title="Premium VIP Member"
+                    />
+                  )}
                 </span>
               </div>
             </div>
             
-            {/* Jika ada badge, berikan padding pr-12 agar teks tidak tertutup badge */}
-            <p className={`text-sm text-slate-600 break-words leading-relaxed ${hasBadge ? 'pr-12' : ''}`}>
+            <p className={`text-sm text-slate-600 break-words leading-relaxed ${hasTopBadge ? 'pr-12' : ''}`}>
               {comment.content}
             </p>
           </div>
