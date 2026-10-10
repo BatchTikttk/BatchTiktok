@@ -148,7 +148,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
       const uniqueUserIds = [...new Set(data.map((c: any) => c.user_id).filter(Boolean))];
       const counts: Record<string, number> = {};
       
-      // Ambil jumlah komentar per user di seluruh database/postingan untuk lencana progres
       data.forEach((c: any) => {
         if (c.user_id) {
           counts[c.user_id] = (counts[c.user_id] || 0) + 1;
@@ -341,7 +340,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
     const isAdmin = comment.profiles?.is_admin;
     const isPremium = comment.profiles?.is_premium;
     
-    // Cek lencana progres untuk user biasa (jika bukan admin)
     const userBadge = !isAdmin 
       ? BADGES.find(b => (userUploadCounts[comment.user_id] || 0) >= b.target)
       : null;
@@ -361,7 +359,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
         <div className="flex-1 min-w-0">
           <div className="bg-slate-50 rounded-2xl rounded-tl-none px-4 py-3 border-none relative">
             
-            {/* Lencana Progres / Admin di Pojok Kanan Atas */}
             {isAdmin ? (
               <img 
                 src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Admin.webp" 
@@ -383,13 +380,13 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
                 <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
                   {comment.profiles?.username || 'Unknown User'}
                   
-                  {/* Crown Badge jika user is_premium di ujung nama */}
                   {isPremium && (
-                    <Crown 
-                      size={14} 
-                      className="text-amber-500 fill-amber-400 drop-shadow-[0_1px_3px_rgba(245,158,11,0.5)] shrink-0" 
-                      title="Premium VIP Member"
-                    />
+                    <span title="Premium VIP Member" className="inline-flex items-center">
+                      <Crown 
+                        size={14} 
+                        className="text-amber-500 fill-amber-400 drop-shadow-[0_1px_3px_rgba(245,158,11,0.5)] shrink-0" 
+                      />
+                    </span>
                   )}
                 </span>
               </div>
