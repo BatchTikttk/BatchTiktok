@@ -31,6 +31,16 @@ export const AVATAR_LIST = [
   'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Update%20New/Avatar(28).webp',
   'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Update%20New/Avatar(29).webp',
   'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Update%20New/Avatar(30).webp',
+  'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Update%20New/Avatar(31).webp',
+  'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Update%20New/Avatar(32).webp',
+  'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Update%20New/Avatar(33).webp',
+  'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Update%20New/Avatar(34).webp',
+  'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Update%20New/Avatar(35).webp',
+  'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Update%20New/Avatar(36).webp',
+  'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Update%20New/Avatar(37).webp',
+  'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Update%20New/Avatar(38).webp',
+  'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Update%20New/Avatar(39).webp',
+  'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/Update%20New/Avatar(40).webp',
 ];
 
 interface AvatarModalProps {
