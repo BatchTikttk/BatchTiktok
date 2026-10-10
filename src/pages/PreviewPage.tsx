@@ -28,7 +28,7 @@ const PRESET_BACKGROUNDS = [
   { id: 'carberus', name: 'Carberus', url: 'https://qu.ax/Yf3Q0.webm', gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)' }
 ];
 
-// SWR Fetcher untuk Item Utama
+// SWR Fetcher untuk Item Utama[cite: 6]
 const fetchBatchItem = async (key: string) => {
   const targetId = key.replace('batch_item_', '');
   const decodedTarget = decodeURIComponent(targetId);
@@ -47,12 +47,15 @@ const fetchBatchItem = async (key: string) => {
   return data;
 };
 
-// SWR Fetcher untuk Related Folders
-const fetchRelatedFolders = async ([_, currentId]: [string, any]) => {
+// SWR Fetcher untuk Related Folders berdasarkan uploader yang sama
+const fetchRelatedFolders = async ([_, currentId, uploadedBy]: [string, any, string]) => {
+  if (!uploadedBy) return [];
+
   let query = supabase
     .from('batches')
     .select('*')
     .eq('status', 'approved')
+    .ilike('uploaded_by', uploadedBy)
     .limit(5);
 
   if (currentId) {
@@ -118,13 +121,13 @@ export default function PreviewPage({
     checkAdminStatus();
   }, [currentUser]);
 
-  // Mendapatkan target ID dari props atau URL
+  // Mendapatkan target ID dari props atau URL[cite: 6]
   let targetId = itemId || (typeof window !== 'undefined' ? window.location.pathname.split('/preview/')[1] : '');
   if (targetId && targetId.endsWith('/')) {
     targetId = targetId.slice(0, -1);
   }
 
-  // Menggunakan SWR untuk fetch item utama
+  // Menggunakan SWR untuk fetch item utama[cite: 6]
   const { data: fetchedItem, error: itemError, isLoading: itemLoading } = useSWR(
     initialItemData ? null : (targetId ? `batch_item_${targetId}` : null),
     fetchBatchItem,
@@ -134,9 +137,9 @@ export default function PreviewPage({
   const item = initialItemData || fetchedItem;
   const loading = !initialItemData && itemLoading && !item;
 
-  // Menggunakan SWR untuk fetch related folders di sidebar kanan
+  // Menggunakan SWR untuk fetch related folders khusus dari uploader yang sama
   const { data: fetchedRelated } = useSWR(
-    item?.id ? ['related-folders', item.id] : null,
+    item?.id && item?.uploaded_by ? ['related-folders', item.id, item.uploaded_by] : null,
     fetchRelatedFolders,
     { revalidateOnFocus: false }
   );
@@ -776,10 +779,10 @@ export default function PreviewPage({
 
             </div>
 
-            {/* Right Column: Related Folders Sidebar */}
+            {/* Right Column: Related Folders Sidebar (Filtered by Uploader) */}
             <div className="lg:col-span-1 w-full bg-white rounded-[2rem] shadow-xl border border-slate-100 p-6 sticky top-24">
               <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center justify-between">
-                <span>Related Folders</span>
+                <span>More from {item.uploaded_by || 'Creator'}</span>
                 <span className="text-[11px] text-emerald-600 font-semibold">
                   {relatedFolders.length} Folders
                 </span>
@@ -816,7 +819,7 @@ export default function PreviewPage({
                   ))
                 ) : (
                   <div className="text-center py-6">
-                    <p className="text-xs text-slate-400 font-medium">No related folders found.</p>
+                    <p className="text-xs text-slate-400 font-medium">No other folders from this creator.</p>
                   </div>
                 )}
               </div>
