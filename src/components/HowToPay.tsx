@@ -94,7 +94,8 @@ export default function HowToPay({ isOpen, onClose }: HowToPayProps) {
         {/* Header Section */}
         <div className="p-6 sm:p-8 pb-4 border-b border-slate-100 flex items-start justify-between relative bg-slate-50/50">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full mb-2 border border-amber-200/60">
+            {/* Header Badge tanpa background container */}
+            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 mb-2">
               <ShieldCheck size={14} /> {t.badge}
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
