@@ -91,13 +91,13 @@ export default function HowToPay({ isOpen, onClose }: HowToPayProps) {
     >
       <div className="relative w-full max-w-xl my-auto">
         
-        {/* Tombol Silang di Luar Container (Aman & Tidak Menumpuk) */}
+        {/* Tombol Silang: Sedikit berjarak di atas modal pada mobile, dan kembali ke samping pada desktop */}
         <button 
           onClick={onClose}
-          className="absolute -top-10 right-0 md:-right-10 md:-top-2 z-[60] text-slate-300 hover:text-white bg-transparent border-none p-1 transition-all duration-300 hover:rotate-90 hover:scale-110 cursor-pointer flex items-center justify-center"
+          className="absolute -top-4 right-1 md:-top-2 md:-right-10 z-[60] text-slate-500 hover:text-slate-800 md:text-slate-300 md:hover:text-white bg-white/90 md:bg-transparent rounded-full p-1.5 md:p-0 shadow-sm md:shadow-none transition-all duration-300 hover:rotate-90 hover:scale-110 cursor-pointer flex items-center justify-center"
           title="Close / Tutup"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="md:w-[26px] md:h-[26px]">
             <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
           </svg>
         </button>
