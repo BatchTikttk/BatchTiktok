@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, QrCode, Smartphone, MessageSquare, CheckCircle2, Globe, ShieldCheck } from 'lucide-react';
+import { QrCode, Smartphone, MessageSquare, CheckCircle2, Globe, ShieldCheck } from 'lucide-react';
 
 interface HowToPayProps {
   isOpen: boolean;
@@ -89,80 +89,85 @@ export default function HowToPay({ isOpen, onClose }: HowToPayProps) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col my-auto">
+      <div className="relative w-full max-w-xl">
         
-        {/* Header Section */}
-        <div className="p-6 sm:p-8 pb-4 border-b border-slate-100 flex items-start justify-between relative bg-slate-50/50">
-          <div>
-            {/* Header Badge tanpa background container */}
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 mb-2">
-              <ShieldCheck size={14} /> {t.badge}
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              {t.title}
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-              {t.subtitle}
-            </p>
-          </div>
+        {/* Tombol Silang di Luar Container dengan Animasi Rotate & Scale */}
+        <button 
+          onClick={onClose}
+          className="absolute -top-10 right-0 md:-right-10 md:-top-2 z-[60] text-slate-300 hover:text-white bg-transparent border-none p-1 transition-all duration-300 hover:rotate-90 hover:scale-110 cursor-pointer flex items-center justify-center"
+          title="Close / Tutup"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+          </svg>
+        </button>
 
-          <div className="flex items-center gap-2">
-            {/* Language Toggle Button */}
-            <button
-              onClick={() => setLang(lang === 'en' ? 'id' : 'en')}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 bg-white hover:bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 transition-colors cursor-pointer shadow-2xs"
-              title="Change Language / Ganti Bahasa"
-            >
-              <Globe size={14} className="text-emerald-500" />
-              <span>{lang.toUpperCase()}</span>
-            </button>
-
-            {/* Close Button */}
-            <button 
-              onClick={onClose}
-              className="p-2 text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 rounded-full border border-slate-200 transition-colors cursor-pointer shadow-2xs"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        </div>
-
-        {/* Steps List */}
-        <div className="p-6 sm:p-8 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
-          {t.steps.map((step, idx) => (
-            <div 
-              key={idx} 
-              className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50/80 border border-slate-100/80 transition-all hover:bg-slate-50"
-            >
-              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center font-black text-sm text-slate-700 shadow-2xs">
-                {step.number}
+        <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full animate-in fade-in zoom-in-95 duration-200">
+          
+          {/* Header Section */}
+          <div className="p-6 sm:p-8 pb-4 border-b border-slate-100 flex items-start justify-between relative bg-slate-50/50">
+            <div>
+              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 mb-2">
+                <ShieldCheck size={14} /> {t.badge}
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  {step.icon}
-                  <h4 className="text-sm font-bold text-slate-800">{step.title}</h4>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                {t.title}
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                {t.subtitle}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Language Toggle Button */}
+              <button
+                onClick={() => setLang(lang === 'en' ? 'id' : 'en')}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 bg-white hover:bg-slate-100 px-3.5 py-1.5 rounded-full border border-slate-200 transition-colors cursor-pointer shadow-2xs"
+                title="Change Language / Ganti Bahasa"
+              >
+                <Globe size={14} className="text-emerald-500" />
+                <span>{lang.toUpperCase()}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Steps List */}
+          <div className="p-6 sm:p-8 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+            {t.steps.map((step, idx) => (
+              <div 
+                key={idx} 
+                className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50/80 border border-slate-100/80 transition-all hover:bg-slate-50"
+              >
+                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center font-black text-sm text-slate-700 shadow-2xs">
+                  {step.number}
                 </div>
-                <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                  {step.desc}
-                </p>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    {step.icon}
+                    <h4 className="text-sm font-bold text-slate-800">{step.title}</h4>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                    {step.desc}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        {/* Footer Action */}
-        <div className="p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-[11px] text-slate-400 font-medium text-center sm:text-left">
-            {t.footerNote}
-          </p>
-          <button
-            onClick={onClose}
-            className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition-colors border-none cursor-pointer"
-          >
-            {t.gotItBtn}
-          </button>
-        </div>
+          {/* Footer Action */}
+          <div className="p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-[11px] text-slate-400 font-medium text-center sm:text-left">
+              {t.footerNote}
+            </p>
+            <button
+              onClick={onClose}
+              className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition-colors border-none cursor-pointer"
+            >
+              {t.gotItBtn}
+            </button>
+          </div>
 
+        </div>
       </div>
     </div>
   );
