@@ -7,7 +7,12 @@ import { supabase } from '../supabase';
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
-export default function Pay() {
+interface PayProps {
+  currentUser?: string | null;
+  handleLogout?: () => void;
+}
+
+export default function Pay({ currentUser, handleLogout }: PayProps) {
   const [copied, setCopied] = useState(false);
   const qrisImageUrl = 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Qris/DutaKlipQR.jpeg';
 
@@ -27,7 +32,7 @@ export default function Pay() {
   // --- Konfigurasi WhatsApp Bisnis ---
   const whatsappNumber = '6281234567890'; // Ganti dengan nomor WhatsApp Bisnis kamu
   const whatsappMessage = encodeURIComponent(
-    "Halo Admin DutaKlip, saya sudah melakukan pembayaran Rp 50.000 untuk Upgrade Premium. Berikut adalah bukti transfernya:"
+    `Halo Admin DutaKlip, akun saya @${currentUser || 'User'} sudah melakukan pembayaran Rp 50.000 untuk Upgrade Premium. Berikut adalah bukti transfernya:`
   );
   const whatsappCheckoutUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 
@@ -48,10 +53,12 @@ export default function Pay() {
           resetSearch={() => {}}
           CATEGORIES={CATEGORIES}
           EmeraldFolderIcon={EmeraldFolderIcon}
-          currentUser={null}
-          handleLogout={() => {}}
+          currentUser={currentUser}
+          handleLogout={handleLogout || (() => {})}
           setShowAddModal={() => {}}
-          setShowLoginModal={() => {}}
+          setShowLoginModal={() => {
+            window.dispatchEvent(new Event('openLoginModal'));
+          }}
           setShowRulesModal={() => {
             window.history.pushState({}, '', '/rules');
             window.dispatchEvent(new Event('popstate'));
@@ -93,6 +100,7 @@ export default function Pay() {
               </div>
 
               <div className="w-full mt-6">
+                {/* Action Buttons for Image */}
                 <div className="flex items-center justify-center gap-3 mb-6">
                   <a 
                     href={qrisImageUrl} 
@@ -111,6 +119,7 @@ export default function Pay() {
                   </a>
                 </div>
 
+                {/* Supported E-Wallets */}
                 <div className="pt-5 border-t border-slate-100 w-full text-center">
                   <p className="text-[11px] text-slate-400 font-bold mb-1.5 uppercase tracking-wider">
                     Supported E-Wallets & Banks
@@ -126,6 +135,7 @@ export default function Pay() {
             {/* RIGHT COLUMN: ORDER DETAILS & CONFIRMATION (col-span-6) */}
             <div className="lg:col-span-6 flex flex-col justify-between">
               
+              {/* Order Summary Box */}
               <div className="bg-white border border-slate-100/80 rounded-[2.5rem] p-8 shadow-[0_10px_30px_rgb(0,0,0,0.03)] flex flex-col justify-between h-full">
                 <div>
                   <h3 className="text-base font-bold text-slate-800 mb-5 border-b border-slate-100 pb-3 flex items-center justify-between">
@@ -161,6 +171,7 @@ export default function Pay() {
                     </div>
                   </div>
 
+                  {/* Benefits Check List */}
                   <div className="space-y-2.5 mb-8 bg-slate-50/80 p-4 rounded-2xl border border-slate-100/80">
                     <div className="flex items-center gap-2.5 text-xs text-slate-600 font-semibold">
                       <CheckCircle2 size={16} className="text-amber-500 flex-shrink-0" />
@@ -178,6 +189,7 @@ export default function Pay() {
                 </div>
 
                 <div>
+                  {/* Confirm Payment Link (WhatsApp) */}
                   <a 
                     href={whatsappCheckoutUrl} 
                     target="_blank" 
