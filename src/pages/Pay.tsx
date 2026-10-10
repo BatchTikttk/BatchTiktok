@@ -78,11 +78,11 @@ export default function Pay({ currentUser, handleLogout }: PayProps) {
               Scan the official QRIS code below using any mobile banking or e-wallet app to unlock lifetime VIP privileges instantly.
             </p>
             
-            {/* Tombol How To Pay? di bawah deskripsi */}
-            <div className="mt-4">
+            {/* Tombol How To Pay? Tanpa Background Container */}
+            <div className="mt-4 flex justify-center">
               <button
                 onClick={() => setShowHowToPay(true)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100/70 px-4 py-2 rounded-full transition-all border border-emerald-200/60 cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors bg-transparent border-none cursor-pointer p-0"
               >
                 <HelpCircle size={15} />
                 <span>How To Pay?</span>
