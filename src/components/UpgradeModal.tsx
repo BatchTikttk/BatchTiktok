@@ -1,4 +1,5 @@
 import { Check, ShieldCheck } from 'lucide-react';
+import { supabase } from '../supabase';
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -23,10 +24,24 @@ const CONTENT = {
   ]
 };
 
-export default function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
+export default function UpgradeModal({ isOpen, onClose, onOpenLoginModal }: UpgradeModalProps) {
   if (!isOpen) return null;
 
-  const handleProceedToPayment = () => {
+  const handleProceedToPayment = async () => {
+    // Cek apakah user sudah login atau belum melalui Supabase session
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      onClose(); // Tutup modal upgrade
+      if (onOpenLoginModal) {
+        onOpenLoginModal(); // Buka modal login
+      } else {
+        window.dispatchEvent(new CustomEvent('openLoginModal'));
+      }
+      return;
+    }
+
+    // Jika sudah login, arahkan ke halaman payment
     onClose();
     window.history.pushState({}, '', '/pay');
     window.dispatchEvent(new Event('popstate'));
