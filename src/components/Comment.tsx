@@ -349,7 +349,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
             {/* Lencana di Pojok Kanan Atas */}
             {comment.profiles?.is_admin ? (
               <img 
-                src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp" 
+                src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Admin.webp" 
                 alt="Admin Verified" 
                 title="Official Admin"
                 className="absolute top-2 right-2 w-10 h-10 md:w-10 md:h-10 w-8 h-8 object-contain drop-shadow-md z-10" 
