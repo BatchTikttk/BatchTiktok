@@ -163,7 +163,6 @@ export default function Profile({
 }: ProfileProps) {
   const [sessionUserId, setSessionUserId] = useState<string | null>(null);
 
-  // Get active session user ID first
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user?.id) {
@@ -172,7 +171,6 @@ export default function Profile({
     });
   }, [currentUser]);
 
-  // SWR hooks for automatic caching and bandwidth saving
   const { data: userProfileData, mutate: mutateProfile } = useSWR(
     sessionUserId ? `profile_${sessionUserId}` : null,
     fetchUserProfile,
@@ -1524,7 +1522,8 @@ export default function Profile({
         </main>
       </div>
 
-      <Footer onSelectCategory={(category: string) => {
+      {/* Footer disesuaikan dengan prop onSelectCountry yang valid */}
+      <Footer onSelectCountry={(category: string) => {
         if (onSelectCategory) onSelectCategory(category);
         onBack();
       }} />
