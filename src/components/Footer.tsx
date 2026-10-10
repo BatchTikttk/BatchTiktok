@@ -1,5 +1,17 @@
 import { ShieldCheck, FolderHeart, Scale, Shield, Globe } from 'lucide-react';
 
+// Icon TikTok kustom agar serasi dengan icon Lucide
+const TikTokIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M19.589 6.686a4.793 4.793 0 0 1-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 0 1-2.901 2.885 2.893 2.893 0 0 1-2.895-2.885 2.893 2.893 0 0 1 2.895-2.885c.376 0 .736.069 1.07.195V9.435a6.34 6.34 0 0 0-1.07-.09 6.338 6.338 0 0 0-6.332 6.327 6.338 6.338 0 0 0 6.332 6.328 6.338 6.338 0 0 0 6.332-6.328V9.16a8.163 8.163 0 0 0 4.784 1.528V7.243a4.843 4.843 0 0 1-1.000-.557z" />
+  </svg>
+);
+
 // Komponen helper bendera untuk footer (serasi dengan Navbar)
 const FooterFlag = ({ country, className = "w-4 h-4" }: { country: string, className?: string }) => {
   const clipId = `footer-flag-${country.toLowerCase().replace(/\s+/g, '-')}`;
@@ -89,8 +101,8 @@ export default function Footer({ onSelectCountry }: FooterProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           
+          {/* Brand & Description */}
           <div className="md:col-span-2 space-y-3">
-            {/* Logo DutaKlip (serasi dengan Navbar) */}
             <div className="flex items-center gap-2.5 cursor-pointer group" onClick={() => navigateTo('/')}>
               <img 
                 src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/DutaKlip2.webp" 
@@ -102,12 +114,13 @@ export default function Footer({ onSelectCountry }: FooterProps) {
               A structured, clean, and distraction-free platform for archiving and sharing regional TikTok video collections.
             </p>
             <p className="text-xs font-semibold text-slate-400 pt-1">
-              © {new Date().getFullYear()} BatchTikTok. All rights reserved.
+              © {new Date().getFullYear()} DutaKlip. All rights reserved.
             </p>
           </div>
 
+          {/* Regional Categories */}
           <div>
-            <h4 className="text-xs font-bold text-slate-400 mb-3 tracking-wide">
+            <h4 className="text-xs font-bold text-slate-400 mb-3 tracking-wide uppercase">
               Regional Categories
             </h4>
             <ul className="space-y-2.5 text-sm font-semibold text-slate-600">
@@ -125,36 +138,52 @@ export default function Footer({ onSelectCountry }: FooterProps) {
             </ul>
           </div>
 
+          {/* Resources & Info */}
           <div>
-            <h4 className="text-xs font-bold text-slate-400 mb-3 tracking-wide">
+            <h4 className="text-xs font-bold text-slate-400 mb-3 tracking-wide uppercase">
               Resources & Info
             </h4>
             <ul className="space-y-2.5 text-sm font-semibold text-slate-600">
               <li>
                 <button 
                   onClick={() => navigateTo('/rules')}
-                  className="flex items-center gap-2 text-slate-500 hover:text-emerald-600 transition-colors border-none bg-transparent p-0 cursor-pointer"
+                  className="flex items-center gap-2.5 text-slate-600 hover:text-emerald-600 transition-colors border-none bg-transparent p-0 cursor-pointer"
                 >
-                  <Scale size={16} className="text-emerald-500" />
+                  <Scale size={18} className="text-emerald-500 flex-shrink-0" />
                   <span>Rules</span>
                 </button>
               </li>
               <li>
                 <button 
                   onClick={() => navigateTo('/legal')}
-                  className="flex items-center gap-2 text-slate-500 hover:text-emerald-600 transition-colors border-none bg-transparent p-0 cursor-pointer"
+                  className="flex items-center gap-2.5 text-slate-600 hover:text-emerald-600 transition-colors border-none bg-transparent p-0 cursor-pointer"
                 >
-                  <Shield size={16} className="text-emerald-500" />
+                  <Shield size={18} className="text-emerald-500 flex-shrink-0" />
                   <span>Legal</span>
                 </button>
               </li>
-              <li className="flex items-center gap-2 text-slate-500 mt-4 pt-4 border-t border-slate-50">
-                <ShieldCheck size={16} className="text-emerald-500" />
-                <span>Verified Links</span>
+              <li>
+                <a 
+                  href="https://www.tiktok.com/@dutaklip_" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 text-slate-600 hover:text-emerald-600 transition-colors no-underline"
+                >
+                  <TikTokIcon className="w-[18px] h-[18px] text-emerald-500 flex-shrink-0" />
+                  <span>TikTok Official</span>
+                </a>
               </li>
-              <li className="flex items-center gap-2 text-slate-500">
-                <FolderHeart size={16} className="text-emerald-500" />
-                <span>Community Contribution</span>
+              <li>
+                <div className="flex items-center gap-2.5 text-slate-600">
+                  <ShieldCheck size={18} className="text-emerald-500 flex-shrink-0" />
+                  <span>Verified Links</span>
+                </div>
+              </li>
+              <li>
+                <div className="flex items-center gap-2.5 text-slate-600">
+                  <FolderHeart size={18} className="text-emerald-500 flex-shrink-0" />
+                  <span>Community Contribution</span>
+                </div>
               </li>
             </ul>
           </div>
