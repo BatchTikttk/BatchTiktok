@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle2, ShieldCheck, Download, ExternalLink, Copy, Check, QrCode } from 'lucide-react';
+import { CheckCircle2, ShieldCheck, Download, ExternalLink, Copy, Check, QrCode, HelpCircle } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import HowToPay from '../components/HowToPay';
 import { EmeraldFolderIcon } from '../components/SharedIcons';
 import { supabase } from '../supabase';
 
@@ -14,6 +15,7 @@ interface PayProps {
 
 export default function Pay({ currentUser, handleLogout }: PayProps) {
   const [copied, setCopied] = useState(false);
+  const [showHowToPay, setShowHowToPay] = useState(false);
   const qrisImageUrl = 'https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Qris/DutaKlipQR.jpeg';
 
   // Proteksi Halaman: Wajib Login sebelum mengakses /pay
@@ -30,7 +32,7 @@ export default function Pay({ currentUser, handleLogout }: PayProps) {
   }, []);
 
   // --- Konfigurasi WhatsApp Bisnis ---
-  const whatsappNumber = '6283149071753'; // Ganti dengan nomor WhatsApp Bisnis kamu
+  const whatsappNumber = '6283149071753'; 
   const whatsappMessage = encodeURIComponent(
     `Halo Admin DutaKlip, akun saya @${currentUser || 'User'} sudah melakukan pembayaran Rp 50.000 untuk Upgrade Premium. Berikut adalah bukti transfernya:`
   );
@@ -75,6 +77,17 @@ export default function Pay({ currentUser, handleLogout }: PayProps) {
             <p className="text-slate-500 text-sm sm:text-base mt-3 max-w-lg mx-auto font-medium leading-relaxed">
               Scan the official QRIS code below using any mobile banking or e-wallet app to unlock lifetime VIP privileges instantly.
             </p>
+            
+            {/* Tombol How To Pay? di bawah deskripsi */}
+            <div className="mt-4">
+              <button
+                onClick={() => setShowHowToPay(true)}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100/70 px-4 py-2 rounded-full transition-all border border-emerald-200/60 cursor-pointer shadow-2xs"
+              >
+                <HelpCircle size={15} />
+                <span>How To Pay?</span>
+              </button>
+            </div>
           </div>
 
           {/* Balanced 2-Column Grid */}
@@ -211,6 +224,12 @@ export default function Pay({ currentUser, handleLogout }: PayProps) {
           </div>
         </main>
       </div>
+
+      {/* HowToPay Modal */}
+      <HowToPay 
+        isOpen={showHowToPay} 
+        onClose={() => setShowHowToPay(false)} 
+      />
 
       <Footer onSelectCountry={(category: string) => {
         window.location.href = category === 'Home' ? '/' : `/?category=${category}`;
