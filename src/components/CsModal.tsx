@@ -30,49 +30,46 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Cek Status Kehadiran Admin di Database Supabase
-  const checkAdminOnlineStatus = async () => {
-    try {
-      const { data: adminProfiles } = await supabase
-        .from('profiles')
-        .select('id, updated_at')
-        .eq('is_admin', true);
-
-      if (adminProfiles && adminProfiles.length > 0) {
-        // Anggap admin online jika ada aktivitas/session admin
-        setIsAdminOnline(true);
-      } else {
-        setIsAdminOnline(false);
-      }
-    } catch (err) {
-      setIsAdminOnline(false);
-    }
-  };
-
-  // 1. Ambil Session User & Cek Status Admin
+  // 1. Ambil Session User & Cek Status Admin secara Akurat
   useEffect(() => {
     if (!isOpen) return;
 
     const initSession = async () => {
       setLoading(true);
-      await checkAdminOnlineStatus();
-
       const { data: { session } } = await supabase.auth.getSession();
+      
       if (!session) {
+        setSessionUser(null);
+        setIsAdmin(false);
+        setIsAdminOnline(false);
         setLoading(false);
         return;
       }
+
       setSessionUser(session.user);
 
-      // Cek apakah user saat ini adalah admin
-      const { data: profile } = await supabase
+      // Cek status is_admin dari tabel profiles untuk user yang sedang login
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('is_admin')
         .eq('id', session.user.id)
         .single();
 
-      const userIsAdmin = !!profile?.is_admin;
+      const userIsAdmin = !error && !!profile?.is_admin;
       setIsAdmin(userIsAdmin);
+
+      // Jika user yang login adalah admin, maka admin pasti online
+      if (userIsAdmin) {
+        setIsAdminOnline(true);
+      } else {
+        // Cek apakah ada admin yang terdaftar / aktif di database untuk user biasa
+        const { data: adminProfiles } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('is_admin', true);
+
+        setIsAdminOnline(!!adminProfiles && adminProfiles.length > 0);
+      }
 
       if (!userIsAdmin) {
         await getOrCreateConversation(session.user.id);
@@ -84,7 +81,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     initSession();
   }, [isOpen]);
 
-  // 2. Ambil atau Buat Conversation untuk User
+  // 2. Ambil atau Buat Conversation untuk User Biasa
   const getOrCreateConversation = async (userId: string) => {
     try {
       let { data: conv, error } = await supabase
@@ -196,8 +193,8 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      {/* Modal Vertikal Ramping (max-w-md) agar Proporsional */}
-      <div className="relative w-full max-w-md mx-auto h-[82vh] max-h-[620px] flex flex-col">
+      {/* Modal Vertikal Ramping (max-w-md) tanpa scrolling luar */}
+      <div className="relative w-full max-w-md mx-auto h-[80vh] max-h-[600px] flex flex-col">
         
         {/* Tombol Silang di Luar Container dengan Rotasi Hover */}
         <button 
@@ -208,11 +205,11 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
           <X size={24} />
         </button>
 
-        {/* Outer Box Tanpa Scrolling Eksternal */}
+        {/* Outer Box */}
         <div className="bg-white rounded-[2.2rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full h-full">
           
           {/* Header Polos Tanpa Background Container */}
-          <div className="p-5 pb-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="p-4 sm:p-5 pb-3 border-b border-slate-100 flex items-center justify-between bg-white">
             <div className="flex items-center gap-2.5">
               <MessageSquare size={20} className="text-emerald-500 flex-shrink-0" />
               <div>
@@ -220,7 +217,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                   <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
                     Customer Service
                   </h3>
-                  {/* Indikator Akurat Admin Online / Offline */}
+                  {/* Indikator Akurat Berdasarkan Status Login / Database */}
                   <div className="flex items-center gap-1.5">
                     <span className="relative flex h-2 w-2">
                       {isAdminOnline && (
@@ -266,8 +263,8 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
           ) : (
             <div className="flex-1 flex flex-col overflow-hidden bg-white">
               
-              {/* Area Chat Internal dengan Scrollbar Bersih */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3.5 custom-scrollbar">
+              {/* Area Chat Internal */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3.5 custom-scrollbar bg-white">
                 {messages.length > 0 ? (
                   messages.map((msg) => {
                     const isMe = msg.sender_id === sessionUser.id;
@@ -300,7 +297,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                     );
                   })
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 py-8">
+                  <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 py-8 bg-white">
                     <MessageSquare size={32} className="mb-2 text-emerald-500 opacity-60" />
                     <p className="text-xs font-bold text-slate-700">Start a Conversation</p>
                     <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
