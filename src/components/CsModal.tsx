@@ -31,13 +31,12 @@ const AUTO_REPLIES: Record<string, string> = {
   "Berapa lama verifikasi pembayaran?": "Verifikasi pembayaran manual biasanya memakan waktu 5-15 menit setelah Anda mengirimkan bukti transfer via WhatsApp ke Tim Admin kami.",
   "Saya sudah transfer, bagaimana cara konfirmasinya?": "Silakan buka halaman /pay lalu klik tombol 'Confirm Payment / Contact Admin' untuk langsung membuka WhatsApp Admin dengan pesan otomatis. Lampirkan foto bukti transfer Anda di sana.",
   "Dimana saya bisa download konten eksklusif?": "Konten eksklusif dapat diakses langsung pada halaman utama atau folder creator setelah akun Anda di-upgrade menjadi status VIP Lifetime Pass.",
-  "default": "Halo! Terima kasih telah menghubungi Customer Service DutaKlip. Pesan Anda telah kami terima dan tim admin kami akan segera membantu Anda secara langsung."
+  "default": "Halo! Terima kasih telah menghubungi Customer Service DutaKlip. Pesan Anda telah kami terima dan sistem otomatis kami akan segera membantu Anda."
 };
 
 export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalProps) {
   const [sessionUser, setSessionUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [isAdminOnline, setIsAdminOnline] = useState<boolean>(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -60,7 +59,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       if (!session) {
         setSessionUser(null);
         setIsAdmin(false);
-        setIsAdminOnline(false);
         setLoading(false);
         return;
       }
@@ -75,17 +73,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
 
       const userIsAdmin = !error && !!profile?.is_admin;
       setIsAdmin(userIsAdmin);
-
-      if (userIsAdmin) {
-        setIsAdminOnline(true);
-      } else {
-        const { data: adminProfiles } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('is_admin', true);
-
-        setIsAdminOnline(!!adminProfiles && adminProfiles.length > 0);
-      }
 
       if (!userIsAdmin) {
         await getOrCreateConversation(session.user.id);
@@ -304,24 +291,11 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
             <div className="flex items-center gap-2.5">
               <MessageSquare size={20} className="text-emerald-500 flex-shrink-0" />
               <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
-                    Customer Service
-                  </h3>
-                  <div className="flex items-center gap-1.5">
-                    <span className="relative flex h-2 w-2">
-                      {isAdminOnline && (
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      )}
-                      <span className={`relative inline-flex rounded-full h-2 w-2 ${isAdminOnline ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
-                    </span>
-                    <span className={`text-[10px] font-bold ${isAdminOnline ? 'text-emerald-600' : 'text-slate-400'}`}>
-                      {isAdminOnline ? 'Admin Online' : 'Admin Offline'}
-                    </span>
-                  </div>
-                </div>
+                <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
+                  Customer Service
+                </h3>
                 <p className="text-[11px] text-slate-500 font-medium mt-0.5 leading-tight">
-                  Direct live assistance for payment & VIP membership.
+                  Instant automated support for payment & membership.
                 </p>
               </div>
             </div>
