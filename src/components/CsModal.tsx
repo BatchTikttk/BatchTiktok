@@ -20,8 +20,8 @@ interface CsModalProps {
 
 const AGENT_AVATAR_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Qris/AgentDutaKlip.webp";
 
-// Kamus Multi-Bahasa (Default: English)
-const QUICK_QUESTIONS = {
+// Daftar Pertanyaan & Topik Terkait (Multi-Language)
+const QUICK_QUESTIONS: Record<'en' | 'id', string[]> = {
   en: [
     "How to upgrade VIP?",
     "What are the benefits of VIP/Premium?",
@@ -42,7 +42,7 @@ const QUICK_QUESTIONS = {
   ]
 };
 
-const AUTO_REPLIES = {
+const AUTO_REPLIES: Record<'en' | 'id', Record<string, string>> = {
   en: {
     "How to upgrade VIP?": "To upgrade to VIP, click the Upgrade VIP menu in the Navbar or the 'Upgrade Now' button on the main banner. Then, transfer Rp 50,000 to the available QRIS and send the transfer proof to Admin.",
     "What are the benefits of VIP/Premium?": "VIP members get access to all exclusive content, priority queue for custom batch requests, exclusive VIP avatar borders, and premium card backgrounds on the contributor page.",
@@ -65,7 +65,7 @@ const AUTO_REPLIES = {
   }
 };
 
-const UI_TEXT = {
+const UI_TEXT: Record<'en' | 'id', Record<string, string>> = {
   en: {
     subtitle: "Instant automated support for payment & membership.",
     finish: "Finish",
@@ -256,17 +256,17 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     if (!replyText) {
       const lower = userMsgText.toLowerCase();
       if (lower.includes('upgrade') || lower.includes('vip') || lower.includes('bayar')) {
-        replyText = replies["How to upgrade VIP?" as keyof typeof replies] || replies["Bagaimana cara upgrade VIP?"];
+        replyText = lang === 'en' ? replies["How to upgrade VIP?"] : replies["Bagaimana cara upgrade VIP?"];
       } else if (lower.includes('benefit') || lower.includes('premium')) {
-        replyText = replies["What are the benefits of VIP/Premium?" as keyof typeof replies] || replies["Apa saja benefit menjadi member VIP/Premium?"];
+        replyText = lang === 'en' ? replies["What are the benefits of VIP/Premium?"] : replies["Apa saja benefit menjadi member VIP/Premium?"];
       } else if (lower.includes('avatar') || lower.includes('animasi') || lower.includes('webp')) {
-        replyText = replies["How to get animated avatar borders?" as keyof typeof replies] || replies["Bagaimana cara mendapatkan border avatar animasi?"];
+        replyText = lang === 'en' ? replies["How to get animated avatar borders?"] : replies["Bagaimana cara mendapatkan border avatar animasi?"];
       } else if (lower.includes('achievement') || lower.includes('badge')) {
-        replyText = replies["How does the achievement system work?" as keyof typeof replies] || replies["Bagaimana sistem achievement di DutaKlip?"];
+        replyText = lang === 'en' ? replies["How does the achievement system work?"] : replies["Bagaimana sistem achievement di DutaKlip?"];
       } else if (lower.includes('lama') || lower.includes('waktu') || lower.includes('verifikasi')) {
-        replyText = replies["How long does payment verification take?" as keyof typeof replies] || replies["Berapa lama verifikasi pembayaran?"];
+        replyText = lang === 'en' ? replies["How long does payment verification take?"] : replies["Berapa lama verifikasi pembayaran?"];
       } else if (lower.includes('transfer') || lower.includes('bukti') || lower.includes('konfirmasi')) {
-        replyText = replies["I have transferred, how to confirm?" as keyof typeof replies] || replies["Saya sudah transfer, bagaimana cara konfirmasinya?"];
+        replyText = lang === 'en' ? replies["I have transferred, how to confirm?"] : replies["Saya sudah transfer, bagaimana cara konfirmasinya?"];
       } else {
         replyText = replies["default"];
       }
