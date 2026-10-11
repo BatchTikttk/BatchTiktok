@@ -584,7 +584,6 @@ export default function Profile({
             <div className="w-full lg:w-[260px] shrink-0 space-y-8">
               <div className="flex flex-col items-center text-center">
                 
-                {/* AVATAR UTAMA DISAMAKAN DENGAN AnimationBorder.tsx */}
                 <div 
                   className="relative group cursor-pointer mb-4 w-28 h-28 flex items-center justify-center aspect-square"
                   onClick={() => setShowAvatarModal(true)}
@@ -1523,7 +1522,8 @@ export default function Profile({
         </main>
       </div>
 
-      <Footer onSelectCategory={(category: string) => {
+      {/* Footer dengan prop onSelectCountry yang valid */}
+      <Footer onSelectCountry={(category: string) => {
         if (onSelectCategory) onSelectCategory(category);
         onBack();
       }} />
