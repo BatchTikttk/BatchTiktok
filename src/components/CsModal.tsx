@@ -176,7 +176,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         .delete()
         .eq('conversation_id', conversationId);
     }
-    setMessages();
+    setMessages([]);
     onClose();
   };
 
@@ -255,32 +255,34 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
 
     setSending(true);
 
-    let activeConvId = conversationId;
-    if (!activeConvId) {
-      activeConvId = await getOrCreateConversation(sessionUser.id);
-    }
+    try {
+      let activeConvId = conversationId;
+      if (!activeConvId) {
+        activeConvId = await getOrCreateConversation(sessionUser.id);
+      }
 
-    if (!activeConvId) {
+      if (!activeConvId) return;
+
+      const cleanText = textToSend.trim();
+      setInputText('');
+
+      const { error } = await supabase.from('support_messages').insert([
+        {
+          conversation_id: activeConvId,
+          sender_id: sessionUser.id,
+          message: cleanText,
+          is_admin: false,
+        },
+      ]);
+
+      if (!error) {
+        triggerAutoBotReply(cleanText, activeConvId);
+      }
+    } catch (err) {
+      console.error('Send error:', err);
+    } finally {
       setSending(false);
-      return;
     }
-
-    const cleanText = textToSend.trim();
-    setInputText('');
-
-    const { error } = await supabase.from('support_messages').insert([
-      {
-        conversation_id: activeConvId,
-        sender_id: sessionUser.id,
-        message: cleanText,
-        is_admin: false,
-      },
-    ]);
-
-    if (!error) {
-      triggerAutoBotReply(cleanText, activeConvId);
-    }
-    setSending(false);
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -314,9 +316,10 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         if (e.target === e.currentTarget) handleCleanupAndClose();
       }}
     >
-      <div className="relative w-full max-w-md sm:max-w-lg mx-auto h-[82vh] max-h-[640px] flex flex-col">
+      {/* Ukuran diperbesar dan dipertinggi khusus website (sm:max-w-xl md:max-w-2xl, h-[88vh]), tetap responsif di mobile */}
+      <div className="relative w-full max-w-md sm:max-w-xl md:max-w-2xl mx-auto h-[88vh] max-h-[760px] flex flex-col">
         
-        {/* Tombol Silang dengan Auto Cleanup */}
+        {/* Tombol Silang */}
         <button 
           onClick={handleCleanupAndClose}
           className="absolute -top-10 right-0 md:-right-10 md:-top-2 z-[60] text-slate-300 hover:text-white bg-transparent border-none p-1 transition-all duration-300 hover:rotate-90 hover:scale-110 cursor-pointer flex items-center justify-center"
@@ -328,7 +331,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         {/* Modal Outer Box */}
         <div className="bg-white rounded-[2.2rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full h-full">
           
-          {/* Header Minimalis dengan Tombol Selesai Solid */}
+          {/* Header */}
           <div className="p-4 sm:p-5 pb-3 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 border border-slate-200 shadow-2xs">
@@ -383,7 +386,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
             <div className="flex-1 flex flex-col overflow-hidden bg-white">
               
               {/* Area Canvas Chat */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-white">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar bg-white">
                 {messages.length > 0 ? (
                   <>
                     {messages.map((msg) => {
@@ -409,7 +412,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                             </span>
 
                             <div
-                              className={`px-4 py-2.5 rounded-2xl text-xs leading-relaxed ${
+                              className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                                 isMe
                                   ? 'bg-emerald-500 text-white rounded-tr-none shadow-sm'
                                   : 'bg-slate-100 text-slate-800 rounded-tl-none shadow-sm'
@@ -443,20 +446,20 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                       </div>
                     )}
 
-                    {/* Related Questions Tersusun Vertikal & Hilang Saat Diklik */}
+                    {/* Related Questions */}
                     {!isBotTyping && unaskedQuestions.length > 0 && (
                       <div className="pt-2 flex flex-col items-start gap-2">
                         <p className="text-xs font-semibold text-slate-500 px-1">
                           Related Questions:
                         </p>
-                        <div className="flex flex-col gap-2 w-full max-w-sm">
+                        <div className="flex flex-col gap-2 w-full max-w-md">
                           {unaskedQuestions.map((q, idx) => (
                             <button
                               key={idx}
                               type="button"
                               disabled={sending}
                               onClick={() => handleQuickQuestionClick(q)}
-                              className="w-full text-left px-3.5 py-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-100 hover:border-emerald-200 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center justify-between group"
+                              className="w-full text-left px-3.5 py-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-100 hover:border-emerald-200 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer shadow-2xs flex items-center justify-between group"
                             >
                               <span>{q}</span>
                               <Send size={12} className="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-600 flex-shrink-0 ml-1" />
@@ -471,19 +474,19 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                     <div className="w-12 h-12 rounded-full overflow-hidden mb-2 border border-slate-200 shadow-sm">
                       <img src={AGENT_AVATAR_URL} alt="Agent DutaKlip" className="w-full h-full object-cover" />
                     </div>
-                    <p className="text-xs font-bold text-slate-700">Start a Conversation</p>
-                    <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed mb-4">
+                    <p className="text-xs sm:text-sm font-bold text-slate-700">Start a Conversation</p>
+                    <p className="text-[11px] sm:text-xs text-slate-400 mt-1 max-w-sm leading-relaxed mb-4">
                       Select a question below to send instantly:
                     </p>
 
-                    <div className="flex flex-col gap-2 w-full max-w-xs">
+                    <div className="flex flex-col gap-2 w-full max-w-md">
                       {QUICK_QUESTIONS.map((q, idx) => (
                         <button
                           key={idx}
                           type="button"
                           disabled={sending}
                           onClick={() => handleQuickQuestionClick(q)}
-                          className="w-full text-left px-3.5 py-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-100 hover:border-emerald-200 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center justify-between group"
+                          className="w-full text-left px-3.5 py-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-100 hover:border-emerald-200 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer shadow-2xs flex items-center justify-between group"
                         >
                           <span>{q}</span>
                           <Send size={12} className="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-600 flex-shrink-0 ml-1" />
@@ -496,20 +499,20 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
               </div>
 
               {/* Form Input Pesan */}
-              <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-100 flex items-center gap-2 bg-white flex-shrink-0">
+              <form onSubmit={handleSendMessage} className="p-3 sm:p-4 border-t border-slate-100 flex items-center gap-2 bg-white flex-shrink-0">
                 <input
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder="Type your message..."
-                  className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                  className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                 />
                 <button
                   type="submit"
                   disabled={sending || !inputText.trim()}
-                  className="p-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-xl transition-all cursor-pointer flex items-center justify-center border-none"
+                  className="p-2.5 sm:p-3 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-xl transition-all cursor-pointer flex items-center justify-center border-none"
                 >
-                  {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
+                  {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                 </button>
               </form>
             </div>
