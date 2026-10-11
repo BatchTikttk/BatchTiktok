@@ -18,7 +18,6 @@ interface CsModalProps {
   onOpenLoginModal?: () => void;
 }
 
-// Daftar pertanyaan cepat (Bilingual: English & Indonesia)
 const QUICK_QUESTIONS = [
   "Bagaimana cara upgrade VIP?",
   "Berapa lama verifikasi pembayaran?",
@@ -35,15 +34,16 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 1. Ambil Session User & Cek Status Admin
   useEffect(() => {
     if (!isOpen) return;
 
     const initSession = async () => {
       setLoading(true);
+      setErrorMessage(null);
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
@@ -56,7 +56,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
 
       setSessionUser(session.user);
 
-      // Cek status is_admin dari tabel profiles untuk user yang sedang login
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('is_admin')
@@ -87,7 +86,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     initSession();
   }, [isOpen]);
 
-  // 2. Ambil atau Buat Conversation untuk User
   const getOrCreateConversation = async (userId: string): Promise<string | null> => {
     try {
       let { data: conv, error } = await supabase
@@ -117,15 +115,15 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         return conv.id;
       }
       return null;
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error init conversation:', err);
+      setErrorMessage('Gagal menginisialisasi chat. Periksa RLS Policy Supabase.');
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  // 3. Ambil Riwayat Pesan
   const fetchMessages = async (convId: string) => {
     const { data, error } = await supabase
       .from('support_messages')
@@ -138,7 +136,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     }
   };
 
-  // 4. Supabase Realtime Subscription
   const subscribeToMessages = (convId: string) => {
     const channel = supabase
       .channel(`support_chat_${convId}`)
@@ -169,11 +166,11 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // 5. Fungsi Pengiriman Pesan Mandiri & Otomatis
   const executeSendMessage = async (textToSend: string) => {
     if (!textToSend.trim() || !sessionUser) return;
 
     setSending(true);
+    setErrorMessage(null);
 
     let activeConvId = conversationId;
     if (!activeConvId) {
@@ -182,6 +179,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
 
     if (!activeConvId) {
       setSending(false);
+      setErrorMessage('Sesi percakapan tidak ditemukan.');
       return;
     }
 
@@ -196,6 +194,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
 
     if (error) {
       console.error('Failed to send message:', error);
+      setErrorMessage(`Gagal mengirim: ${error.message}`);
     } else {
       setInputText('');
     }
@@ -207,7 +206,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     executeSendMessage(inputText);
   };
 
-  // Fungsi Langsung Kirim Saat Quick Question Diklik
   const handleQuickQuestionClick = (questionText: string) => {
     executeSendMessage(questionText);
   };
@@ -223,7 +221,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     >
       <div className="relative w-full max-w-md mx-auto h-[80vh] max-h-[600px] flex flex-col">
         
-        {/* Tombol Silang di Luar Container */}
         <button 
           onClick={onClose}
           className="absolute -top-10 right-0 md:-right-10 md:-top-2 z-[60] text-slate-300 hover:text-white bg-transparent border-none p-1 transition-all duration-300 hover:rotate-90 hover:scale-110 cursor-pointer flex items-center justify-center"
@@ -232,10 +229,8 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
           <X size={24} />
         </button>
 
-        {/* Modal Outer Box */}
         <div className="bg-white rounded-[2.2rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full h-full">
           
-          {/* Header Minimalis */}
           <div className="p-4 sm:p-5 pb-3 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
             <div className="flex items-center gap-2.5">
               <MessageSquare size={20} className="text-emerald-500 flex-shrink-0" />
@@ -263,7 +258,13 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
             </div>
           </div>
 
-          {/* Body Chat */}
+          {errorMessage && (
+            <div className="bg-red-50 border-b border-red-100 px-4 py-2 text-[11px] font-semibold text-red-600 flex items-center justify-between">
+              <span>{errorMessage}</span>
+              <button onClick={() => setErrorMessage(null)} className="text-red-400 hover:text-red-700 bg-transparent border-none cursor-pointer">✕</button>
+            </div>
+          )}
+
           {loading ? (
             <div className="flex-1 flex items-center justify-center bg-white">
               <Loader2 className="w-7 h-7 animate-spin text-emerald-500" />
@@ -289,7 +290,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
           ) : (
             <div className="flex-1 flex flex-col overflow-hidden bg-white">
               
-              {/* Area Canvas Chat */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3.5 custom-scrollbar bg-white">
                 {messages.length > 0 ? (
                   messages.map((msg) => {
@@ -323,7 +323,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                     );
                   })
                 ) : (
-                  /* Tampilan Saat Belum Ada Pesan: FAQ Chips Disimpan Langsung di Dalam Chat */
                   <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 p-2 my-auto">
                     <MessageSquare size={32} className="mb-2 text-emerald-500 opacity-60" />
                     <p className="text-xs font-bold text-slate-700">Start a Conversation</p>
@@ -331,7 +330,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                       Select a question below to send instantly:
                     </p>
 
-                    {/* FAQ Items di Dalam Chat Canvas */}
                     <div className="flex flex-col gap-2 w-full max-w-xs">
                       {QUICK_QUESTIONS.map((q, idx) => (
                         <button
@@ -351,7 +349,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Form Input Pesan */}
               <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-100 flex items-center gap-2 bg-white flex-shrink-0">
                 <input
                   type="text"
