@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Send, User, Loader2, MessageSquare, X, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../supabase';
 
@@ -19,6 +19,10 @@ interface CsModalProps {
 }
 
 const AGENT_AVATAR_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Qris/AgentDutaKlip.webp";
+
+// SVG Bendera Resmi (High-Quality Vector CDN)
+const GB_FLAG_SVG = "https://flagcdn.com/w40/gb.png";
+const ID_FLAG_SVG = "https://flagcdn.com/w40/id.png";
 
 // Daftar Pertanyaan & Topik Terkait (Multi-Language)
 const QUICK_QUESTIONS: Record<'en' | 'id', string[]> = {
@@ -217,7 +221,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isBotTyping]);
 
-  // Fungsi Membersihkan Chat saat Selesai atau Modal Ditutup
+  // Membersihkan Chat saat Modal Ditutup / Selesai
   const handleCleanupAndClose = async () => {
     if (conversationId) {
       await supabase
@@ -368,7 +372,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         if (e.target === e.currentTarget) handleCleanupAndClose();
       }}
     >
-      {/* Ukuran diperbesar dan dipertinggi khusus website, tetap responsif di mobile */}
       <div className="relative w-full max-w-md sm:max-w-xl md:max-w-2xl mx-auto h-[88vh] max-h-[760px] flex flex-col">
         
         {/* Tombol Silang */}
@@ -383,7 +386,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         {/* Modal Outer Box */}
         <div className="bg-white rounded-[2.2rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full h-full">
           
-          {/* Header dengan Tombol Bahasa EN/ID */}
+          {/* Header dengan Gambar Bendera Asli */}
           <div className="p-4 sm:p-5 pb-3 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 border border-slate-200 shadow-2xs">
@@ -396,7 +399,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                     <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
                   </h3>
 
-                  {/* Tombol Bahasa Bendera (Clean & Soft tanpa background container) */}
+                  {/* Tombol Switcher Bahasa dengan Image Flag SVG */}
                   <div className="flex items-center gap-1.5 ml-1">
                     <button
                       type="button"
@@ -404,7 +407,8 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                       className={`text-xs font-bold transition-all bg-transparent border-none cursor-pointer flex items-center gap-1 ${lang === 'en' ? 'text-slate-900 opacity-100 scale-105' : 'text-slate-400 opacity-50 hover:opacity-80'}`}
                       title="English"
                     >
-                      <span>🇬🇧</span> EN
+                      <img src={GB_FLAG_SVG} alt="EN" className="w-4 h-3 rounded-[2px] object-cover border border-slate-200 shadow-2xs" />
+                      EN
                     </button>
                     <span className="text-slate-300 text-xs font-light">/</span>
                     <button
@@ -413,7 +417,8 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                       className={`text-xs font-bold transition-all bg-transparent border-none cursor-pointer flex items-center gap-1 ${lang === 'id' ? 'text-slate-900 opacity-100 scale-105' : 'text-slate-400 opacity-50 hover:opacity-80'}`}
                       title="Indonesia"
                     >
-                      <span>🇮🇩</span> ID
+                      <img src={ID_FLAG_SVG} alt="ID" className="w-4 h-3 rounded-[2px] object-cover border border-slate-200 shadow-2xs" />
+                      ID
                     </button>
                   </div>
                 </div>
