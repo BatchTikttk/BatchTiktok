@@ -18,6 +18,14 @@ interface CsModalProps {
   onOpenLoginModal?: () => void;
 }
 
+// Daftar pertanyaan cepat (Bilingual: English & Indonesia)
+const QUICK_QUESTIONS = [
+  { en: "How to upgrade to VIP?", id: "Bagaimana cara upgrade VIP?" },
+  { en: "Payment verification takes how long?", id: "Berapa lama verifikasi pembayaran?" },
+  { en: "I have transferred, how to confirm?", id: "Saya sudah transfer, bagaimana cara konfirmasinya?" },
+  { en: "Where can I download exclusive content?", id: "Dimana saya bisa download konten eksklusif?" }
+];
+
 export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalProps) {
   const [sessionUser, setSessionUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -194,7 +202,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       }}
     >
       {/* Modal Vertikal Ramping (max-w-md) tanpa scrolling luar */}
-      <div className="relative w-full max-w-md mx-auto h-[80vh] max-h-[600px] flex flex-col">
+      <div className="relative w-full max-w-md mx-auto h-[82vh] max-h-[640px] flex flex-col">
         
         {/* Tombol Silang di Luar Container dengan Rotasi Hover */}
         <button 
@@ -297,15 +305,35 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                     );
                   })
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 py-8 bg-white">
+                  <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 py-6 bg-white">
                     <MessageSquare size={32} className="mb-2 text-emerald-500 opacity-60" />
                     <p className="text-xs font-bold text-slate-700">Start a Conversation</p>
                     <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
-                      Type your questions or issues below. Our support team will reply shortly.
+                      Type your questions or issues below, or click quick suggestions below.
                     </p>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
+              </div>
+
+              {/* Quick Conversation / FAQ Chips (Bilingual EN/ID) */}
+              <div className="px-4 py-2 border-t border-slate-50 bg-white">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                  Quick Questions / Pertanyaan Cepat:
+                </p>
+                <div className="flex gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+                  {QUICK_QUESTIONS.map((q, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setInputText(q.id)}
+                      className="flex-shrink-0 px-3 py-1.5 bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 border border-slate-200/60 rounded-full text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap"
+                      title={q.en}
+                    >
+                      {q.id}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Form Input Polos Tanpa Border Kotak Tambahan */}
