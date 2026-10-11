@@ -168,7 +168,18 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isBotTyping]);
 
-  // Fungsi Tombol Selesai (Menghapus chat terkait dari DB agar tidak menumpuk)
+  // Fungsi Membersihkan Chat saat Selesai atau Modal Ditutup
+  const handleCleanupAndClose = async () => {
+    if (conversationId) {
+      await supabase
+        .from('support_messages')
+        .delete()
+        .eq('conversation_id', conversationId);
+    }
+    setMessages();
+    onClose();
+  };
+
   const handleFinishChat = async () => {
     if (!conversationId) return;
     setLoading(true);
@@ -290,7 +301,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     }
   };
 
-  // Saring pertanyaan yang belum pernah diklik/ditanyakan
   const unaskedQuestions = QUICK_QUESTIONS.filter(
     (q) => !messages.some((m) => m.message.trim().toLowerCase() === q.trim().toLowerCase())
   );
@@ -301,14 +311,14 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-md transition-opacity animate-in fade-in duration-200 overflow-hidden"
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) handleCleanupAndClose();
       }}
     >
       <div className="relative w-full max-w-md sm:max-w-lg mx-auto h-[82vh] max-h-[640px] flex flex-col">
         
-        {/* Tombol Silang di Luar Container */}
+        {/* Tombol Silang dengan Auto Cleanup */}
         <button 
-          onClick={onClose}
+          onClick={handleCleanupAndClose}
           className="absolute -top-10 right-0 md:-right-10 md:-top-2 z-[60] text-slate-300 hover:text-white bg-transparent border-none p-1 transition-all duration-300 hover:rotate-90 hover:scale-110 cursor-pointer flex items-center justify-center"
           title="Close"
         >
@@ -318,7 +328,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         {/* Modal Outer Box */}
         <div className="bg-white rounded-[2.2rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full h-full">
           
-          {/* Header Minimalis dengan Tombol Selesai */}
+          {/* Header Minimalis dengan Tombol Selesai Solid */}
           <div className="p-4 sm:p-5 pb-3 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 border border-slate-200 shadow-2xs">
@@ -335,14 +345,13 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
               </div>
             </div>
 
-            {/* Tombol Selesai untuk Mengakhiri Chat */}
             {messages.length > 0 && (
               <button
                 onClick={handleFinishChat}
-                className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl transition-all border border-emerald-200/60 cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+                className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl transition-all shadow-sm cursor-pointer flex items-center gap-1.5 text-xs font-bold border-none"
                 title="Selesai"
               >
-                <CheckCircle2 size={15} className="text-emerald-600" />
+                <CheckCircle2 size={15} />
                 <span>Selesai</span>
               </button>
             )}
