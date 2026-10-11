@@ -20,29 +20,78 @@ interface CsModalProps {
 
 const AGENT_AVATAR_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Qris/AgentDutaKlip.webp";
 
-// Daftar Pertanyaan & Topik Terkait
-const QUICK_QUESTIONS = [
-  "Bagaimana cara upgrade VIP?",
-  "Apa saja benefit menjadi member VIP/Premium?",
-  "Bagaimana cara mendapatkan border avatar animasi?",
-  "Bagaimana sistem achievement di DutaKlip?",
-  "Berapa lama verifikasi pembayaran?",
-  "Saya sudah transfer, bagaimana cara konfirmasinya?",
-  "Dimana saya bisa download konten eksklusif?"
-];
+// Kamus Multi-Bahasa (Default: English)
+const QUICK_QUESTIONS = {
+  en: [
+    "How to upgrade VIP?",
+    "What are the benefits of VIP/Premium?",
+    "How to get animated avatar borders?",
+    "How does the achievement system work?",
+    "How long does payment verification take?",
+    "I have transferred, how to confirm?",
+    "Where can I download exclusive content?"
+  ],
+  id: [
+    "Bagaimana cara upgrade VIP?",
+    "Apa saja benefit menjadi member VIP/Premium?",
+    "Bagaimana cara mendapatkan border avatar animasi?",
+    "Bagaimana sistem achievement di DutaKlip?",
+    "Berapa lama verifikasi pembayaran?",
+    "Saya sudah transfer, bagaimana cara konfirmasinya?",
+    "Dimana saya bisa download konten eksklusif?"
+  ]
+};
 
-const AUTO_REPLIES: Record<string, string> = {
-  "Bagaimana cara upgrade VIP?": "Untuk upgrade VIP, Anda dapat mengklik menu Upgrade VIP di Navbar atau tombol 'Upgrade Now' pada banner utama. Setelah itu, lakukan transfer sebesar Rp 50.000 ke QRIS yang tersedia dan kirimkan bukti transfer ke Admin.",
-  "Apa saja benefit menjadi member VIP/Premium?": "Member VIP mendapatkan akses ke semua konten eksklusif, antrean prioritas untuk custom batch requests, border avatar VIP eksklusif, serta background kartu premium di halaman kontributor.",
-  "Bagaimana cara mendapatkan border avatar animasi?": "Border avatar animasi berbasis WebP akan otomatis aktif setelah akun Anda berhasil di-upgrade menjadi member VIP/Premium.",
-  "Bagaimana sistem achievement di DutaKlip?": "Achievement dan sistem badge tier akan terintegrasi pada profil Anda seiring dengan keaktifan dalam mengunggah serta berkontribusi di platform.",
-  "Berapa lama verifikasi pembayaran?": "Verifikasi pembayaran manual biasanya memakan waktu 5-15 menit setelah Anda mengirimkan bukti transfer via WhatsApp ke Tim Admin kami.",
-  "Saya sudah transfer, bagaimana cara konfirmasinya?": "Silakan buka halaman /pay lalu klik tombol 'Confirm Payment / Contact Admin' untuk langsung membuka WhatsApp Admin dengan pesan otomatis. Lampirkan foto bukti transfer Anda di sana.",
-  "Dimana saya bisa download konten eksklusif?": "Konten eksklusif dapat diakses langsung pada halaman utama atau folder creator setelah akun Anda di-upgrade menjadi status VIP Lifetime Pass.",
-  "default": "Halo! Terima kasih telah menghubungi Agent DutaKlip. Pesan Anda telah kami terima dan sistem otomatis kami akan segera membantu Anda."
+const AUTO_REPLIES = {
+  en: {
+    "How to upgrade VIP?": "To upgrade to VIP, click the Upgrade VIP menu in the Navbar or the 'Upgrade Now' button on the main banner. Then, transfer Rp 50,000 to the available QRIS and send the transfer proof to Admin.",
+    "What are the benefits of VIP/Premium?": "VIP members get access to all exclusive content, priority queue for custom batch requests, exclusive VIP avatar borders, and premium card backgrounds on the contributor page.",
+    "How to get animated avatar borders?": "WebP-based animated avatar borders will automatically activate once your account is upgraded to VIP/Premium member.",
+    "How does the achievement system work?": "Achievements and tier badge systems will integrate into your profile as you actively upload and contribute on the platform.",
+    "How long does payment verification take?": "Manual payment verification usually takes 5-15 minutes after you send the transfer proof via WhatsApp to our Admin team.",
+    "I have transferred, how to confirm?": "Please open the /pay page and click the 'Confirm Payment / Contact Admin' button to directly open WhatsApp Admin with an automated message. Attach your transfer proof photo there.",
+    "Where can I download exclusive content?": "Exclusive content can be accessed directly on the main page or creator folders after your account is upgraded to VIP Lifetime Pass status.",
+    "default": "Hello! Thank you for contacting Agent DutaKlip. Your message has been received and our automated system will assist you shortly."
+  },
+  id: {
+    "Bagaimana cara upgrade VIP?": "Untuk upgrade VIP, Anda dapat mengklik menu Upgrade VIP di Navbar atau tombol 'Upgrade Now' pada banner utama. Setelah itu, lakukan transfer sebesar Rp 50.000 ke QRIS yang tersedia dan kirimkan bukti transfer ke Admin.",
+    "Apa saja benefit menjadi member VIP/Premium?": "Member VIP mendapatkan akses ke semua konten eksklusif, antrean prioritas untuk custom batch requests, border avatar VIP eksklusif, serta background kartu premium di halaman kontributor.",
+    "Bagaimana cara mendapatkan border avatar animasi?": "Border avatar animasi berbasis WebP akan otomatis aktif setelah akun Anda berhasil di-upgrade menjadi member VIP/Premium.",
+    "Bagaimana sistem achievement di DutaKlip?": "Achievement dan sistem badge tier akan terintegrasi pada profil Anda seiring dengan keaktifan dalam mengunggah serta berkontribusi di platform.",
+    "Berapa lama verifikasi pembayaran?": "Verifikasi pembayaran manual biasanya memakan waktu 5-15 menit setelah Anda mengirimkan bukti transfer via WhatsApp ke Tim Admin kami.",
+    "Saya sudah transfer, bagaimana cara konfirmasinya?": "Silakan buka halaman /pay lalu klik tombol 'Confirm Payment / Contact Admin' untuk langsung membuka WhatsApp Admin dengan pesan otomatis. Lampirkan foto bukti transfer Anda di sana.",
+    "Dimana saya bisa download konten eksklusif?": "Konten eksklusif dapat diakses langsung pada halaman utama atau folder creator setelah akun Anda di-upgrade menjadi status VIP Lifetime Pass.",
+    "default": "Halo! Terima kasih telah menghubungi Agent DutaKlip. Pesan Anda telah kami terima dan sistem otomatis kami akan segera membantu Anda."
+  }
+};
+
+const UI_TEXT = {
+  en: {
+    subtitle: "Instant automated support for payment & membership.",
+    finish: "Finish",
+    loginFirst: "Please Login First",
+    loginDesc: "You need to be logged in to send messages and connect with support.",
+    loginBtn: "Login Now",
+    startConv: "Start a Conversation",
+    selectPrompt: "Select a question below to send instantly:",
+    related: "Related Questions:",
+    placeholder: "Type your message..."
+  },
+  id: {
+    subtitle: "Dukungan otomatis instan untuk pembayaran & keanggotaan.",
+    finish: "Selesai",
+    loginFirst: "Silakan Login Terlebih Dahulu",
+    loginDesc: "Anda harus login terlebih dahulu untuk mengirim pesan dan terhubung dengan dukungan.",
+    loginBtn: "Login Sekarang",
+    startConv: "Mulai Percakapan",
+    selectPrompt: "Pilih pertanyaan di bawah untuk mengirim secara instan:",
+    related: "Pertanyaan Terkait:",
+    placeholder: "Ketik pesan Anda..."
+  }
 };
 
 export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalProps) {
+  const [lang, setLang] = useState<'en' | 'id'>('en');
   const [sessionUser, setSessionUser] = useState<any>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [displayUsername, setDisplayUsername] = useState<string>('You');
@@ -201,23 +250,25 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
   const triggerAutoBotReply = async (userMsgText: string, activeConvId: string) => {
     setIsBotTyping(true);
 
-    let replyText = AUTO_REPLIES[userMsgText];
+    const replies = AUTO_REPLIES[lang];
+    let replyText = replies[userMsgText];
+    
     if (!replyText) {
       const lower = userMsgText.toLowerCase();
       if (lower.includes('upgrade') || lower.includes('vip') || lower.includes('bayar')) {
-        replyText = AUTO_REPLIES["Bagaimana cara upgrade VIP?"];
+        replyText = replies["How to upgrade VIP?" as keyof typeof replies] || replies["Bagaimana cara upgrade VIP?"];
       } else if (lower.includes('benefit') || lower.includes('premium')) {
-        replyText = AUTO_REPLIES["Apa saja benefit menjadi member VIP/Premium?"];
+        replyText = replies["What are the benefits of VIP/Premium?" as keyof typeof replies] || replies["Apa saja benefit menjadi member VIP/Premium?"];
       } else if (lower.includes('avatar') || lower.includes('animasi') || lower.includes('webp')) {
-        replyText = AUTO_REPLIES["Bagaimana cara mendapatkan border avatar animasi?"];
+        replyText = replies["How to get animated avatar borders?" as keyof typeof replies] || replies["Bagaimana cara mendapatkan border avatar animasi?"];
       } else if (lower.includes('achievement') || lower.includes('badge')) {
-        replyText = AUTO_REPLIES["Bagaimana sistem achievement di DutaKlip?"];
+        replyText = replies["How does the achievement system work?" as keyof typeof replies] || replies["Bagaimana sistem achievement di DutaKlip?"];
       } else if (lower.includes('lama') || lower.includes('waktu') || lower.includes('verifikasi')) {
-        replyText = AUTO_REPLIES["Berapa lama verifikasi pembayaran?"];
+        replyText = replies["How long does payment verification take?" as keyof typeof replies] || replies["Berapa lama verifikasi pembayaran?"];
       } else if (lower.includes('transfer') || lower.includes('bukti') || lower.includes('konfirmasi')) {
-        replyText = AUTO_REPLIES["Saya sudah transfer, bagaimana cara konfirmasinya?"];
+        replyText = replies["I have transferred, how to confirm?" as keyof typeof replies] || replies["Saya sudah transfer, bagaimana cara konfirmasinya?"];
       } else {
-        replyText = AUTO_REPLIES["default"];
+        replyText = replies["default"];
       }
     }
 
@@ -303,7 +354,8 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     }
   };
 
-  const unaskedQuestions = QUICK_QUESTIONS.filter(
+  const currentQuestions = QUICK_QUESTIONS[lang];
+  const unaskedQuestions = currentQuestions.filter(
     (q) => !messages.some((m) => m.message.trim().toLowerCase() === q.trim().toLowerCase())
   );
 
@@ -316,7 +368,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         if (e.target === e.currentTarget) handleCleanupAndClose();
       }}
     >
-      {/* Ukuran diperbesar dan dipertinggi khusus website (sm:max-w-xl md:max-w-2xl, h-[88vh]), tetap responsif di mobile */}
+      {/* Ukuran diperbesar dan dipertinggi khusus website, tetap responsif di mobile */}
       <div className="relative w-full max-w-md sm:max-w-xl md:max-w-2xl mx-auto h-[88vh] max-h-[760px] flex flex-col">
         
         {/* Tombol Silang */}
@@ -331,19 +383,43 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         {/* Modal Outer Box */}
         <div className="bg-white rounded-[2.2rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full h-full">
           
-          {/* Header */}
+          {/* Header dengan Tombol Bahasa EN/ID */}
           <div className="p-4 sm:p-5 pb-3 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 border border-slate-200 shadow-2xs">
                 <img src={AGENT_AVATAR_URL} alt="Agent DutaKlip" className="w-full h-full object-cover" />
               </div>
               <div>
-                <h3 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
-                  Agent DutaKlip
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
-                </h3>
+                <div className="flex items-center gap-2.5">
+                  <h3 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
+                    Agent DutaKlip
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                  </h3>
+
+                  {/* Tombol Bahasa Bendera (Clean & Soft tanpa background container) */}
+                  <div className="flex items-center gap-1.5 ml-1">
+                    <button
+                      type="button"
+                      onClick={() => setLang('en')}
+                      className={`text-xs font-bold transition-all bg-transparent border-none cursor-pointer flex items-center gap-1 ${lang === 'en' ? 'text-slate-900 opacity-100 scale-105' : 'text-slate-400 opacity-50 hover:opacity-80'}`}
+                      title="English"
+                    >
+                      <span>🇬🇧</span> EN
+                    </button>
+                    <span className="text-slate-300 text-xs font-light">/</span>
+                    <button
+                      type="button"
+                      onClick={() => setLang('id')}
+                      className={`text-xs font-bold transition-all bg-transparent border-none cursor-pointer flex items-center gap-1 ${lang === 'id' ? 'text-slate-900 opacity-100 scale-105' : 'text-slate-400 opacity-50 hover:opacity-80'}`}
+                      title="Indonesia"
+                    >
+                      <span>🇮🇩</span> ID
+                    </button>
+                  </div>
+                </div>
+
                 <p className="text-[11px] text-slate-500 font-medium mt-0.5 leading-tight">
-                  Instant automated support for payment & membership.
+                  {UI_TEXT[lang].subtitle}
                 </p>
               </div>
             </div>
@@ -352,10 +428,10 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
               <button
                 onClick={handleFinishChat}
                 className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl transition-all shadow-sm cursor-pointer flex items-center gap-1.5 text-xs font-bold border-none"
-                title="Selesai"
+                title={UI_TEXT[lang].finish}
               >
                 <CheckCircle2 size={15} />
-                <span>Selesai</span>
+                <span>{UI_TEXT[lang].finish}</span>
               </button>
             )}
           </div>
@@ -367,9 +443,9 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
           ) : !sessionUser ? (
             <div className="flex-1 flex flex-col items-center justify-center p-6 text-center bg-white">
               <MessageSquare size={38} className="text-slate-300 mb-2" />
-              <h4 className="text-sm font-bold text-slate-800 mb-1">Please Login First</h4>
+              <h4 className="text-sm font-bold text-slate-800 mb-1">{UI_TEXT[lang].loginFirst}</h4>
               <p className="text-xs text-slate-500 mb-4 max-w-xs leading-relaxed">
-                You need to be logged in to send messages and connect with support.
+                {UI_TEXT[lang].loginDesc}
               </p>
               <button
                 onClick={() => {
@@ -379,7 +455,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                 }}
                 className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition-all cursor-pointer border-none"
               >
-                Login Now
+                {UI_TEXT[lang].loginBtn}
               </button>
             </div>
           ) : (
@@ -450,7 +526,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                     {!isBotTyping && unaskedQuestions.length > 0 && (
                       <div className="pt-2 flex flex-col items-start gap-2">
                         <p className="text-xs font-semibold text-slate-500 px-1">
-                          Related Questions:
+                          {UI_TEXT[lang].related}
                         </p>
                         <div className="flex flex-col gap-2 w-full max-w-md">
                           {unaskedQuestions.map((q, idx) => (
@@ -474,13 +550,13 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                     <div className="w-12 h-12 rounded-full overflow-hidden mb-2 border border-slate-200 shadow-sm">
                       <img src={AGENT_AVATAR_URL} alt="Agent DutaKlip" className="w-full h-full object-cover" />
                     </div>
-                    <p className="text-xs sm:text-sm font-bold text-slate-700">Start a Conversation</p>
+                    <p className="text-xs sm:text-sm font-bold text-slate-700">{UI_TEXT[lang].startConv}</p>
                     <p className="text-[11px] sm:text-xs text-slate-400 mt-1 max-w-sm leading-relaxed mb-4">
-                      Select a question below to send instantly:
+                      {UI_TEXT[lang].selectPrompt}
                     </p>
 
                     <div className="flex flex-col gap-2 w-full max-w-md">
-                      {QUICK_QUESTIONS.map((q, idx) => (
+                      {currentQuestions.map((q, idx) => (
                         <button
                           key={idx}
                           type="button"
@@ -504,7 +580,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Type your message..."
+                  placeholder={UI_TEXT[lang].placeholder}
                   className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                 />
                 <button
