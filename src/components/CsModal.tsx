@@ -180,11 +180,10 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isBotTyping]);
 
-  // Simulasi Balasan Bot Otomatis dengan Animacy Typewriting
+  // Simulasi Balasan Bot Otomatis
   const triggerAutoBotReply = async (userMsgText: string, activeConvId: string) => {
     setIsBotTyping(true);
 
-    // Cari balasan yang cocok
     let replyText = AUTO_REPLIES[userMsgText];
     if (!replyText) {
       const lower = userMsgText.toLowerCase();
@@ -199,12 +198,10 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       }
     }
 
-    // Jeda delay pengetikan simulasi (1.2 detik)
     setTimeout(async () => {
       setIsBotTyping(false);
 
-      // Simpan balasan bot ke database Supabase
-      const { data: insertedMsg, error } = await supabase
+      const { error } = await supabase
         .from('support_messages')
         .insert([
           {
@@ -213,12 +210,9 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
             message: replyText,
             is_admin: true,
           },
-        ])
-        .select()
-        .single();
+        ]);
 
       if (error) {
-        // Fallback lokal jika RLS khusus admin dipicu
         const tempMsg: Message = {
           id: 'bot-' + Date.now(),
           conversation_id: activeConvId,
@@ -253,7 +247,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     const cleanText = textToSend.trim();
     setInputText('');
 
-    // Masukkan pesan user ke database
     const { error } = await supabase.from('support_messages').insert([
       {
         conversation_id: activeConvId,
@@ -267,7 +260,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       console.error('Failed to send message:', error);
       setErrorMessage(`Gagal mengirim: ${error.message}`);
     } else {
-      // Jika bukan admin yang mengetik, picu balasan otomatis dari bot CS
       if (!isAdmin) {
         triggerAutoBotReply(cleanText, activeConvId);
       }
@@ -318,11 +310,13 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                   </h3>
                   <div className="flex items-center gap-1.5">
                     <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      {isAdminOnline && (
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      )}
+                      <span className={`relative inline-flex rounded-full h-2 w-2 ${isAdminOnline ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
                     </span>
-                    <span className="text-[10px] font-bold text-emerald-600">
-                      Admin Online
+                    <span className={`text-[10px] font-bold ${isAdminOnline ? 'text-emerald-600' : 'text-slate-400'}`}>
+                      {isAdminOnline ? 'Admin Online' : 'Admin Offline'}
                     </span>
                   </div>
                 </div>
@@ -400,7 +394,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                       );
                     })}
 
-                    {/* Animasi Bot Mengetik (Typing Indicator) */}
+                    {/* Animasi Bot Mengetik */}
                     {isBotTyping && (
                       <div className="flex items-end gap-2 flex-row">
                         <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
@@ -416,7 +410,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                     )}
                   </>
                 ) : (
-                  /* Tampilan Saat Belum Ada Pesan */
                   <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 p-2 my-auto">
                     <MessageSquare size={32} className="mb-2 text-emerald-500 opacity-60" />
                     <p className="text-xs font-bold text-slate-700">Start a Conversation</p>
