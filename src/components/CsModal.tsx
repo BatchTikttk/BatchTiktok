@@ -18,10 +18,8 @@ interface CsModalProps {
   onOpenLoginModal?: () => void;
 }
 
-// URL Avatar khusus Agent DutaKlip
 const AGENT_AVATAR_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Qris/AgentDutaKlip.webp";
 
-// Quick Questions & Auto-Reply Responses Database
 const QUICK_QUESTIONS = [
   "Bagaimana cara upgrade VIP?",
   "Berapa lama verifikasi pembayaran?",
@@ -48,17 +46,15 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [isBotTyping, setIsBotTyping] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 1. Ambil Session User & Profil (Avatar & Username)
+  // 1. Inisialisasi Sesi Saat Modal Dibuka
   useEffect(() => {
     if (!isOpen) return;
 
     const initSession = async () => {
       setLoading(true);
-      setErrorMessage(null);
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
@@ -71,88 +67,80 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
 
       setSessionUser(session.user);
 
-      const { data: profile, error } = await supabase
+      const { data: profile } = await supabase
         .from('profiles')
         .select('username, is_admin, avatar_url')
         .eq('id', session.user.id)
         .single();
 
-      const userIsAdmin = !error && !!profile?.is_admin;
-      setIsAdmin(userIsAdmin);
+      setIsAdmin(!!profile?.is_admin);
 
-      if (profile?.username) {
-        setDisplayUsername(profile.username);
-      }
-
-      if (profile?.avatar_url) {
-        setUserAvatar(profile.avatar_url);
-      } else if (session.user.user_metadata?.avatar_url) {
+      if (profile?.username) setDisplayUsername(profile.username);
+      if (profile?.avatar_url) setUserAvatar(profile.avatar_url);
+      else if (session.user.user_metadata?.avatar_url) {
         setUserAvatar(session.user.user_metadata.avatar_url);
       }
 
-      if (!userIsAdmin) {
-        await getOrCreateConversation(session.user.id);
-      } else {
-        setLoading(false);
-      }
+      await createNewActiveSession(session.user.id);
     };
 
     initSession();
   }, [isOpen]);
 
-  // 2. Ambil atau Buat Conversation
-  const getOrCreateConversation = async (userId: string): Promise<string | null> => {
+  // 2. Buat Percakapan Baru Secara Bersih
+  const createNewActiveSession = async (userId: string) => {
     try {
-      let { data: conv, error } = await supabase
+      setLoading(true);
+      setMessages([]); // Bersihkan pesan lama dari UI
+
+      const { data: newConv, error } = await supabase
         .from('support_conversations')
+        .insert([{ user_id: userId, status: 'active' }])
         .select('id')
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .maybeSingle();
+        .single();
 
-      if (error) throw error;
-
-      if (!conv) {
-        const { data: newConv, error: createError } = await supabase
+      if (error) {
+        // Fallback jika insert dibatasi, ambil percakapan terakhir
+        const { data: existingConv } = await supabase
           .from('support_conversations')
-          .insert([{ user_id: userId, status: 'active' }])
           .select('id')
-          .single();
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-        if (createError) throw createError;
-        conv = newConv;
-      }
-
-      if (conv) {
-        setConversationId(conv.id);
-        fetchMessages(conv.id);
-        subscribeToMessages(conv.id);
-        return conv.id;
+        if (existingConv) {
+          setConversationId(existingConv.id);
+          fetchMessages(existingConv.id);
+          subscribeToMessages(existingConv.id);
+          return existingConv.id;
+        }
+      } else if (newConv) {
+        setConversationId(newConv.id);
+        subscribeToMessages(newConv.id);
+        return newConv.id;
       }
       return null;
-    } catch (err: any) {
-      console.error('Error init conversation:', err);
-      setErrorMessage('Gagal menginisialisasi chat.');
+    } catch (err) {
+      console.error('Session Error:', err);
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  // 3. Ambil Riwayat Pesan
+  // 3. Ambil Pesan Khusus Sesi Ini
   const fetchMessages = async (convId: string) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('support_messages')
       .select('*')
       .eq('conversation_id', convId)
       .order('created_at', { ascending: true });
 
-    if (!error && data) {
-      setMessages(data);
-    }
+    if (data) setMessages(data);
   };
 
-  // 4. Supabase Realtime Subscription
+  // 4. Realtime Subscription
   const subscribeToMessages = (convId: string) => {
     const channel = supabase
       .channel(`support_chat_${convId}`)
@@ -183,17 +171,14 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isBotTyping]);
 
-  // Perbaikan Fungsi New Chat yang Aman dari Bug State & RLS
-  const handleNewChat = async () => {
-    if (!sessionUser) return;
-    setLoading(true);
-    setErrorMessage(null);
-    setConversationId(null);
-    setMessages([]);
-    await getOrCreateConversation(sessionUser.id);
+  // Tombol "New Chat" -> Reset Tampilan & Buat Sesi Baru
+  const handleNewChat = () => {
+    if (sessionUser) {
+      createNewActiveSession(sessionUser.id);
+    }
   };
 
-  // Simulasi Balasan Bot Otomatis Agent DutaKlip
+  // Balasan Otomatis Bot
   const triggerAutoBotReply = async (userMsgText: string, activeConvId: string) => {
     setIsBotTyping(true);
 
@@ -239,21 +224,19 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     }, 1200);
   };
 
-  // 5. Fungsi Pengiriman Pesan
+  // 5. Kirim Pesan
   const executeSendMessage = async (textToSend: string) => {
     if (!textToSend.trim() || !sessionUser) return;
 
     setSending(true);
-    setErrorMessage(null);
 
     let activeConvId = conversationId;
     if (!activeConvId) {
-      activeConvId = await getOrCreateConversation(sessionUser.id);
+      activeConvId = await createNewActiveSession(sessionUser.id);
     }
 
     if (!activeConvId) {
       setSending(false);
-      setErrorMessage('Sesi percakapan tidak ditemukan.');
       return;
     }
 
@@ -269,13 +252,8 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       },
     ]);
 
-    if (error) {
-      console.error('Failed to send message:', error);
-      setErrorMessage(`Gagal mengirim: ${error.message}`);
-    } else {
-      if (!isAdmin) {
-        triggerAutoBotReply(cleanText, activeConvId);
-      }
+    if (!error && !isAdmin) {
+      triggerAutoBotReply(cleanText, activeConvId);
     }
     setSending(false);
   };
@@ -289,7 +267,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     executeSendMessage(questionText);
   };
 
-  // Helper Format Waktu
   const formatTime = (isoString: string) => {
     try {
       const date = new Date(isoString);
@@ -322,7 +299,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         {/* Modal Outer Box */}
         <div className="bg-white rounded-[2.2rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full h-full">
           
-          {/* Header Minimalis dengan Avatar Agent & Tombol New Chat */}
+          {/* Header Minimalis */}
           <div className="p-4 sm:p-5 pb-3 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 border border-slate-200 shadow-2xs">
@@ -339,7 +316,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
               </div>
             </div>
 
-            {/* Tombol Refresh / New Chat */}
+            {/* Tombol New Chat */}
             <button
               onClick={handleNewChat}
               className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all border-none bg-transparent cursor-pointer flex items-center gap-1 text-xs font-bold"
@@ -349,13 +326,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
               <span className="hidden sm:inline">New Chat</span>
             </button>
           </div>
-
-          {errorMessage && (
-            <div className="bg-red-50 border-b border-red-100 px-4 py-2 text-[11px] font-semibold text-red-600 flex items-center justify-between">
-              <span>{errorMessage}</span>
-              <button onClick={() => setErrorMessage(null)} className="text-red-400 hover:text-red-700 bg-transparent border-none cursor-pointer">✕</button>
-            </div>
-          )}
 
           {loading ? (
             <div className="flex-1 flex items-center justify-center bg-white">
