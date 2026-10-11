@@ -584,19 +584,12 @@ export default function Profile({
             <div className="w-full lg:w-[260px] shrink-0 space-y-8">
               <div className="flex flex-col items-center text-center">
                 
+                {/* AVATAR UTAMA DISAMAKAN DENGAN AnimationBorder.tsx */}
                 <div 
-                  className="relative group cursor-pointer mb-4 w-[88px] h-[88px]"
+                  className="relative group cursor-pointer mb-4 w-28 h-28 flex items-center justify-center aspect-square"
                   onClick={() => setShowAvatarModal(true)}
                   title="Click to change avatar"
                 >
-                  <div className="w-full h-full rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 border-4 border-white transition-all duration-300 group-hover:scale-105 relative z-10">
-                    {userProfile?.avatar_url ? (
-                      <img src={userProfile.avatar_url} alt="Profile Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <User size={40} strokeWidth={2.2} />
-                    )}
-                  </div>
-
                   {userProfile?.is_premium && userProfile?.vip_border_url ? (
                     <AvatarBorderVip 
                       isPremium={userProfile?.is_premium} 
@@ -606,9 +599,17 @@ export default function Profile({
                     <img 
                       src={userProfile.animation_border_url} 
                       alt="Animation Border" 
-                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[125%] h-[125%] max-w-none object-contain z-20 pointer-events-none transition-all duration-300 group-hover:scale-105" 
+                      className="absolute inset-0 w-full h-full object-contain z-20 pointer-events-none transition-all duration-300 group-hover:scale-105" 
                     />
                   ) : null}
+
+                  <div className="w-[85%] h-[85%] rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 relative z-10 transition-all duration-300 group-hover:scale-105">
+                    {userProfile?.avatar_url ? (
+                      <img src={userProfile.avatar_url} alt="Profile Avatar" className="w-full h-full object-cover scale-125" />
+                    ) : (
+                      <User size={36} strokeWidth={2.2} />
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex flex-col items-center w-full mt-2">
@@ -1048,15 +1049,7 @@ export default function Profile({
                   <p className="text-xs text-slate-500 mb-8">Customize your appearance and account information</p>
 
                   <div className="p-6 bg-slate-50 rounded-[32px] flex flex-col sm:flex-row items-center gap-6 mb-6">
-                    <div className="relative w-[88px] h-[88px] flex-shrink-0">
-                      <div className="w-full h-full rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-md relative z-10">
-                        {userProfile?.avatar_url ? (
-                          <img src={userProfile.avatar_url} alt="Avatar Preview" className="w-full h-full object-cover" />
-                        ) : (
-                          <User size={36} />
-                        )}
-                      </div>
-                      
+                    <div className="relative w-24 h-24 flex items-center justify-center aspect-square flex-shrink-0">
                       {userProfile?.is_premium && userProfile?.vip_border_url ? (
                         <AvatarBorderVip 
                           isPremium={userProfile?.is_premium} 
@@ -1066,9 +1059,17 @@ export default function Profile({
                         <img 
                           src={userProfile.animation_border_url} 
                           alt="Animation Border" 
-                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[125%] h-[125%] max-w-none object-contain z-20 pointer-events-none" 
+                          className="absolute inset-0 w-full h-full object-contain z-20 pointer-events-none" 
                         />
                       ) : null}
+
+                      <div className="w-[85%] h-[85%] rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-md relative z-10">
+                        {userProfile?.avatar_url ? (
+                          <img src={userProfile.avatar_url} alt="Avatar Preview" className="w-full h-full object-cover scale-125" />
+                        ) : (
+                          <User size={36} />
+                        )}
+                      </div>
                     </div>
 
                     <div className="text-center sm:text-left space-y-3">
@@ -1522,8 +1523,7 @@ export default function Profile({
         </main>
       </div>
 
-      {/* Footer disesuaikan dengan prop onSelectCountry yang valid */}
-      <Footer onSelectCountry={(category: string) => {
+      <Footer onSelectCategory={(category: string) => {
         if (onSelectCategory) onSelectCategory(category);
         onBack();
       }} />
