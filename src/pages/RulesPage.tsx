@@ -85,20 +85,20 @@ const RulesPage = () => {
       },
       badges: {
         title: "Community Badges",
-        subtitle: "Recognizing our top contributors. Badges are displayed automatically based on your total approved uploads[cite: 10].",
+        subtitle: "Recognizing our top contributors. Badges are displayed automatically based on your total approved uploads.",
         adminTitle: "Verified Staff",
         adminBadge: "Admin Verified",
-        adminDesc: "Exclusive badge for administrators and moderators who maintain the platform's integrity[cite: 9, 10].",
+        adminDesc: "Exclusive badge for administrators and moderators who maintain the platform's integrity.",
         activeBadge: "10+ Uploads",
-        activeDesc: "Unlocked automatically after uploading at least 10 approved batch archives[cite: 9, 10].",
+        activeDesc: "Unlocked automatically after uploading at least 10 approved batch archives.",
         supporterBadge: "30+ Uploads",
-        supporterDesc: "Unlocked automatically after uploading at least 30 approved batch archives[cite: 9, 10].",
+        supporterDesc: "Unlocked automatically after uploading at least 30 approved batch archives.",
         loyalBadge: "50+ Uploads",
-        loyalDesc: "Unlocked automatically after uploading at least 50 approved batch archives[cite: 9, 10].",
+        loyalDesc: "Unlocked automatically after uploading at least 50 approved batch archives.",
         achievementBadge: "100+ Uploads",
-        achievementDesc: "Unlocked automatically after uploading at least 100 approved batch archives[cite: 9, 10].",
+        achievementDesc: "Unlocked automatically after uploading at least 100 approved batch archives.",
         topCreatorBadge: "200+ Uploads",
-        topCreatorDesc: "Highest Achievement! Unlocked after reaching 200 approved batch archives[cite: 9, 10]."
+        topCreatorDesc: "Highest Achievement! Unlocked after reaching 200 approved batch archives."
       },
       editing: {
         title: "Post Editing Flow",
@@ -163,20 +163,20 @@ const RulesPage = () => {
       },
       badges: {
         title: "Lencana Komunitas",
-        subtitle: "Apresiasi untuk kontributor utama. Lencana ditampilkan otomatis berdasarkan total unggahan yang disetujui[cite: 10].",
+        subtitle: "Apresiasi untuk kontributor utama. Lencana ditampilkan otomatis berdasarkan total unggahan yang disetujui.",
         adminTitle: "Verified Staff",
         adminBadge: "Admin Terverifikasi",
-        adminDesc: "Lencana khusus untuk administrator dan moderator yang menjaga integritas platform[cite: 9, 10].",
+        adminDesc: "Lencana khusus untuk administrator dan moderator yang menjaga integritas platform.",
         activeBadge: "10+ Unggahan",
-        activeDesc: "Terbuka otomatis setelah mengunggah minimal 10 arsip batch yang disetujui[cite: 9, 10].",
+        activeDesc: "Terbuka otomatis setelah mengunggah minimal 10 arsip batch yang disetujui.",
         supporterBadge: "30+ Unggahan",
-        supporterDesc: "Terbuka otomatis setelah mengunggah minimal 30 arsip batch yang disetujui[cite: 9, 10].",
+        supporterDesc: "Terbuka otomatis setelah mengunggah minimal 30 arsip batch yang disetujui.",
         loyalBadge: "50+ Unggahan",
-        loyalDesc: "Terbuka otomatis setelah mengunggah minimal 50 arsip batch yang disetujui[cite: 9, 10].",
+        loyalDesc: "Terbuka otomatis setelah mengunggah minimal 50 arsip batch yang disetujui.",
         achievementBadge: "100+ Unggahan",
-        achievementDesc: "Terbuka otomatis setelah mengunggah minimal 100 arsip batch yang disetujui[cite: 9, 10].",
+        achievementDesc: "Terbuka otomatis setelah mengunggah minimal 100 arsip batch yang disetujui.",
         topCreatorBadge: "200+ Unggahan",
-        topCreatorDesc: "Pencapaian Tertinggi! Terbuka setelah mencapai 200 arsip batch yang disetujui[cite: 9, 10]."
+        topCreatorDesc: "Pencapaian Tertinggi! Terbuka setelah mencapai 200 arsip batch yang disetujui."
       },
       editing: {
         title: "Alur Pengeditan Postingan",
@@ -461,7 +461,7 @@ const RulesPage = () => {
               </div>
             )}
 
-            {/* TAB: BADGES (Disamakan dengan CreatorPage) */}
+            {/* TAB: BADGES */}
             {activeTab === 'badges' && (
               <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                 <div className="mb-8">
@@ -487,7 +487,7 @@ const RulesPage = () => {
                     </p>
                   </div>
 
-                  {/* Active User (Bronze) */}
+                  {/* Active User */}
                   <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center hover:bg-slate-100/50 transition-colors">
                     <img 
                       src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/ActiveUser.webp" 
@@ -503,7 +503,7 @@ const RulesPage = () => {
                     </p>
                   </div>
 
-                  {/* Supporter (Silver) */}
+                  {/* Supporter */}
                   <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center hover:bg-slate-100/50 transition-colors">
                     <img 
                       src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Suporter.webp" 
@@ -519,7 +519,7 @@ const RulesPage = () => {
                     </p>
                   </div>
 
-                  {/* Loyal User (Gold) */}
+                  {/* Loyal User */}
                   <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center hover:bg-slate-100/50 transition-colors">
                     <img 
                       src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/LoyalUser.webp" 
@@ -535,7 +535,7 @@ const RulesPage = () => {
                     </p>
                   </div>
 
-                  {/* Achievement (Elite) */}
+                  {/* Achievement */}
                   <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center hover:bg-slate-100/50 transition-colors">
                     <img 
                       src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Archivement.webp" 
@@ -551,7 +551,7 @@ const RulesPage = () => {
                     </p>
                   </div>
 
-                  {/* Top Creator (Legend) */}
+                  {/* Top Creator */}
                   <div className="p-6 rounded-2xl bg-gradient-to-b from-amber-50 to-orange-50/40 border border-amber-200/60 flex flex-col items-center text-center hover:shadow-md transition-all">
                     <img 
                       src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/TopCreator.webp" 
