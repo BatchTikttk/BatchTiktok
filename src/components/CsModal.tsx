@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Send, User, Loader2, MessageSquare, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Send, User, Loader2, MessageSquare, X, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../supabase';
 
 interface Message {
@@ -20,17 +20,22 @@ interface CsModalProps {
 
 const AGENT_AVATAR_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Qris/AgentDutaKlip.webp";
 
-// Daftar Pertanyaan Utama
+// Daftar Pertanyaan & Topik Terkait
 const QUICK_QUESTIONS = [
   "Bagaimana cara upgrade VIP?",
+  "Apa saja benefit menjadi member VIP/Premium?",
+  "Bagaimana cara mendapatkan border avatar animasi?",
+  "Bagaimana sistem achievement di DutaKlip?",
   "Berapa lama verifikasi pembayaran?",
   "Saya sudah transfer, bagaimana cara konfirmasinya?",
   "Dimana saya bisa download konten eksklusif?"
 ];
 
-// Database Balasan Otomatis
 const AUTO_REPLIES: Record<string, string> = {
   "Bagaimana cara upgrade VIP?": "Untuk upgrade VIP, Anda dapat mengklik menu Upgrade VIP di Navbar atau tombol 'Upgrade Now' pada banner utama. Setelah itu, lakukan transfer sebesar Rp 50.000 ke QRIS yang tersedia dan kirimkan bukti transfer ke Admin.",
+  "Apa saja benefit menjadi member VIP/Premium?": "Member VIP mendapatkan akses ke semua konten eksklusif, antrean prioritas untuk custom batch requests, border avatar VIP eksklusif, serta background kartu premium di halaman kontributor.",
+  "Bagaimana cara mendapatkan border avatar animasi?": "Border avatar animasi berbasis WebP akan otomatis aktif setelah akun Anda berhasil di-upgrade menjadi member VIP/Premium.",
+  "Bagaimana sistem achievement di DutaKlip?": "Achievement dan sistem badge tier akan terintegrasi pada profil Anda seiring dengan keaktifan dalam mengunggah serta berkontribusi di platform.",
   "Berapa lama verifikasi pembayaran?": "Verifikasi pembayaran manual biasanya memakan waktu 5-15 menit setelah Anda mengirimkan bukti transfer via WhatsApp ke Tim Admin kami.",
   "Saya sudah transfer, bagaimana cara konfirmasinya?": "Silakan buka halaman /pay lalu klik tombol 'Confirm Payment / Contact Admin' untuk langsung membuka WhatsApp Admin dengan pesan otomatis. Lampirkan foto bukti transfer Anda di sana.",
   "Dimana saya bisa download konten eksklusif?": "Konten eksklusif dapat diakses langsung pada halaman utama atau folder creator setelah akun Anda di-upgrade menjadi status VIP Lifetime Pass.",
@@ -39,7 +44,6 @@ const AUTO_REPLIES: Record<string, string> = {
 
 export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalProps) {
   const [sessionUser, setSessionUser] = useState<any>(null);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [displayUsername, setDisplayUsername] = useState<string>('You');
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -61,7 +65,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       
       if (!session) {
         setSessionUser(null);
-        setIsAdmin(false);
         setUserAvatar(null);
         setLoading(false);
         return;
@@ -71,11 +74,9 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('username, is_admin, avatar_url')
+        .select('username, avatar_url')
         .eq('id', session.user.id)
         .single();
-
-      setIsAdmin(!!profile?.is_admin);
 
       if (profile?.username) setDisplayUsername(profile.username);
       if (profile?.avatar_url) setUserAvatar(profile.avatar_url);
@@ -167,6 +168,24 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isBotTyping]);
 
+  // Fungsi Tombol Selesai (Menghapus chat terkait dari DB agar tidak menumpuk)
+  const handleFinishChat = async () => {
+    if (!conversationId) return;
+    setLoading(true);
+    try {
+      await supabase
+        .from('support_messages')
+        .delete()
+        .eq('conversation_id', conversationId);
+
+      setMessages([]);
+    } catch (err) {
+      console.error('Error finishing chat:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Balasan Bot Otomatis
   const triggerAutoBotReply = async (userMsgText: string, activeConvId: string) => {
     setIsBotTyping(true);
@@ -176,6 +195,12 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       const lower = userMsgText.toLowerCase();
       if (lower.includes('upgrade') || lower.includes('vip') || lower.includes('bayar')) {
         replyText = AUTO_REPLIES["Bagaimana cara upgrade VIP?"];
+      } else if (lower.includes('benefit') || lower.includes('premium')) {
+        replyText = AUTO_REPLIES["Apa saja benefit menjadi member VIP/Premium?"];
+      } else if (lower.includes('avatar') || lower.includes('animasi') || lower.includes('webp')) {
+        replyText = AUTO_REPLIES["Bagaimana cara mendapatkan border avatar animasi?"];
+      } else if (lower.includes('achievement') || lower.includes('badge')) {
+        replyText = AUTO_REPLIES["Bagaimana sistem achievement di DutaKlip?"];
       } else if (lower.includes('lama') || lower.includes('waktu') || lower.includes('verifikasi')) {
         replyText = AUTO_REPLIES["Berapa lama verifikasi pembayaran?"];
       } else if (lower.includes('transfer') || lower.includes('bukti') || lower.includes('konfirmasi')) {
@@ -237,11 +262,11 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         conversation_id: activeConvId,
         sender_id: sessionUser.id,
         message: cleanText,
-        is_admin: isAdmin,
+        is_admin: false,
       },
     ]);
 
-    if (!error && !isAdmin) {
+    if (!error) {
       triggerAutoBotReply(cleanText, activeConvId);
     }
     setSending(false);
@@ -265,7 +290,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     }
   };
 
-  // Saring pertanyaan yang belum pernah dikirim oleh pengguna
+  // Saring pertanyaan yang belum pernah diklik/ditanyakan
   const unaskedQuestions = QUICK_QUESTIONS.filter(
     (q) => !messages.some((m) => m.message.trim().toLowerCase() === q.trim().toLowerCase())
   );
@@ -293,7 +318,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         {/* Modal Outer Box */}
         <div className="bg-white rounded-[2.2rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full h-full">
           
-          {/* Header Minimalis */}
+          {/* Header Minimalis dengan Tombol Selesai */}
           <div className="p-4 sm:p-5 pb-3 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 border border-slate-200 shadow-2xs">
@@ -309,6 +334,18 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                 </p>
               </div>
             </div>
+
+            {/* Tombol Selesai untuk Mengakhiri Chat */}
+            {messages.length > 0 && (
+              <button
+                onClick={handleFinishChat}
+                className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl transition-all border border-emerald-200/60 cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+                title="Selesai"
+              >
+                <CheckCircle2 size={15} className="text-emerald-600" />
+                <span>Selesai</span>
+              </button>
+            )}
           </div>
 
           {loading ? (
@@ -397,7 +434,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                       </div>
                     )}
 
-                    {/* Pertanyaan Lanjutan Rapi Menurun (Menghilangkan yang Sudah Diklik) */}
+                    {/* Related Questions Tersusun Vertikal & Hilang Saat Diklik */}
                     {!isBotTyping && unaskedQuestions.length > 0 && (
                       <div className="pt-2 flex flex-col items-start gap-2">
                         <p className="text-xs font-semibold text-slate-500 px-1">
