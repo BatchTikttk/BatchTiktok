@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, User, Loader2, MessageSquare, X } from 'lucide-react';
+import { Send, User, Loader2, MessageSquare, X, RotateCcw } from 'lucide-react';
 import { supabase } from '../supabase';
 
 interface Message {
@@ -183,6 +183,38 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isBotTyping]);
 
+  // Fungsi untuk Memulai Chat Baru / Kembali ke Tampilan Menu Awal
+  const handleNewChat = async () => {
+    if (!sessionUser) return;
+    setLoading(true);
+    setErrorMessage(null);
+    try {
+      if (conversationId) {
+        await supabase
+          .from('support_conversations')
+          .update({ status: 'closed' })
+          .eq('id', conversationId);
+      }
+
+      const { data: newConv, error: createError } = await supabase
+        .from('support_conversations')
+        .insert([{ user_id: sessionUser.id, status: 'active' }])
+        .select('id')
+        .single();
+
+      if (createError) throw createError;
+      if (newConv) {
+        setConversationId(newConv.id);
+        setMessages([]);
+      }
+    } catch (err: any) {
+      console.error('Error starting new chat:', err);
+      setErrorMessage('Gagal memulai chat baru.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Simulasi Balasan Bot Otomatis Agent DutaKlip
   const triggerAutoBotReply = async (userMsgText: string, activeConvId: string) => {
     setIsBotTyping(true);
@@ -312,7 +344,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         {/* Modal Outer Box */}
         <div className="bg-white rounded-[2.2rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full h-full">
           
-          {/* Header Minimalis dengan Avatar Agent */}
+          {/* Header Minimalis dengan Avatar Agent & Tombol New Chat */}
           <div className="p-4 sm:p-5 pb-3 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 border border-slate-200 shadow-2xs">
@@ -328,6 +360,16 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                 </p>
               </div>
             </div>
+
+            {/* Tombol Refresh / New Chat untuk Kembali ke Menu Pilihan Pertanyaan */}
+            <button
+              onClick={handleNewChat}
+              className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all border-none bg-transparent cursor-pointer flex items-center gap-1 text-xs font-bold"
+              title="New Chat / Menu"
+            >
+              <RotateCcw size={16} />
+              <span className="hidden sm:inline">New Chat</span>
+            </button>
           </div>
 
           {errorMessage && (
@@ -373,7 +415,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                           key={msg.id}
                           className={`flex items-start gap-2.5 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
                         >
-                          {/* Avatar Besar (w-8 h-8) Rata Kanan/Kiri Samping Chat */}
+                          {/* Avatar Besar Rata Samping Chat */}
                           <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0 border border-slate-200 bg-slate-100 text-slate-400 shadow-2xs mt-1">
                             {msg.is_admin ? (
                               <img src={AGENT_AVATAR_URL} alt="Agent DutaKlip" className="w-full h-full object-cover" />
@@ -385,7 +427,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                           </div>
 
                           <div className={`flex flex-col max-w-[78%] ${isMe ? 'items-end' : 'items-start'}`}>
-                            {/* Username Label di Atas Bubble (Gaya Global Chat) */}
+                            {/* Username Label di Atas Bubble */}
                             <span className="text-[11px] font-bold text-slate-700 mb-1 px-1">
                               {msg.is_admin ? 'Agent DutaKlip' : displayUsername}
                             </span>
@@ -410,7 +452,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                       );
                     })}
 
-                    {/* Animasi Bot Mengetik (Gaya Global Chat Layout) */}
+                    {/* Animasi Bot Mengetik */}
                     {isBotTyping && (
                       <div className="flex items-start gap-2.5 flex-row">
                         <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-slate-200 shadow-2xs mt-1">
