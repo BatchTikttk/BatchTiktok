@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { Send, User, Loader2, MessageSquare, X, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Send, User, Loader2, MessageSquare, X } from 'lucide-react';
 import { supabase } from '../supabase';
 
 interface Message {
@@ -20,6 +20,7 @@ interface CsModalProps {
 
 const AGENT_AVATAR_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Qris/AgentDutaKlip.webp";
 
+// Daftar Pertanyaan & Balasan Otomatis
 const QUICK_QUESTIONS = [
   "Bagaimana cara upgrade VIP?",
   "Berapa lama verifikasi pembayaran?",
@@ -49,7 +50,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 1. Inisialisasi Sesi Saat Modal Dibuka
+  // 1. Ambil Sesi Pengguna
   useEffect(() => {
     if (!isOpen) return;
 
@@ -81,55 +82,49 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         setUserAvatar(session.user.user_metadata.avatar_url);
       }
 
-      await createNewActiveSession(session.user.id);
+      await getOrCreateConversation(session.user.id);
     };
 
     initSession();
   }, [isOpen]);
 
-  // 2. Buat Percakapan Baru Secara Bersih
-  const createNewActiveSession = async (userId: string) => {
+  // 2. Ambil atau Buat 1 Percakapan Aktif Utama (Mencegah Penumpukan Data di Supabase)
+  const getOrCreateConversation = async (userId: string): Promise<string | null> => {
     try {
-      setLoading(true);
-      setMessages([]); // Bersihkan pesan lama dari UI
-
-      const { data: newConv, error } = await supabase
+      let { data: conv } = await supabase
         .from('support_conversations')
-        .insert([{ user_id: userId, status: 'active' }])
         .select('id')
-        .single();
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (error) {
-        // Fallback jika insert dibatasi, ambil percakapan terakhir
-        const { data: existingConv } = await supabase
+      if (!conv) {
+        const { data: newConv } = await supabase
           .from('support_conversations')
+          .insert([{ user_id: userId, status: 'active' }])
           .select('id')
-          .eq('user_id', userId)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+          .single();
 
-        if (existingConv) {
-          setConversationId(existingConv.id);
-          fetchMessages(existingConv.id);
-          subscribeToMessages(existingConv.id);
-          return existingConv.id;
-        }
-      } else if (newConv) {
-        setConversationId(newConv.id);
-        subscribeToMessages(newConv.id);
-        return newConv.id;
+        conv = newConv;
+      }
+
+      if (conv) {
+        setConversationId(conv.id);
+        fetchMessages(conv.id);
+        subscribeToMessages(conv.id);
+        return conv.id;
       }
       return null;
     } catch (err) {
-      console.error('Session Error:', err);
+      console.error('Error init conversation:', err);
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  // 3. Ambil Pesan Khusus Sesi Ini
+  // 3. Fetch Pesan
   const fetchMessages = async (convId: string) => {
     const { data } = await supabase
       .from('support_messages')
@@ -170,13 +165,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isBotTyping]);
-
-  // Tombol "New Chat" -> Reset Tampilan & Buat Sesi Baru
-  const handleNewChat = () => {
-    if (sessionUser) {
-      createNewActiveSession(sessionUser.id);
-    }
-  };
 
   // Balasan Otomatis Bot
   const triggerAutoBotReply = async (userMsgText: string, activeConvId: string) => {
@@ -221,7 +209,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         };
         setMessages((prev) => [...prev, tempMsg]);
       }
-    }, 1200);
+    }, 1100);
   };
 
   // 5. Kirim Pesan
@@ -232,7 +220,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
 
     let activeConvId = conversationId;
     if (!activeConvId) {
-      activeConvId = await createNewActiveSession(sessionUser.id);
+      activeConvId = await getOrCreateConversation(sessionUser.id);
     }
 
     if (!activeConvId) {
@@ -315,16 +303,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                 </p>
               </div>
             </div>
-
-            {/* Tombol New Chat */}
-            <button
-              onClick={handleNewChat}
-              className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all border-none bg-transparent cursor-pointer flex items-center gap-1 text-xs font-bold"
-              title="New Chat / Menu"
-            >
-              <RotateCcw size={16} />
-              <span className="hidden sm:inline">New Chat</span>
-            </button>
           </div>
 
           {loading ? (
@@ -396,6 +374,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                       );
                     })}
 
+                    {/* Animasi Bot Mengetik */}
                     {isBotTyping && (
                       <div className="flex items-start gap-2.5 flex-row">
                         <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-slate-200 shadow-2xs mt-1">
@@ -408,6 +387,29 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                             <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
                             <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
                           </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Quick Questions List Melayang di Bawah Percakapan Aktif */}
+                    {!isBotTyping && (
+                      <div className="pt-2 flex flex-col items-start gap-1.5">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">
+                          Pertanyaan Lanjutan / Related Questions:
+                        </p>
+                        <div className="flex flex-wrap gap-1.5 w-full">
+                          {QUICK_QUESTIONS.map((q, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              disabled={sending}
+                              onClick={() => handleQuickQuestionClick(q)}
+                              className="text-left px-3 py-1.5 bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200/60 hover:border-emerald-200 rounded-xl text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1.5 group"
+                            >
+                              <span>{q}</span>
+                              <Send size={10} className="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-600 flex-shrink-0" />
+                            </button>
+                          ))}
                         </div>
                       </div>
                     )}
