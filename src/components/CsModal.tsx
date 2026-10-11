@@ -20,10 +20,10 @@ interface CsModalProps {
 
 // Daftar pertanyaan cepat (Bilingual: English & Indonesia)
 const QUICK_QUESTIONS = [
-  { en: "How to upgrade to VIP?", id: "Bagaimana cara upgrade VIP?" },
-  { en: "Payment verification takes how long?", id: "Berapa lama verifikasi pembayaran?" },
-  { en: "I have transferred, how to confirm?", id: "Saya sudah transfer, bagaimana cara konfirmasinya?" },
-  { en: "Where can I download exclusive content?", id: "Dimana saya bisa download konten eksklusif?" }
+  "Bagaimana cara upgrade VIP?",
+  "Berapa lama verifikasi pembayaran?",
+  "Saya sudah transfer, bagaimana cara konfirmasinya?",
+  "Dimana saya bisa download konten eksklusif?"
 ];
 
 export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalProps) {
@@ -38,7 +38,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 1. Ambil Session User & Cek Status Admin secara Akurat
+  // 1. Ambil Session User & Cek Status Admin
   useEffect(() => {
     if (!isOpen) return;
 
@@ -66,11 +66,9 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       const userIsAdmin = !error && !!profile?.is_admin;
       setIsAdmin(userIsAdmin);
 
-      // Jika user yang login adalah admin, maka admin pasti online
       if (userIsAdmin) {
         setIsAdminOnline(true);
       } else {
-        // Cek apakah ada admin yang terdaftar / aktif di database untuk user biasa
         const { data: adminProfiles } = await supabase
           .from('profiles')
           .select('id')
@@ -89,8 +87,8 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     initSession();
   }, [isOpen]);
 
-  // 2. Ambil atau Buat Conversation untuk User Biasa
-  const getOrCreateConversation = async (userId: string) => {
+  // 2. Ambil atau Buat Conversation untuk User
+  const getOrCreateConversation = async (userId: string): Promise<string | null> => {
     try {
       let { data: conv, error } = await supabase
         .from('support_conversations')
@@ -116,9 +114,12 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         setConversationId(conv.id);
         fetchMessages(conv.id);
         subscribeToMessages(conv.id);
+        return conv.id;
       }
+      return null;
     } catch (err) {
       console.error('Error init conversation:', err);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -168,28 +169,47 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // 5. Kirim Pesan
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputText.trim() || !conversationId || !sessionUser) return;
+  // 5. Fungsi Pengiriman Pesan Mandiri & Otomatis
+  const executeSendMessage = async (textToSend: string) => {
+    if (!textToSend.trim() || !sessionUser) return;
 
-    const messageText = inputText.trim();
-    setInputText('');
     setSending(true);
+
+    let activeConvId = conversationId;
+    if (!activeConvId) {
+      activeConvId = await getOrCreateConversation(sessionUser.id);
+    }
+
+    if (!activeConvId) {
+      setSending(false);
+      return;
+    }
 
     const { error } = await supabase.from('support_messages').insert([
       {
-        conversation_id: conversationId,
+        conversation_id: activeConvId,
         sender_id: sessionUser.id,
-        message: messageText,
+        message: textToSend.trim(),
         is_admin: isAdmin,
       },
     ]);
 
     if (error) {
       console.error('Failed to send message:', error);
+    } else {
+      setInputText('');
     }
     setSending(false);
+  };
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeSendMessage(inputText);
+  };
+
+  // Fungsi Langsung Kirim Saat Quick Question Diklik
+  const handleQuickQuestionClick = (questionText: string) => {
+    executeSendMessage(questionText);
   };
 
   if (!isOpen) return null;
@@ -201,10 +221,9 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      {/* Modal Vertikal Ramping (max-w-md) tanpa scrolling luar */}
-      <div className="relative w-full max-w-md mx-auto h-[82vh] max-h-[640px] flex flex-col">
+      <div className="relative w-full max-w-md mx-auto h-[80vh] max-h-[600px] flex flex-col">
         
-        {/* Tombol Silang di Luar Container dengan Rotasi Hover */}
+        {/* Tombol Silang di Luar Container */}
         <button 
           onClick={onClose}
           className="absolute -top-10 right-0 md:-right-10 md:-top-2 z-[60] text-slate-300 hover:text-white bg-transparent border-none p-1 transition-all duration-300 hover:rotate-90 hover:scale-110 cursor-pointer flex items-center justify-center"
@@ -213,11 +232,11 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
           <X size={24} />
         </button>
 
-        {/* Outer Box */}
+        {/* Modal Outer Box */}
         <div className="bg-white rounded-[2.2rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full h-full">
           
-          {/* Header Polos Tanpa Background Container */}
-          <div className="p-4 sm:p-5 pb-3 border-b border-slate-100 flex items-center justify-between bg-white">
+          {/* Header Minimalis */}
+          <div className="p-4 sm:p-5 pb-3 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
             <div className="flex items-center gap-2.5">
               <MessageSquare size={20} className="text-emerald-500 flex-shrink-0" />
               <div>
@@ -225,7 +244,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                   <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
                     Customer Service
                   </h3>
-                  {/* Indikator Akurat Berdasarkan Status Login / Database */}
                   <div className="flex items-center gap-1.5">
                     <span className="relative flex h-2 w-2">
                       {isAdminOnline && (
@@ -245,7 +263,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
             </div>
           </div>
 
-          {/* Body Utama */}
+          {/* Body Chat */}
           {loading ? (
             <div className="flex-1 flex items-center justify-center bg-white">
               <Loader2 className="w-7 h-7 animate-spin text-emerald-500" />
@@ -271,7 +289,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
           ) : (
             <div className="flex-1 flex flex-col overflow-hidden bg-white">
               
-              {/* Area Chat Internal */}
+              {/* Area Canvas Chat */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3.5 custom-scrollbar bg-white">
                 {messages.length > 0 ? (
                   messages.map((msg) => {
@@ -305,39 +323,36 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                     );
                   })
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 py-6 bg-white">
+                  /* Tampilan Saat Belum Ada Pesan: FAQ Chips Disimpan Langsung di Dalam Chat */
+                  <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 p-2 my-auto">
                     <MessageSquare size={32} className="mb-2 text-emerald-500 opacity-60" />
                     <p className="text-xs font-bold text-slate-700">Start a Conversation</p>
-                    <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
-                      Type your questions or issues below, or click quick suggestions below.
+                    <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed mb-4">
+                      Select a question below to send instantly:
                     </p>
+
+                    {/* FAQ Items di Dalam Chat Canvas */}
+                    <div className="flex flex-col gap-2 w-full max-w-xs">
+                      {QUICK_QUESTIONS.map((q, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          disabled={sending}
+                          onClick={() => handleQuickQuestionClick(q)}
+                          className="w-full text-left px-3.5 py-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-100 hover:border-emerald-200 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center justify-between group"
+                        >
+                          <span>{q}</span>
+                          <Send size={12} className="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-600 flex-shrink-0 ml-1" />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Quick Conversation / FAQ Chips (Bilingual EN/ID) */}
-              <div className="px-4 py-2 border-t border-slate-50 bg-white">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                  Quick Questions / Pertanyaan Cepat:
-                </p>
-                <div className="flex gap-1.5 overflow-x-auto custom-scrollbar pb-1">
-                  {QUICK_QUESTIONS.map((q, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setInputText(q.id)}
-                      className="flex-shrink-0 px-3 py-1.5 bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 border border-slate-200/60 rounded-full text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap"
-                      title={q.en}
-                    >
-                      {q.id}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Form Input Polos Tanpa Border Kotak Tambahan */}
-              <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-100 flex items-center gap-2 bg-white">
+              {/* Form Input Pesan */}
+              <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-100 flex items-center gap-2 bg-white flex-shrink-0">
                 <input
                   type="text"
                   value={inputText}
