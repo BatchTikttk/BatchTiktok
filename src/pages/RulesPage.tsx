@@ -506,7 +506,7 @@ const RulesPage = () => {
                   {/* Supporter (Silver) */}
                   <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center hover:bg-slate-100/50 transition-colors">
                     <img 
-                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Supporter.webp" 
+                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Suporter.webp" 
                       alt="Supporter" 
                       className="w-16 h-16 mb-3 object-contain drop-shadow-sm" 
                     />
