@@ -271,7 +271,6 @@ export default function CreatorPage({
     window.dispatchEvent(new Event('popstate'));
   };
 
-  // Navigasi statis ke PreviewPage dengan Username (SEO Friendly)
   const handleOpenPreview = (item: BatchItem) => {
     const seoSlug = item.username 
       ? `@${item.username.replace(/^@/, '').replace(/\s+/g, '-').toLowerCase()}` 
@@ -360,7 +359,6 @@ export default function CreatorPage({
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900">
-      {/* Navbar Integration */}
       <Navbar 
         activeCategory=""
         setActiveCategory={handleSelectCategory}
@@ -375,7 +373,6 @@ export default function CreatorPage({
         onOpenUpgrade={onOpenUpgradeModal}
       />
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto w-full flex-grow pt-8 pb-16 px-6 sm:px-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
         <div className="relative bg-white p-8 sm:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 mb-10 flex flex-col md:flex-row items-center md:items-start gap-8 mt-4">
@@ -408,27 +405,27 @@ export default function CreatorPage({
             </div>
           )}
 
-          <div className="relative w-[88px] h-[88px] flex-shrink-0 z-10">
-            <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center text-white bg-gradient-to-tr from-emerald-500 to-teal-400 shadow-lg shadow-emerald-500/20 border-4 border-white relative z-10">
-              {creatorProfile?.avatar_url ? (
-                <img src={creatorProfile.avatar_url} alt={username} className="w-full h-full object-cover" />
-              ) : (
-                <User size={40} strokeWidth={2.2} />
-              )}
-            </div>
-
-            {creatorProfile?.vip_border_url ? (
+          <div className="relative w-28 h-28 flex items-center justify-center aspect-square flex-shrink-0 z-10">
+            {creatorProfile?.is_premium && creatorProfile?.vip_border_url ? (
               <AvatarBorderVip 
-                borderUrl={creatorProfile?.vip_border_url} 
                 isPremium={creatorProfile?.is_premium} 
+                borderUrl={creatorProfile?.vip_border_url} 
               />
             ) : creatorProfile?.animation_border_url ? (
               <img 
                 src={creatorProfile.animation_border_url} 
-                alt="Animated Border" 
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] max-w-none object-contain z-20 pointer-events-none drop-shadow-sm"
+                alt="Animation Border" 
+                className="absolute inset-0 w-full h-full object-contain z-20 pointer-events-none" 
               />
             ) : null}
+
+            <div className="w-[85%] h-[85%] rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 relative z-10">
+              {creatorProfile?.avatar_url ? (
+                <img src={creatorProfile.avatar_url} alt={username} className="w-full h-full object-cover scale-125" />
+              ) : (
+                <User size={36} strokeWidth={2.2} />
+              )}
+            </div>
           </div>
           
           <div className="flex-1 text-center md:text-left z-10">
@@ -497,7 +494,6 @@ export default function CreatorPage({
         )}
       </main>
 
-      {/* Footer Integration */}
       <Footer onSelectCountry={handleSelectCategory} />
     </div>
   );
