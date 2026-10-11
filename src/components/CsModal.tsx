@@ -183,36 +183,14 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isBotTyping]);
 
-  // Fungsi untuk Memulai Chat Baru / Kembali ke Tampilan Menu Awal
+  // Perbaikan Fungsi New Chat yang Aman dari Bug State & RLS
   const handleNewChat = async () => {
     if (!sessionUser) return;
     setLoading(true);
     setErrorMessage(null);
-    try {
-      if (conversationId) {
-        await supabase
-          .from('support_conversations')
-          .update({ status: 'closed' })
-          .eq('id', conversationId);
-      }
-
-      const { data: newConv, error: createError } = await supabase
-        .from('support_conversations')
-        .insert([{ user_id: sessionUser.id, status: 'active' }])
-        .select('id')
-        .single();
-
-      if (createError) throw createError;
-      if (newConv) {
-        setConversationId(newConv.id);
-        setMessages([]);
-      }
-    } catch (err: any) {
-      console.error('Error starting new chat:', err);
-      setErrorMessage('Gagal memulai chat baru.');
-    } finally {
-      setLoading(false);
-    }
+    setConversationId(null);
+    setMessages([]);
+    await getOrCreateConversation(sessionUser.id);
   };
 
   // Simulasi Balasan Bot Otomatis Agent DutaKlip
@@ -361,7 +339,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
               </div>
             </div>
 
-            {/* Tombol Refresh / New Chat untuk Kembali ke Menu Pilihan Pertanyaan */}
+            {/* Tombol Refresh / New Chat */}
             <button
               onClick={handleNewChat}
               className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all border-none bg-transparent cursor-pointer flex items-center gap-1 text-xs font-bold"
@@ -415,7 +393,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                           key={msg.id}
                           className={`flex items-start gap-2.5 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
                         >
-                          {/* Avatar Besar Rata Samping Chat */}
                           <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0 border border-slate-200 bg-slate-100 text-slate-400 shadow-2xs mt-1">
                             {msg.is_admin ? (
                               <img src={AGENT_AVATAR_URL} alt="Agent DutaKlip" className="w-full h-full object-cover" />
@@ -427,12 +404,10 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                           </div>
 
                           <div className={`flex flex-col max-w-[78%] ${isMe ? 'items-end' : 'items-start'}`}>
-                            {/* Username Label di Atas Bubble */}
                             <span className="text-[11px] font-bold text-slate-700 mb-1 px-1">
                               {msg.is_admin ? 'Agent DutaKlip' : displayUsername}
                             </span>
 
-                            {/* Bubble Chat */}
                             <div
                               className={`px-4 py-2.5 rounded-2xl text-xs leading-relaxed ${
                                 isMe
@@ -443,7 +418,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                               {msg.message}
                             </div>
 
-                            {/* Jam Waktu Kirim di Bawah Bubble */}
                             <span className="text-[9px] font-semibold text-slate-400 mt-1 px-1">
                               {formatTime(msg.created_at)}
                             </span>
@@ -452,7 +426,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                       );
                     })}
 
-                    {/* Animasi Bot Mengetik */}
                     {isBotTyping && (
                       <div className="flex items-start gap-2.5 flex-row">
                         <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-slate-200 shadow-2xs mt-1">
