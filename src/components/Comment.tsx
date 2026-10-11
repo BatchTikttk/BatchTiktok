@@ -253,30 +253,33 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
     const animBorder = profile?.animation_border_url;
     const avatarUrl = profile?.avatar_url;
     
-    const containerClass = size === 'medium' ? 'w-10 h-10' : 'w-8 h-8';
-    const iconSize = size === 'medium' ? 20 : 16;
+    // Ukuran kontainer luar diperbesar jelas (w-14 h-14 untuk komentar, w-11 h-11 untuk reply)
+    const containerClass = size === 'medium' ? 'w-14 h-14' : 'w-11 h-11';
+    const iconSize = size === 'medium' ? 24 : 18;
 
     return (
-      <div className={`relative flex-shrink-0 ${containerClass}`}>
-        <div className="w-full h-full rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-sm relative z-10">
+      <div className={`relative flex-shrink-0 ${containerClass} flex items-center justify-center aspect-square`}>
+        {/* Lingkaran Avatar */}
+        <div className="w-[82%] h-[82%] rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-sm relative z-10">
           {avatarUrl ? (
-            <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+            <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover scale-125" />
           ) : (
             <User size={iconSize} />
           )}
         </div>
 
+        {/* Border VIP / Animasi WebP diposisikan persis di tengah agar 100% pas */}
         {isPremium && vipBorder ? (
           <AvatarBorderVip 
             borderUrl={vipBorder} 
             isPremium={isPremium} 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[135%] h-[135%] max-w-none object-contain z-20 pointer-events-none" 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full object-contain z-20 pointer-events-none" 
           />
         ) : animBorder ? (
           <img 
             src={animBorder} 
             alt="Animation Border" 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[135%] h-[135%] max-w-none object-contain z-20 pointer-events-none" 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full object-contain z-20 pointer-events-none" 
           />
         ) : null}
       </div>
@@ -299,7 +302,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
     return (
       <div className={`flex gap-3 lg:gap-4 group ${isReply ? 'mt-4' : ''}`}>
         {isReply && (
-          <div className="mt-3 text-slate-300 hidden md:block">
+          <div className="mt-4 text-slate-300 hidden md:block">
             <CornerDownRight size={16} />
           </div>
         )}
@@ -309,7 +312,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
         <div className="flex-1 min-w-0">
           <div className="bg-slate-50 rounded-2xl rounded-tl-none px-4 py-3 border-none relative">
             
-            {/* Admin Badge di Pojok Kanan Atas */}
             {isAdmin && (
               <img 
                 src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Admin.webp" 
@@ -324,7 +326,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
                 <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
                   {comment.profiles?.username || 'Unknown User'}
                   
-                  {/* Crown Badge di samping nama jika is_premium */}
                   {isPremium && (
                     <span title="Premium VIP Member" className="inline-flex items-center">
                       <Crown 
@@ -337,7 +338,6 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
               </div>
             </div>
             
-            {/* Berikan padding pr-12 khusus admin agar teks tidak menabrak badge */}
             <p className={`text-sm text-slate-600 break-words leading-relaxed ${isAdmin ? 'pr-12' : ''}`}>
               {comment.content}
             </p>
@@ -406,7 +406,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
             onChange={(e) => setNewComment(e.target.value)}
             onClick={() => !currentUserId && onRequireLogin()}
             placeholder={currentUserId ? "Write your comment..." : "Login to write a comment..."}
-            className="w-full pl-4 pr-12 py-3 bg-slate-50 border-none rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 transition-all shadow-[inset_0_2px_4px_rgb(0,0,0,0.02)]"
+            className="w-full pl-4 pr-12 py-3.5 bg-slate-50 border-none rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 transition-all shadow-[inset_0_2px_4px_rgb(0,0,0,0.02)]"
             disabled={isSubmitting}
           />
           <button 
@@ -430,7 +430,7 @@ export default function Comments({ itemId, currentUser, onRequireLogin }: Commen
               
               <CommentBlock comment={comment} />
 
-              <div className="ml-12 md:ml-16 mt-2 border-l-2 border-slate-100 pl-4">
+              <div className="ml-14 md:ml-16 mt-2 border-l-2 border-slate-100 pl-4">
                 
                 {getReplies(comment.id).map(reply => (
                   <CommentBlock comment={reply} isReply={true} key={reply.id} />
