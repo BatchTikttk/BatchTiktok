@@ -246,8 +246,8 @@ export default function CreatorPage({
     username ? `creator_page_${username}` : null,
     () => fetchCreatorData(username),
     {
-      dedupingInterval: 600000, 
-      revalidateOnFocus: false,
+      dedupingInterval: 0, // Set 0 agar tidak mendeduping fetch saat update instan
+      revalidateOnFocus: true,
     }
   );
 
@@ -291,9 +291,11 @@ export default function CreatorPage({
     return () => { isMounted = false; };
   }, [propCurrentUser]);
 
+  // Realtime & Custom Event Listener agar langsung re-fetch saat Profile diperbarui
   useEffect(() => {
     if (!username) return;
 
+    // 1. Supabase Realtime Subscription
     const profileSubscription = supabase
       .channel(`creator-profile-updates-${username}`)
       .on(
@@ -310,14 +312,21 @@ export default function CreatorPage({
             username && 
             payload.new.username.toLowerCase() === username.toLowerCase()
           ) {
-            mutate();
+            mutate(undefined, { revalidate: true });
           }
         }
       )
       .subscribe();
 
+    // 2. Custom Window Event untuk Instant Local SPA Sync (dari halaman Profile)
+    const handleProfileUpdated = () => {
+      mutate(undefined, { revalidate: true });
+    };
+    window.addEventListener('profile-updated', handleProfileUpdated);
+
     return () => {
       supabase.removeChannel(profileSubscription);
+      window.removeEventListener('profile-updated', handleProfileUpdated);
     };
   }, [username, mutate]);
 
@@ -413,6 +422,7 @@ export default function CreatorPage({
               />
             ) : creatorProfile?.animation_border_url ? (
               <img 
+                key={creatorProfile.animation_border_url} // Force re-render gambar animasi saat URL berubah
                 src={creatorProfile.animation_border_url} 
                 alt="Animation Border" 
                 className="absolute inset-0 w-full h-full object-contain z-20 pointer-events-none" 
@@ -421,7 +431,7 @@ export default function CreatorPage({
 
             <div className="w-[85%] h-[85%] rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 overflow-hidden flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 relative z-10">
               {creatorProfile?.avatar_url ? (
-                <img src={creatorProfile.avatar_url} alt={username} className="w-full h-full object-cover scale-125" />
+                <img key={creatorProfile.avatar_url} src={creatorProfile.avatar_url} alt={username} className="w-full h-full object-cover scale-125" />
               ) : (
                 <User size={36} strokeWidth={2.2} />
               )}
