@@ -6,7 +6,7 @@ import {
 import { supabase } from '../supabase';
 import AvatarBorderVip from './AvatarBorderVip';
 
-// Komponen helper untuk menampilkan bendera di Navbar
+// Komponen helper untuk menampilkan bendera di Navbar[cite: 13]
 const RegionFlag = ({ country, className = "w-4 h-4" }: { country: string, className?: string }) => {
   const clipId = `nav-flag-${country.toLowerCase().replace(/\s+/g, '-')}`;
   
@@ -239,11 +239,11 @@ export default function Navbar({
     }
   };
 
+  // Memicu CsModal saat diklik tanpa mengubah URL
   const handleGoToCs = () => {
     setIsDropdownOpen(false);
     setIsMobileMenuOpen(false);
-    window.history.pushState({}, '', '/cs');
-    window.dispatchEvent(new Event('popstate'));
+    window.dispatchEvent(new Event('openCsModal'));
   };
 
   const handleGoToUpgrade = (e: React.MouseEvent) => {
@@ -403,7 +403,7 @@ export default function Navbar({
                         <BarChart2 size={18} /> User Profile
                       </button>
 
-                      {/* Costume Service dipindah ke dalam Avatar Dropdown */}
+                      {/* Customer Service memicu CsModal */}
                       <button
                         onClick={handleGoToCs}
                         className="w-full px-4 py-3.5 flex items-center gap-3 text-sm font-bold text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors text-left border-none bg-transparent cursor-pointer"

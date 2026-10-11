@@ -7,10 +7,10 @@ import TopContributors from './pages/TopContributors';
 import CreatorPage from './pages/CreatorPage'; 
 import PreviewPage from './pages/PreviewPage';
 import Pay from './pages/Pay';
-import Cs from './pages/Cs';
 import ChatGroup from './components/ChatGroup';
 import LoginModal from './components/LoginModal';
 import UpgradeModal from './components/UpgradeModal';
+import CsModal from './components/CsModal';
 import { supabase } from './supabase';
 
 export default function App() {
@@ -19,6 +19,7 @@ export default function App() {
   const [isPremiumUser, setIsPremiumUser] = useState<boolean>(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showCsModal, setShowCsModal] = useState(false);
 
   const checkUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -75,9 +76,6 @@ export default function App() {
     } else if (hash === '#rules') {
       window.history.replaceState({}, '', '/rules');
       setCurrentPath('/rules');
-    } else if (hash === '#cs' || path === '/cs') {
-      window.history.replaceState({}, '', '/cs');
-      setCurrentPath('/cs');
     } else if (hash === '#legal') {
       window.history.replaceState({}, '', '/legal');
       setCurrentPath('/legal');
@@ -111,7 +109,7 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []); 
 
-  // Event listener untuk memunculkan UpgradeModal terlebih dahulu
+  // Event listener untuk memunculkan UpgradeModal
   useEffect(() => {
     const handleOpenModal = () => {
       setShowUpgradeModal(true);
@@ -120,10 +118,18 @@ export default function App() {
     return () => window.removeEventListener('openUpgradeModal', handleOpenModal);
   }, []);
 
+  // Event listener untuk memunculkan LoginModal
   useEffect(() => {
     const handleOpenLogin = () => setShowLoginModal(true);
     window.addEventListener('openLoginModal', handleOpenLogin as EventListener);
     return () => window.removeEventListener('openLoginModal', handleOpenLogin as EventListener);
+  }, []);
+
+  // Event listener untuk memunculkan CsModal
+  useEffect(() => {
+    const handleOpenCs = () => setShowCsModal(true);
+    window.addEventListener('openCsModal', handleOpenCs as EventListener);
+    return () => window.removeEventListener('openCsModal', handleOpenCs as EventListener);
   }, []);
 
   const navigateTo = (path: string) => {
@@ -161,7 +167,6 @@ export default function App() {
       return;
     }
 
-    // Tampilkan modal benefit terlebih dahulu sebelum ke halaman pembayaran
     setShowUpgradeModal(true);
   };
 
@@ -184,10 +189,6 @@ export default function App() {
 
     if (currentPath === '/rules') {
       return <RulesPage />;
-    }
-
-    if (currentPath === '/cs') {
-      return <Cs onBack={() => navigateTo('/')} />;
     }
 
     if (currentPath === '/legal') {
@@ -265,6 +266,15 @@ export default function App() {
         <UpgradeModal 
           isOpen={showUpgradeModal}
           onClose={() => setShowUpgradeModal(false)}
+          onOpenLoginModal={() => setShowLoginModal(true)}
+        />
+      )}
+
+      {showCsModal && (
+        <CsModal 
+          isOpen={showCsModal}
+          onClose={() => setShowCsModal(false)}
+          currentUser={currentUser}
           onOpenLoginModal={() => setShowLoginModal(true)}
         />
       )}
