@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, User, ShieldCheck, Loader2, MessageSquare, X } from 'lucide-react';
+import { Send, User, Loader2, MessageSquare, X } from 'lucide-react';
 import { supabase } from '../supabase';
 
 interface Message {
@@ -18,6 +18,9 @@ interface CsModalProps {
   onOpenLoginModal?: () => void;
 }
 
+// URL Avatar khusus Agent DutaKlip
+const AGENT_AVATAR_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Qris/AgentDutaKlip.webp";
+
 // Quick Questions & Auto-Reply Responses Database
 const QUICK_QUESTIONS = [
   "Bagaimana cara upgrade VIP?",
@@ -27,16 +30,17 @@ const QUICK_QUESTIONS = [
 ];
 
 const AUTO_REPLIES: Record<string, string> = {
-  "Bagaimana cara upgrade VIP?": "Untuk upgrade VIP, Anda dapat mengklik menu Upgrade VIP di Navbar atau tombol 'Upgrade Now' pada banner utama. Setelah itu, lakukan transfer sebesar Rp 50.000 ke QRIS yang tersedia dan kirimkan bukti transfer ke Admin.",
+  "Bagaimana cara upgrade VIP?": "Halo! Untuk upgrade VIP, silakan klik menu Upgrade VIP di Navbar atau tombol 'Upgrade Now' pada banner utama. Lakukan transfer sebesar Rp 50.000 ke QRIS yang tersedia, lalu konfirmasikan ke Admin.",
   "Berapa lama verifikasi pembayaran?": "Verifikasi pembayaran manual biasanya memakan waktu 5-15 menit setelah Anda mengirimkan bukti transfer via WhatsApp ke Tim Admin kami.",
-  "Saya sudah transfer, bagaimana cara konfirmasinya?": "Silakan buka halaman /pay lalu klik tombol 'Confirm Payment / Contact Admin' untuk langsung membuka WhatsApp Admin dengan pesan otomatis. Lampirkan foto bukti transfer Anda di sana.",
+  "Saya sudah transfer, bagaimana cara konfirmasinya?": "Silakan buka halaman /pay lalu klik tombol 'Confirm Payment / Contact Admin' untuk membuka WhatsApp Admin dengan pesan otomatis beserta lampiran foto bukti transfer Anda.",
   "Dimana saya bisa download konten eksklusif?": "Konten eksklusif dapat diakses langsung pada halaman utama atau folder creator setelah akun Anda di-upgrade menjadi status VIP Lifetime Pass.",
-  "default": "Halo! Terima kasih telah menghubungi Customer Service DutaKlip. Pesan Anda telah kami terima dan sistem otomatis kami akan segera membantu Anda."
+  "default": "Halo! Terima kasih telah menghubungi Agent DutaKlip. Pesan Anda telah kami terima dan sistem otomatis kami akan segera membantu Anda."
 };
 
 export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalProps) {
   const [sessionUser, setSessionUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -47,7 +51,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 1. Ambil Session User & Cek Status Admin
+  // 1. Ambil Session User & Profil (Avatar & Status Admin)
   useEffect(() => {
     if (!isOpen) return;
 
@@ -59,6 +63,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       if (!session) {
         setSessionUser(null);
         setIsAdmin(false);
+        setUserAvatar(null);
         setLoading(false);
         return;
       }
@@ -67,12 +72,18 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
 
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('is_admin')
+        .select('is_admin, avatar_url')
         .eq('id', session.user.id)
         .single();
 
       const userIsAdmin = !error && !!profile?.is_admin;
       setIsAdmin(userIsAdmin);
+
+      if (profile?.avatar_url) {
+        setUserAvatar(profile.avatar_url);
+      } else if (session.user.user_metadata?.avatar_url) {
+        setUserAvatar(session.user.user_metadata.avatar_url);
+      }
 
       if (!userIsAdmin) {
         await getOrCreateConversation(session.user.id);
@@ -167,7 +178,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isBotTyping]);
 
-  // Simulasi Balasan Bot Otomatis
+  // Simulasi Balasan Bot Otomatis Agent DutaKlip
   const triggerAutoBotReply = async (userMsgText: string, activeConvId: string) => {
     setIsBotTyping(true);
 
@@ -203,7 +214,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         const tempMsg: Message = {
           id: 'bot-' + Date.now(),
           conversation_id: activeConvId,
-          sender_id: 'admin-bot',
+          sender_id: 'agent-bot',
           message: replyText,
           is_admin: true,
           created_at: new Date().toISOString()
@@ -272,7 +283,8 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-md mx-auto h-[80vh] max-h-[600px] flex flex-col">
+      {/* Lebar sedikit diperbesar khusus website (max-w-lg) dengan tetap responsif di mobile */}
+      <div className="relative w-full max-w-md sm:max-w-lg mx-auto h-[82vh] max-h-[640px] flex flex-col">
         
         {/* Tombol Silang di Luar Container */}
         <button 
@@ -286,13 +298,16 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         {/* Modal Outer Box */}
         <div className="bg-white rounded-[2.2rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full h-full">
           
-          {/* Header Minimalis */}
+          {/* Header Minimalis dengan Agent DutaKlip Avatar */}
           <div className="p-4 sm:p-5 pb-3 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
-            <div className="flex items-center gap-2.5">
-              <MessageSquare size={20} className="text-emerald-500 flex-shrink-0" />
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 border border-slate-200 shadow-2xs">
+                <img src={AGENT_AVATAR_URL} alt="Agent DutaKlip" className="w-full h-full object-cover" />
+              </div>
               <div>
-                <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
-                  Customer Service
+                <h3 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
+                  Agent DutaKlip
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium mt-0.5 leading-tight">
                   Instant automated support for payment & membership.
@@ -344,23 +359,26 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                           key={msg.id}
                           className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
                         >
-                          <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 text-slate-400">
+                          {/* Avatar Agent (kiri) atau Avatar User yang Login (kanan) */}
+                          <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0 border border-slate-200 bg-slate-100 text-slate-400">
                             {msg.is_admin ? (
-                              <ShieldCheck size={18} className="text-amber-500" />
+                              <img src={AGENT_AVATAR_URL} alt="Agent" className="w-full h-full object-cover" />
+                            ) : userAvatar ? (
+                              <img src={userAvatar} alt="You" className="w-full h-full object-cover" />
                             ) : (
-                              <User size={16} />
+                              <User size={14} />
                             )}
                           </div>
 
                           <div
                             className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed ${
                               isMe
-                                ? 'bg-emerald-500 text-white rounded-br-none'
-                                : 'bg-slate-100 text-slate-800 rounded-bl-none'
+                                ? 'bg-emerald-500 text-white rounded-br-none shadow-sm'
+                                : 'bg-slate-100 text-slate-800 rounded-bl-none shadow-sm'
                             }`}
                           >
                             <div className="text-[9px] font-bold opacity-75 mb-0.5">
-                              {msg.is_admin ? 'Customer Service' : 'You'}
+                              {msg.is_admin ? 'Agent DutaKlip' : 'You'}
                             </div>
                             <div>{msg.message}</div>
                           </div>
@@ -371,11 +389,11 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                     {/* Animasi Bot Mengetik */}
                     {isBotTyping && (
                       <div className="flex items-end gap-2 flex-row">
-                        <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
-                          <ShieldCheck size={18} className="text-amber-500" />
+                        <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 border border-slate-200">
+                          <img src={AGENT_AVATAR_URL} alt="Agent" className="w-full h-full object-cover" />
                         </div>
-                        <div className="bg-slate-100 text-slate-500 px-4 py-3 rounded-2xl rounded-bl-none text-xs flex items-center gap-1">
-                          <span className="text-[10px] font-bold mr-1 text-slate-400">Customer Service is typing</span>
+                        <div className="bg-slate-100 text-slate-500 px-4 py-3 rounded-2xl rounded-bl-none text-xs flex items-center gap-1 shadow-2xs">
+                          <span className="text-[10px] font-bold mr-1 text-slate-400">Agent DutaKlip is typing</span>
                           <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
                           <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
                           <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
@@ -385,7 +403,9 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                   </>
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 p-2 my-auto">
-                    <MessageSquare size={32} className="mb-2 text-emerald-500 opacity-60" />
+                    <div className="w-12 h-12 rounded-full overflow-hidden mb-2 border border-slate-200 shadow-sm">
+                      <img src={AGENT_AVATAR_URL} alt="Agent DutaKlip" className="w-full h-full object-cover" />
+                    </div>
                     <p className="text-xs font-bold text-slate-700">Start a Conversation</p>
                     <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed mb-4">
                       Select a question below to send instantly:
