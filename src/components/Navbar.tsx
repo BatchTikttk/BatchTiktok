@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Menu, X, Plus, LogIn, LogOut, User, ChevronDown, 
-  Scale, BarChart2, Home, Globe, Trophy, Crown 
+  Scale, BarChart2, Home, Globe, Trophy, Crown, Phone 
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import AvatarBorderVip from './AvatarBorderVip';
@@ -239,6 +239,13 @@ export default function Navbar({
     }
   };
 
+  const handleGoToCs = () => {
+    setIsDropdownOpen(false);
+    setIsMobileMenuOpen(false);
+    window.history.pushState({}, '', '/cs');
+    window.dispatchEvent(new Event('popstate'));
+  };
+
   const handleGoToUpgrade = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsDropdownOpen(false);
@@ -387,13 +394,21 @@ export default function Navbar({
                 {isDropdownOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
-                    <div className="absolute right-0 mt-3 w-52 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-2 duration-200 border-none">
+                    <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-2 duration-200 border-none">
                       
                       <button
                         onClick={handleGoToProfile}
                         className="w-full px-4 py-3.5 flex items-center gap-3 text-sm font-bold text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors text-left border-none bg-transparent cursor-pointer"
                       >
                         <BarChart2 size={18} /> User Profile
+                      </button>
+
+                      {/* Costume Service dipindah ke dalam Avatar Dropdown */}
+                      <button
+                        onClick={handleGoToCs}
+                        className="w-full px-4 py-3.5 flex items-center gap-3 text-sm font-bold text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors text-left border-none bg-transparent cursor-pointer"
+                      >
+                        <Phone size={18} /> Costume Service
                       </button>
 
                       <button
@@ -542,6 +557,13 @@ export default function Navbar({
                   className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-colors rounded-2xl border-none bg-transparent cursor-pointer"
                 >
                   <BarChart2 size={18} /> User Profile
+                </button>
+
+                <button 
+                  onClick={handleGoToCs}
+                  className="px-4 py-3 flex items-center gap-2 text-left text-sm font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-colors rounded-2xl border-none bg-transparent cursor-pointer"
+                >
+                  <Phone size={18} /> Costume Service
                 </button>
 
                 <button 

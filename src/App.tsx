@@ -7,6 +7,7 @@ import TopContributors from './pages/TopContributors';
 import CreatorPage from './pages/CreatorPage'; 
 import PreviewPage from './pages/PreviewPage';
 import Pay from './pages/Pay';
+import Cs from './pages/Cs';
 import ChatGroup from './components/ChatGroup';
 import LoginModal from './components/LoginModal';
 import UpgradeModal from './components/UpgradeModal';
@@ -74,6 +75,9 @@ export default function App() {
     } else if (hash === '#rules') {
       window.history.replaceState({}, '', '/rules');
       setCurrentPath('/rules');
+    } else if (hash === '#cs' || path === '/cs') {
+      window.history.replaceState({}, '', '/cs');
+      setCurrentPath('/cs');
     } else if (hash === '#legal') {
       window.history.replaceState({}, '', '/legal');
       setCurrentPath('/legal');
@@ -180,6 +184,10 @@ export default function App() {
 
     if (currentPath === '/rules') {
       return <RulesPage />;
+    }
+
+    if (currentPath === '/cs') {
+      return <Cs onBack={() => navigateTo('/')} />;
     }
 
     if (currentPath === '/legal') {
