@@ -20,7 +20,7 @@ interface CsModalProps {
 
 const AGENT_AVATAR_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Qris/AgentDutaKlip.webp";
 
-// Daftar Pertanyaan & Balasan Otomatis
+// Daftar Pertanyaan Utama
 const QUICK_QUESTIONS = [
   "Bagaimana cara upgrade VIP?",
   "Berapa lama verifikasi pembayaran?",
@@ -28,6 +28,7 @@ const QUICK_QUESTIONS = [
   "Dimana saya bisa download konten eksklusif?"
 ];
 
+// Database Balasan Otomatis
 const AUTO_REPLIES: Record<string, string> = {
   "Bagaimana cara upgrade VIP?": "Untuk upgrade VIP, Anda dapat mengklik menu Upgrade VIP di Navbar atau tombol 'Upgrade Now' pada banner utama. Setelah itu, lakukan transfer sebesar Rp 50.000 ke QRIS yang tersedia dan kirimkan bukti transfer ke Admin.",
   "Berapa lama verifikasi pembayaran?": "Verifikasi pembayaran manual biasanya memakan waktu 5-15 menit setelah Anda mengirimkan bukti transfer via WhatsApp ke Tim Admin kami.",
@@ -50,7 +51,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 1. Ambil Sesi Pengguna
+  // 1. Ambil Sesi Pengguna & Profile
   useEffect(() => {
     if (!isOpen) return;
 
@@ -88,7 +89,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     initSession();
   }, [isOpen]);
 
-  // 2. Ambil atau Buat 1 Percakapan Aktif Utama (Mencegah Penumpukan Data di Supabase)
+  // 2. Ambil atau Buat Conversation
   const getOrCreateConversation = async (userId: string): Promise<string | null> => {
     try {
       let { data: conv } = await supabase
@@ -124,7 +125,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     }
   };
 
-  // 3. Fetch Pesan
+  // 3. Fetch Messages
   const fetchMessages = async (convId: string) => {
     const { data } = await supabase
       .from('support_messages')
@@ -166,7 +167,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isBotTyping]);
 
-  // Balasan Otomatis Bot
+  // Balasan Bot Otomatis
   const triggerAutoBotReply = async (userMsgText: string, activeConvId: string) => {
     setIsBotTyping(true);
 
@@ -263,6 +264,11 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       return '';
     }
   };
+
+  // Saring pertanyaan yang belum pernah dikirim oleh pengguna
+  const unaskedQuestions = QUICK_QUESTIONS.filter(
+    (q) => !messages.some((m) => m.message.trim().toLowerCase() === q.trim().toLowerCase())
+  );
 
   if (!isOpen) return null;
 
@@ -391,23 +397,23 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                       </div>
                     )}
 
-                    {/* Quick Questions List Melayang di Bawah Percakapan Aktif */}
-                    {!isBotTyping && (
-                      <div className="pt-2 flex flex-col items-start gap-1.5">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">
-                          Pertanyaan Lanjutan / Related Questions:
+                    {/* Pertanyaan Lanjutan Rapi Menurun (Menghilangkan yang Sudah Diklik) */}
+                    {!isBotTyping && unaskedQuestions.length > 0 && (
+                      <div className="pt-2 flex flex-col items-start gap-2">
+                        <p className="text-xs font-semibold text-slate-500 px-1">
+                          Related Questions:
                         </p>
-                        <div className="flex flex-wrap gap-1.5 w-full">
-                          {QUICK_QUESTIONS.map((q, idx) => (
+                        <div className="flex flex-col gap-2 w-full max-w-sm">
+                          {unaskedQuestions.map((q, idx) => (
                             <button
                               key={idx}
                               type="button"
                               disabled={sending}
                               onClick={() => handleQuickQuestionClick(q)}
-                              className="text-left px-3 py-1.5 bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200/60 hover:border-emerald-200 rounded-xl text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1.5 group"
+                              className="w-full text-left px-3.5 py-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-100 hover:border-emerald-200 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center justify-between group"
                             >
                               <span>{q}</span>
-                              <Send size={10} className="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-600 flex-shrink-0" />
+                              <Send size={12} className="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-600 flex-shrink-0 ml-1" />
                             </button>
                           ))}
                         </div>
