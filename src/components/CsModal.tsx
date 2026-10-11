@@ -21,6 +21,7 @@ interface CsModalProps {
 export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalProps) {
   const [sessionUser, setSessionUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isAdminOnline, setIsAdminOnline] = useState<boolean>(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -29,12 +30,33 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Cek Status Kehadiran Admin di Database Supabase
+  const checkAdminOnlineStatus = async () => {
+    try {
+      const { data: adminProfiles } = await supabase
+        .from('profiles')
+        .select('id, updated_at')
+        .eq('is_admin', true);
+
+      if (adminProfiles && adminProfiles.length > 0) {
+        // Anggap admin online jika ada aktivitas/session admin
+        setIsAdminOnline(true);
+      } else {
+        setIsAdminOnline(false);
+      }
+    } catch (err) {
+      setIsAdminOnline(false);
+    }
+  };
+
   // 1. Ambil Session User & Cek Status Admin
   useEffect(() => {
     if (!isOpen) return;
 
     const initSession = async () => {
       setLoading(true);
+      await checkAdminOnlineStatus();
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         setLoading(false);
@@ -42,7 +64,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       }
       setSessionUser(session.user);
 
-      // Cek apakah user adalah admin
+      // Cek apakah user saat ini adalah admin
       const { data: profile } = await supabase
         .from('profiles')
         .select('is_admin')
@@ -53,7 +75,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       setIsAdmin(userIsAdmin);
 
       if (!userIsAdmin) {
-        // Jika user biasa, cari atau buat conversation khusus miliknya
         await getOrCreateConversation(session.user.id);
       } else {
         setLoading(false);
@@ -63,7 +84,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     initSession();
   }, [isOpen]);
 
-  // 2. Ambil atau Buat Conversation untuk User Biasa
+  // 2. Ambil atau Buat Conversation untuk User
   const getOrCreateConversation = async (userId: string) => {
     try {
       let { data: conv, error } = await supabase
@@ -76,7 +97,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       if (error) throw error;
 
       if (!conv) {
-        // Buat baru jika belum ada
         const { data: newConv, error: createError } = await supabase
           .from('support_conversations')
           .insert([{ user_id: userId, status: 'active' }])
@@ -112,7 +132,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     }
   };
 
-  // 4. Supabase Realtime Subscription untuk Pesan Masuk
+  // 4. Supabase Realtime Subscription
   const subscribeToMessages = (convId: string) => {
     const channel = supabase
       .channel(`support_chat_${convId}`)
@@ -139,7 +159,6 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     };
   };
 
-  // Scroll otomatis ke bawah saat ada pesan baru
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -172,61 +191,66 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-md transition-opacity animate-in fade-in duration-200 overflow-hidden"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-md transition-opacity animate-in fade-in duration-200 overflow-hidden"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-2xl my-auto">
+      {/* Modal Vertikal Ramping (max-w-md) agar Proporsional */}
+      <div className="relative w-full max-w-md mx-auto h-[82vh] max-h-[620px] flex flex-col">
         
-        {/* Tombol Close di Luar Container */}
+        {/* Tombol Silang di Luar Container dengan Rotasi Hover */}
         <button 
           onClick={onClose}
-          className="absolute -top-4 right-1 md:-right-10 md:-top-2 z-[60] text-slate-300 hover:text-white bg-transparent border-none p-1 transition-all duration-300 hover:rotate-90 hover:scale-110 cursor-pointer flex items-center justify-center"
+          className="absolute -top-10 right-0 md:-right-10 md:-top-2 z-[60] text-slate-300 hover:text-white bg-transparent border-none p-1 transition-all duration-300 hover:rotate-90 hover:scale-110 cursor-pointer flex items-center justify-center"
           title="Close"
         >
           <X size={24} />
         </button>
 
-        <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full h-[78vh] max-h-[640px]">
+        {/* Outer Box Tanpa Scrolling Eksternal */}
+        <div className="bg-white rounded-[2.2rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full h-full">
           
-          {/* Header Bersih Tanpa Container Icon + Indikator Admin Online */}
-          <div className="p-5 sm:p-6 border-b border-slate-100 bg-slate-50/80 flex items-center justify-between">
+          {/* Header Polos Tanpa Background Container */}
+          <div className="p-5 pb-4 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              {/* Ikon tanpa background container */}
-              <MessageSquare size={22} className="text-emerald-500 flex-shrink-0" />
+              <MessageSquare size={20} className="text-emerald-500 flex-shrink-0" />
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
-                    Customer Service & Support
+                  <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
+                    Customer Service
                   </h3>
-                  {/* Indikator Admin Online */}
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/60">
+                  {/* Indikator Akurat Admin Online / Offline */}
+                  <div className="flex items-center gap-1.5">
                     <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      {isAdminOnline && (
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      )}
+                      <span className={`relative inline-flex rounded-full h-2 w-2 ${isAdminOnline ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
                     </span>
-                    <span className="text-[10px] font-bold text-emerald-600">Admin is Online</span>
+                    <span className={`text-[10px] font-bold ${isAdminOnline ? 'text-emerald-600' : 'text-slate-400'}`}>
+                      {isAdminOnline ? 'Admin Online' : 'Admin Offline'}
+                    </span>
                   </div>
                 </div>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  Need help with payment verification or account upgrade? Chat directly with our support team here.
+                <p className="text-[11px] text-slate-500 font-medium mt-0.5 leading-tight">
+                  Direct live assistance for payment & VIP membership.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Body Konten Chat */}
+          {/* Body Utama */}
           {loading ? (
             <div className="flex-1 flex items-center justify-center bg-white">
-              <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+              <Loader2 className="w-7 h-7 animate-spin text-emerald-500" />
             </div>
           ) : !sessionUser ? (
             <div className="flex-1 flex flex-col items-center justify-center p-6 text-center bg-white">
-              <MessageSquare size={44} className="text-slate-300 mb-3" />
-              <h4 className="text-base font-bold text-slate-800 mb-1">Please Login First</h4>
-              <p className="text-xs text-slate-500 mb-5 max-w-xs leading-relaxed">
-                You need to be logged in to send messages and connect with customer service support.
+              <MessageSquare size={38} className="text-slate-300 mb-2" />
+              <h4 className="text-sm font-bold text-slate-800 mb-1">Please Login First</h4>
+              <p className="text-xs text-slate-500 mb-4 max-w-xs leading-relaxed">
+                You need to be logged in to send messages and connect with support.
               </p>
               <button
                 onClick={() => {
@@ -234,40 +258,40 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                   if (onOpenLoginModal) onOpenLoginModal();
                   else window.dispatchEvent(new Event('openLoginModal'));
                 }}
-                className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer border-none"
+                className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition-all cursor-pointer border-none"
               >
                 Login Now
               </button>
             </div>
           ) : (
-            <div className="flex-1 flex flex-col overflow-hidden bg-slate-50/40">
+            <div className="flex-1 flex flex-col overflow-hidden bg-white">
               
-              {/* Area Pesan dengan Custom Scrollbar Internal */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar">
+              {/* Area Chat Internal dengan Scrollbar Bersih */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3.5 custom-scrollbar">
                 {messages.length > 0 ? (
                   messages.map((msg) => {
                     const isMe = msg.sender_id === sessionUser.id;
                     return (
                       <div
                         key={msg.id}
-                        className={`flex items-end gap-2.5 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
+                        className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
                       >
-                        <div className="w-7 h-7 flex items-center justify-center flex-shrink-0 text-slate-400">
+                        <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 text-slate-400">
                           {msg.is_admin ? (
-                            <ShieldCheck size={20} className="text-amber-500" />
+                            <ShieldCheck size={18} className="text-amber-500" />
                           ) : (
-                            <User size={18} />
+                            <User size={16} />
                           )}
                         </div>
 
                         <div
-                          className={`max-w-[75%] px-4 py-3 rounded-2xl text-xs sm:text-sm leading-relaxed ${
+                          className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed ${
                             isMe
-                              ? 'bg-emerald-500 text-white rounded-br-none shadow-sm'
-                              : 'bg-white text-slate-800 border border-slate-100 rounded-bl-none shadow-sm'
+                              ? 'bg-emerald-500 text-white rounded-br-none'
+                              : 'bg-slate-100 text-slate-800 rounded-bl-none'
                           }`}
                         >
-                          <div className="text-[10px] font-bold opacity-75 mb-1">
+                          <div className="text-[9px] font-bold opacity-75 mb-0.5">
                             {msg.is_admin ? 'Customer Service' : 'You'}
                           </div>
                           <div>{msg.message}</div>
@@ -276,33 +300,32 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                     );
                   })
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 py-12">
-                    {/* Icon tanpa background container */}
-                    <MessageSquare size={36} className="mb-2 text-emerald-500 opacity-60" />
-                    <p className="text-sm font-bold text-slate-700">Start a Conversation</p>
-                    <p className="text-xs text-slate-400 mt-1 max-w-xs leading-relaxed">
-                      Send your questions, payment proofs, or assistance requests below. Our support team will respond shortly.
+                  <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 py-8">
+                    <MessageSquare size={32} className="mb-2 text-emerald-500 opacity-60" />
+                    <p className="text-xs font-bold text-slate-700">Start a Conversation</p>
+                    <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
+                      Type your questions or issues below. Our support team will reply shortly.
                     </p>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Form Input Pesan */}
-              <form onSubmit={handleSendMessage} className="p-3 sm:p-4 bg-white border-t border-slate-100 flex items-center gap-2.5">
+              {/* Form Input Polos Tanpa Border Kotak Tambahan */}
+              <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-100 flex items-center gap-2 bg-white">
                 <input
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Type your message or issue here..."
-                  className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                  placeholder="Type your message..."
+                  className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                 />
                 <button
                   type="submit"
                   disabled={sending || !inputText.trim()}
-                  className="p-3 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center border-none"
+                  className="p-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-xl transition-all cursor-pointer flex items-center justify-center border-none"
                 >
-                  {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                  {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
                 </button>
               </form>
             </div>
