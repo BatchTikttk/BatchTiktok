@@ -85,20 +85,20 @@ const RulesPage = () => {
       },
       badges: {
         title: "Community Badges",
-        subtitle: "Recognizing our top contributors. Badges are displayed automatically based on your total approved uploads.",
-        adminTitle: "Admin Verified",
-        adminBadge: "Official Admin",
-        adminDesc: "Exclusive badge for administrators and moderators who maintain the platform's integrity.",
-        bronzeBadge: "10+ Uploads",
-        bronzeDesc: "Unlocked automatically after uploading at least 10 approved batch archives.",
-        silverBadge: "30+ Uploads",
-        silverDesc: "Unlocked automatically after uploading at least 30 approved batch archives.",
-        goldBadge: "50+ Uploads",
-        goldDesc: "Unlocked automatically after uploading at least 50 approved batch archives.",
-        eliteBadge: "100+ Uploads",
-        eliteDesc: "Unlocked automatically after uploading at least 100 approved batch archives.",
-        legendBadge: "200+ Uploads",
-        legendDesc: "Highest Achievement! Unlocked after reaching 200 approved batch archives."
+        subtitle: "Recognizing our top contributors. Badges are displayed automatically based on your total approved uploads[cite: 10].",
+        adminTitle: "Verified Staff",
+        adminBadge: "Admin Verified",
+        adminDesc: "Exclusive badge for administrators and moderators who maintain the platform's integrity[cite: 9, 10].",
+        activeBadge: "10+ Uploads",
+        activeDesc: "Unlocked automatically after uploading at least 10 approved batch archives[cite: 9, 10].",
+        supporterBadge: "30+ Uploads",
+        supporterDesc: "Unlocked automatically after uploading at least 30 approved batch archives[cite: 9, 10].",
+        loyalBadge: "50+ Uploads",
+        loyalDesc: "Unlocked automatically after uploading at least 50 approved batch archives[cite: 9, 10].",
+        achievementBadge: "100+ Uploads",
+        achievementDesc: "Unlocked automatically after uploading at least 100 approved batch archives[cite: 9, 10].",
+        topCreatorBadge: "200+ Uploads",
+        topCreatorDesc: "Highest Achievement! Unlocked after reaching 200 approved batch archives[cite: 9, 10]."
       },
       editing: {
         title: "Post Editing Flow",
@@ -163,20 +163,20 @@ const RulesPage = () => {
       },
       badges: {
         title: "Lencana Komunitas",
-        subtitle: "Apresiasi untuk kontributor utama. Lencana ditampilkan otomatis berdasarkan total unggahan yang disetujui.",
-        adminTitle: "Admin Terverifikasi",
-        adminBadge: "Admin Resmi",
-        adminDesc: "Lencana khusus untuk administrator dan moderator yang menjaga integritas platform.",
-        bronzeBadge: "10+ Unggahan",
-        bronzeDesc: "Terbuka otomatis setelah mengunggah minimal 10 arsip batch yang disetujui.",
-        silverBadge: "30+ Unggahan",
-        silverDesc: "Terbuka otomatis setelah mengunggah minimal 30 arsip batch yang disetujui.",
-        goldBadge: "50+ Unggahan",
-        goldDesc: "Terbuka otomatis setelah mengunggah minimal 50 arsip batch yang disetujui.",
-        eliteBadge: "100+ Unggahan",
-        eliteDesc: "Terbuka otomatis setelah mengunggah minimal 100 arsip batch yang disetujui.",
-        legendBadge: "200+ Unggahan",
-        legendDesc: "Pencapaian Tertinggi! Terbuka setelah mencapai 200 arsip batch yang disetujui."
+        subtitle: "Apresiasi untuk kontributor utama. Lencana ditampilkan otomatis berdasarkan total unggahan yang disetujui[cite: 10].",
+        adminTitle: "Verified Staff",
+        adminBadge: "Admin Terverifikasi",
+        adminDesc: "Lencana khusus untuk administrator dan moderator yang menjaga integritas platform[cite: 9, 10].",
+        activeBadge: "10+ Unggahan",
+        activeDesc: "Terbuka otomatis setelah mengunggah minimal 10 arsip batch yang disetujui[cite: 9, 10].",
+        supporterBadge: "30+ Unggahan",
+        supporterDesc: "Terbuka otomatis setelah mengunggah minimal 30 arsip batch yang disetujui[cite: 9, 10].",
+        loyalBadge: "50+ Unggahan",
+        loyalDesc: "Terbuka otomatis setelah mengunggah minimal 50 arsip batch yang disetujui[cite: 9, 10].",
+        achievementBadge: "100+ Unggahan",
+        achievementDesc: "Terbuka otomatis setelah mengunggah minimal 100 arsip batch yang disetujui[cite: 9, 10].",
+        topCreatorBadge: "200+ Unggahan",
+        topCreatorDesc: "Pencapaian Tertinggi! Terbuka setelah mencapai 200 arsip batch yang disetujui[cite: 9, 10]."
       },
       editing: {
         title: "Alur Pengeditan Postingan",
@@ -207,7 +207,7 @@ const RulesPage = () => {
       <div className="absolute top-6 right-6 sm:top-8 sm:right-8 z-50 animate-in fade-in duration-500">
         <button 
           onClick={() => setLang(lang === 'en' ? 'id' : 'en')}
-          className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm hover:shadow-md border border-slate-200 text-xs sm:text-sm font-bold text-slate-600 transition-all active:scale-95 cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2 bg-white/85 backdrop-blur-sm rounded-full shadow-sm hover:shadow-md border border-slate-200 text-xs sm:text-sm font-bold text-slate-600 transition-all active:scale-95 cursor-pointer"
           title="Ganti Bahasa / Switch Language"
         >
           <Globe size={16} className="text-blue-600" />
@@ -395,8 +395,6 @@ const RulesPage = () => {
                 </div>
 
                 <div className="grid gap-5">
-                  
-                  {/* Benefit 1: Access to All Exclusive Content */}
                   <div className="flex gap-5 p-6 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 shadow-sm">
                     <Crown className="text-amber-500 shrink-0 mt-0.5 fill-amber-400 drop-shadow-sm" size={26} />
                     <div>
@@ -407,7 +405,6 @@ const RulesPage = () => {
                     </div>
                   </div>
 
-                  {/* Benefit 2: Direct Download Links without Ads */}
                   <div className="flex gap-5 p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
                     <Download className="text-emerald-500 shrink-0 mt-0.5" size={26} />
                     <div>
@@ -418,7 +415,6 @@ const RulesPage = () => {
                     </div>
                   </div>
 
-                  {/* Benefit 3: Priority Queue for Custom Batch Requests */}
                   <div className="flex gap-5 p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
                     <Zap className="text-blue-500 shrink-0 mt-0.5 fill-blue-50" size={26} />
                     <div>
@@ -429,7 +425,6 @@ const RulesPage = () => {
                     </div>
                   </div>
 
-                  {/* Benefit 4: Exclusive Border Avatar VIP */}
                   <div className="flex gap-5 p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
                     <User className="text-indigo-500 shrink-0 mt-0.5" size={26} />
                     <div>
@@ -440,7 +435,6 @@ const RulesPage = () => {
                     </div>
                   </div>
 
-                  {/* Benefit 5: Premium Card Background for Top Contribution Page */}
                   <div className="flex gap-5 p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
                     <Video className="text-purple-500 shrink-0 mt-0.5" size={26} />
                     <div>
@@ -451,7 +445,6 @@ const RulesPage = () => {
                     </div>
                   </div>
 
-                  {/* Pricing Summary Footer */}
                   <div className="mt-4 flex items-center justify-between p-6 rounded-2xl bg-slate-900 text-white shadow-md">
                     <div>
                       <h3 className="font-bold text-amber-400 text-xl">{content.premium.pricingTitle}</h3>
@@ -468,7 +461,7 @@ const RulesPage = () => {
               </div>
             )}
 
-            {/* TAB: BADGES */}
+            {/* TAB: BADGES (Disamakan dengan CreatorPage) */}
             {activeTab === 'badges' && (
               <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                 <div className="mb-8">
@@ -481,8 +474,8 @@ const RulesPage = () => {
                   {/* Admin Badge */}
                   <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center">
                     <img 
-                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/AdminBadge.webp" 
-                      alt="Admin Verified" 
+                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Admin.webp" 
+                      alt="Verified Staff" 
                       className="w-16 h-16 mb-3 object-contain drop-shadow-sm" 
                     />
                     <h3 className="font-bold text-slate-800 text-lg">{content.badges.adminTitle}</h3>
@@ -494,85 +487,86 @@ const RulesPage = () => {
                     </p>
                   </div>
 
-                  {/* Tier 1: Bronze */}
+                  {/* Active User (Bronze) */}
                   <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center hover:bg-slate-100/50 transition-colors">
                     <img 
-                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Bronze.webp" 
-                      alt="Bronze Tier" 
+                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/ActiveUser.webp" 
+                      alt="Active User" 
                       className="w-16 h-16 mb-3 object-contain drop-shadow-sm" 
                     />
-                    <h3 className="font-bold text-slate-800 text-lg">Bronze Tier</h3>
+                    <h3 className="font-bold text-[#b08d6a] text-lg">Active User</h3>
                     <div className="bg-amber-100/80 text-amber-800 text-xs font-bold px-3 py-1 rounded-full mt-1.5 mb-2 border-none">
-                      {content.badges.bronzeBadge}
+                      {content.badges.activeBadge}
                     </div>
                     <p className="text-sm text-slate-500 font-medium">
-                      {content.badges.bronzeDesc}
+                      {content.badges.activeDesc}
                     </p>
                   </div>
 
-                  {/* Tier 2: Silver */}
+                  {/* Supporter (Silver) */}
                   <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center hover:bg-slate-100/50 transition-colors">
                     <img 
-                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Silver.webp" 
-                      alt="Silver Tier" 
+                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Supporter.webp" 
+                      alt="Supporter" 
                       className="w-16 h-16 mb-3 object-contain drop-shadow-sm" 
                     />
-                    <h3 className="font-bold text-slate-800 text-lg">Silver Tier</h3>
+                    <h3 className="font-bold text-slate-500 text-lg">Supporter</h3>
                     <div className="bg-slate-200 text-slate-700 text-xs font-bold px-3 py-1 rounded-full mt-1.5 mb-2 border-none">
-                      {content.badges.silverBadge}
+                      {content.badges.supporterBadge}
                     </div>
                     <p className="text-sm text-slate-500 font-medium">
-                      {content.badges.silverDesc}
+                      {content.badges.supporterDesc}
                     </p>
                   </div>
 
-                  {/* Tier 3: Gold */}
+                  {/* Loyal User (Gold) */}
                   <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center hover:bg-slate-100/50 transition-colors">
                     <img 
-                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Gold.webp" 
-                      alt="Gold Tier" 
+                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/LoyalUser.webp" 
+                      alt="Loyal User" 
                       className="w-16 h-16 mb-3 object-contain drop-shadow-sm" 
                     />
-                    <h3 className="font-bold text-amber-600 text-lg">Gold Tier</h3>
+                    <h3 className="font-bold text-amber-500 text-lg">Loyal User</h3>
                     <div className="bg-yellow-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full mt-1.5 mb-2 border-none">
-                      {content.badges.goldBadge}
+                      {content.badges.loyalBadge}
                     </div>
                     <p className="text-sm text-slate-500 font-medium">
-                      {content.badges.goldDesc}
+                      {content.badges.loyalDesc}
                     </p>
                   </div>
 
-                  {/* Tier 4: Elite */}
+                  {/* Achievement (Elite) */}
                   <div className="p-6 rounded-2xl bg-slate-50/80 border-none flex flex-col items-center text-center hover:bg-slate-100/50 transition-colors">
                     <img 
-                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Elite.webp" 
-                      alt="Elite Tier" 
+                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/Archivement.webp" 
+                      alt="Achievement" 
                       className="w-16 h-16 mb-3 object-contain drop-shadow-sm" 
                     />
-                    <h3 className="font-bold text-emerald-600 text-lg">Elite Tier</h3>
-                    <div className="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full mt-1.5 mb-2 border-none">
-                      {content.badges.eliteBadge}
+                    <h3 className="font-bold text-blue-500 text-lg">Achievement</h3>
+                    <div className="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full mt-1.5 mb-2 border-none">
+                      {content.badges.achievementBadge}
                     </div>
                     <p className="text-sm text-slate-500 font-medium">
-                      {content.badges.eliteDesc}
+                      {content.badges.achievementDesc}
                     </p>
                   </div>
 
-                  {/* Tier 5: Legend */}
+                  {/* Top Creator (Legend) */}
                   <div className="p-6 rounded-2xl bg-gradient-to-b from-amber-50 to-orange-50/40 border border-amber-200/60 flex flex-col items-center text-center hover:shadow-md transition-all">
                     <img 
-                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/Legend.webp" 
-                      alt="Legend Tier" 
+                      src="https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/New%20Tier%20Badge/NEW%20UPDATE/TopCreator.webp" 
+                      alt="Top Creator" 
                       className="w-16 h-16 mb-3 object-contain drop-shadow-md scale-105" 
                     />
-                    <h3 className="font-black text-amber-700 text-lg">Legend Tier</h3>
-                    <div className="bg-gradient-to-r from-amber-400 to-orange-400 text-white text-xs font-black px-3.5 py-1 rounded-full mt-1.5 mb-2 shadow-xs">
-                      {content.badges.legendBadge}
+                    <h3 className="font-black text-rose-600 text-lg">Top Creator</h3>
+                    <div className="bg-gradient-to-r from-rose-500 to-amber-500 text-white text-xs font-black px-3.5 py-1 rounded-full mt-1.5 mb-2 shadow-xs">
+                      {content.badges.topCreatorBadge}
                     </div>
                     <p className="text-sm text-slate-600 font-medium">
-                      {content.badges.legendDesc}
+                      {content.badges.topCreatorDesc}
                     </p>
                   </div>
+
                 </div>
               </div>
             )}
