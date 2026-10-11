@@ -42,7 +42,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       }
       setSessionUser(session.user);
 
-      // Cek apakah user adalah admin[cite: 11]
+      // Cek apakah user adalah admin
       const { data: profile } = await supabase
         .from('profiles')
         .select('is_admin')
@@ -53,7 +53,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       setIsAdmin(userIsAdmin);
 
       if (!userIsAdmin) {
-        // Jika user biasa, cari atau buat conversation khusus miliknya[cite: 11]
+        // Jika user biasa, cari atau buat conversation khusus miliknya
         await getOrCreateConversation(session.user.id);
       } else {
         setLoading(false);
@@ -63,7 +63,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     initSession();
   }, [isOpen]);
 
-  // 2. Ambil atau Buat Conversation untuk User Biasa[cite: 11]
+  // 2. Ambil atau Buat Conversation untuk User Biasa
   const getOrCreateConversation = async (userId: string) => {
     try {
       let { data: conv, error } = await supabase
@@ -76,7 +76,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       if (error) throw error;
 
       if (!conv) {
-        // Buat baru jika belum ada[cite: 11]
+        // Buat baru jika belum ada
         const { data: newConv, error: createError } = await supabase
           .from('support_conversations')
           .insert([{ user_id: userId, status: 'active' }])
@@ -99,7 +99,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     }
   };
 
-  // 3. Ambil Riwayat Pesan[cite: 11]
+  // 3. Ambil Riwayat Pesan
   const fetchMessages = async (convId: string) => {
     const { data, error } = await supabase
       .from('support_messages')
@@ -112,7 +112,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     }
   };
 
-  // 4. Supabase Realtime Subscription untuk Pesan Masuk[cite: 11]
+  // 4. Supabase Realtime Subscription untuk Pesan Masuk
   const subscribeToMessages = (convId: string) => {
     const channel = supabase
       .channel(`support_chat_${convId}`)
@@ -139,12 +139,12 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     };
   };
 
-  // Scroll otomatis ke bawah saat ada pesan baru[cite: 11]
+  // Scroll otomatis ke bawah saat ada pesan baru
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // 5. Kirim Pesan[cite: 11]
+  // 5. Kirim Pesan
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim() || !conversationId || !sessionUser) return;
@@ -172,7 +172,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-md transition-opacity animate-in fade-in duration-200 overflow-hidden"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -182,24 +182,33 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
         {/* Tombol Close di Luar Container */}
         <button 
           onClick={onClose}
-          className="absolute -top-4 right-1 md:-right-10 md:-top-2 z-[60] text-slate-300 hover:text-white bg-slate-800/80 md:bg-transparent rounded-full p-1.5 md:p-0 transition-all duration-300 hover:rotate-90 hover:scale-110 cursor-pointer flex items-center justify-center"
+          className="absolute -top-4 right-1 md:-right-10 md:-top-2 z-[60] text-slate-300 hover:text-white bg-transparent border-none p-1 transition-all duration-300 hover:rotate-90 hover:scale-110 cursor-pointer flex items-center justify-center"
           title="Close"
         >
           <X size={24} />
         </button>
 
-        <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full h-[80vh] max-h-[700px]">
+        <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full h-[78vh] max-h-[640px]">
           
-          {/* Header Informatif dengan Keterangan Jelas */}
+          {/* Header Bersih Tanpa Container Icon + Indikator Admin Online */}
           <div className="p-5 sm:p-6 border-b border-slate-100 bg-slate-50/80 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 flex-shrink-0">
-                <MessageSquare size={22} />
-              </div>
+            <div className="flex items-center gap-2.5">
+              {/* Ikon tanpa background container */}
+              <MessageSquare size={22} className="text-emerald-500 flex-shrink-0" />
               <div>
-                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
-                  Customer Service & Support
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
+                    Customer Service & Support
+                  </h3>
+                  {/* Indikator Admin Online */}
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/60">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-600">Admin is Online</span>
+                  </div>
+                </div>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
                   Need help with payment verification or account upgrade? Chat directly with our support team here.
                 </p>
@@ -207,7 +216,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
             </div>
           </div>
 
-          {/* Konten Utama / Body */}
+          {/* Body Konten Chat */}
           {loading ? (
             <div className="flex-1 flex items-center justify-center bg-white">
               <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
@@ -233,7 +242,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
           ) : (
             <div className="flex-1 flex flex-col overflow-hidden bg-slate-50/40">
               
-              {/* Area Pesan */}
+              {/* Area Pesan dengan Custom Scrollbar Internal */}
               <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar">
                 {messages.length > 0 ? (
                   messages.map((msg) => {
@@ -268,7 +277,8 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                   })
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 py-12">
-                    <MessageSquare size={36} className="mb-2 opacity-40 text-emerald-500" />
+                    {/* Icon tanpa background container */}
+                    <MessageSquare size={36} className="mb-2 text-emerald-500 opacity-60" />
                     <p className="text-sm font-bold text-slate-700">Start a Conversation</p>
                     <p className="text-xs text-slate-400 mt-1 max-w-xs leading-relaxed">
                       Send your questions, payment proofs, or assistance requests below. Our support team will respond shortly.
