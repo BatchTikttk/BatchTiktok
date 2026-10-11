@@ -18,12 +18,21 @@ interface CsModalProps {
   onOpenLoginModal?: () => void;
 }
 
+// Quick Questions & Auto-Reply Responses Database
 const QUICK_QUESTIONS = [
   "Bagaimana cara upgrade VIP?",
   "Berapa lama verifikasi pembayaran?",
   "Saya sudah transfer, bagaimana cara konfirmasinya?",
   "Dimana saya bisa download konten eksklusif?"
 ];
+
+const AUTO_REPLIES: Record<string, string> = {
+  "Bagaimana cara upgrade VIP?": "Untuk upgrade VIP, Anda dapat mengklik menu Upgrade VIP di Navbar atau tombol 'Upgrade Now' pada banner utama. Setelah itu, lakukan transfer sebesar Rp 50.000 ke QRIS yang tersedia dan kirimkan bukti transfer ke Admin.",
+  "Berapa lama verifikasi pembayaran?": "Verifikasi pembayaran manual biasanya memakan waktu 5-15 menit setelah Anda mengirimkan bukti transfer via WhatsApp ke Tim Admin kami.",
+  "Saya sudah transfer, bagaimana cara konfirmasinya?": "Silakan buka halaman /pay lalu klik tombol 'Confirm Payment / Contact Admin' untuk langsung membuka WhatsApp Admin dengan pesan otomatis. Lampirkan foto bukti transfer Anda di sana.",
+  "Dimana saya bisa download konten eksklusif?": "Konten eksklusif dapat diakses langsung pada halaman utama atau folder creator setelah akun Anda di-upgrade menjadi status VIP Lifetime Pass.",
+  "default": "Halo! Terima kasih telah menghubungi Customer Service DutaKlip. Pesan Anda telah kami terima dan tim admin kami akan segera membantu Anda secara langsung."
+};
 
 export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalProps) {
   const [sessionUser, setSessionUser] = useState<any>(null);
@@ -34,10 +43,12 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [isBotTyping, setIsBotTyping] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // 1. Ambil Session User & Cek Status Admin
   useEffect(() => {
     if (!isOpen) return;
 
@@ -86,6 +97,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     initSession();
   }, [isOpen]);
 
+  // 2. Ambil atau Buat Conversation
   const getOrCreateConversation = async (userId: string): Promise<string | null> => {
     try {
       let { data: conv, error } = await supabase
@@ -117,13 +129,14 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       return null;
     } catch (err: any) {
       console.error('Error init conversation:', err);
-      setErrorMessage('Gagal menginisialisasi chat. Periksa RLS Policy Supabase.');
+      setErrorMessage('Gagal menginisialisasi chat.');
       return null;
     } finally {
       setLoading(false);
     }
   };
 
+  // 3. Ambil Riwayat Pesan
   const fetchMessages = async (convId: string) => {
     const { data, error } = await supabase
       .from('support_messages')
@@ -136,6 +149,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     }
   };
 
+  // 4. Supabase Realtime Subscription
   const subscribeToMessages = (convId: string) => {
     const channel = supabase
       .channel(`support_chat_${convId}`)
@@ -164,8 +178,61 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isBotTyping]);
 
+  // Simulasi Balasan Bot Otomatis dengan Animacy Typewriting
+  const triggerAutoBotReply = async (userMsgText: string, activeConvId: string) => {
+    setIsBotTyping(true);
+
+    // Cari balasan yang cocok
+    let replyText = AUTO_REPLIES[userMsgText];
+    if (!replyText) {
+      const lower = userMsgText.toLowerCase();
+      if (lower.includes('upgrade') || lower.includes('vip') || lower.includes('bayar')) {
+        replyText = AUTO_REPLIES["Bagaimana cara upgrade VIP?"];
+      } else if (lower.includes('lama') || lower.includes('waktu') || lower.includes('verifikasi')) {
+        replyText = AUTO_REPLIES["Berapa lama verifikasi pembayaran?"];
+      } else if (lower.includes('transfer') || lower.includes('bukti') || lower.includes('konfirmasi')) {
+        replyText = AUTO_REPLIES["Saya sudah transfer, bagaimana cara konfirmasinya?"];
+      } else {
+        replyText = AUTO_REPLIES["default"];
+      }
+    }
+
+    // Jeda delay pengetikan simulasi (1.2 detik)
+    setTimeout(async () => {
+      setIsBotTyping(false);
+
+      // Simpan balasan bot ke database Supabase
+      const { data: insertedMsg, error } = await supabase
+        .from('support_messages')
+        .insert([
+          {
+            conversation_id: activeConvId,
+            sender_id: sessionUser.id,
+            message: replyText,
+            is_admin: true,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        // Fallback lokal jika RLS khusus admin dipicu
+        const tempMsg: Message = {
+          id: 'bot-' + Date.now(),
+          conversation_id: activeConvId,
+          sender_id: 'admin-bot',
+          message: replyText,
+          is_admin: true,
+          created_at: new Date().toISOString()
+        };
+        setMessages((prev) => [...prev, tempMsg]);
+      }
+    }, 1200);
+  };
+
+  // 5. Fungsi Pengiriman Pesan
   const executeSendMessage = async (textToSend: string) => {
     if (!textToSend.trim() || !sessionUser) return;
 
@@ -183,11 +250,15 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       return;
     }
 
+    const cleanText = textToSend.trim();
+    setInputText('');
+
+    // Masukkan pesan user ke database
     const { error } = await supabase.from('support_messages').insert([
       {
         conversation_id: activeConvId,
         sender_id: sessionUser.id,
-        message: textToSend.trim(),
+        message: cleanText,
         is_admin: isAdmin,
       },
     ]);
@@ -196,7 +267,10 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
       console.error('Failed to send message:', error);
       setErrorMessage(`Gagal mengirim: ${error.message}`);
     } else {
-      setInputText('');
+      // Jika bukan admin yang mengetik, picu balasan otomatis dari bot CS
+      if (!isAdmin) {
+        triggerAutoBotReply(cleanText, activeConvId);
+      }
     }
     setSending(false);
   };
@@ -221,6 +295,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
     >
       <div className="relative w-full max-w-md mx-auto h-[80vh] max-h-[600px] flex flex-col">
         
+        {/* Tombol Silang di Luar Container */}
         <button 
           onClick={onClose}
           className="absolute -top-10 right-0 md:-right-10 md:-top-2 z-[60] text-slate-300 hover:text-white bg-transparent border-none p-1 transition-all duration-300 hover:rotate-90 hover:scale-110 cursor-pointer flex items-center justify-center"
@@ -229,8 +304,10 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
           <X size={24} />
         </button>
 
+        {/* Modal Outer Box */}
         <div className="bg-white rounded-[2.2rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col w-full h-full">
           
+          {/* Header Minimalis */}
           <div className="p-4 sm:p-5 pb-3 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
             <div className="flex items-center gap-2.5">
               <MessageSquare size={20} className="text-emerald-500 flex-shrink-0" />
@@ -241,13 +318,11 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                   </h3>
                   <div className="flex items-center gap-1.5">
                     <span className="relative flex h-2 w-2">
-                      {isAdminOnline && (
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      )}
-                      <span className={`relative inline-flex rounded-full h-2 w-2 ${isAdminOnline ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
-                    <span className={`text-[10px] font-bold ${isAdminOnline ? 'text-emerald-600' : 'text-slate-400'}`}>
-                      {isAdminOnline ? 'Admin Online' : 'Admin Offline'}
+                    <span className="text-[10px] font-bold text-emerald-600">
+                      Admin Online
                     </span>
                   </div>
                 </div>
@@ -290,39 +365,58 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
           ) : (
             <div className="flex-1 flex flex-col overflow-hidden bg-white">
               
+              {/* Area Canvas Chat */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3.5 custom-scrollbar bg-white">
                 {messages.length > 0 ? (
-                  messages.map((msg) => {
-                    const isMe = msg.sender_id === sessionUser.id;
-                    return (
-                      <div
-                        key={msg.id}
-                        className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
-                      >
-                        <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 text-slate-400">
-                          {msg.is_admin ? (
-                            <ShieldCheck size={18} className="text-amber-500" />
-                          ) : (
-                            <User size={16} />
-                          )}
-                        </div>
-
+                  <>
+                    {messages.map((msg) => {
+                      const isMe = msg.sender_id === sessionUser.id && !msg.is_admin;
+                      return (
                         <div
-                          className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed ${
-                            isMe
-                              ? 'bg-emerald-500 text-white rounded-br-none'
-                              : 'bg-slate-100 text-slate-800 rounded-bl-none'
-                          }`}
+                          key={msg.id}
+                          className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
                         >
-                          <div className="text-[9px] font-bold opacity-75 mb-0.5">
-                            {msg.is_admin ? 'Customer Service' : 'You'}
+                          <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 text-slate-400">
+                            {msg.is_admin ? (
+                              <ShieldCheck size={18} className="text-amber-500" />
+                            ) : (
+                              <User size={16} />
+                            )}
                           </div>
-                          <div>{msg.message}</div>
+
+                          <div
+                            className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-xs leading-relaxed ${
+                              isMe
+                                ? 'bg-emerald-500 text-white rounded-br-none'
+                                : 'bg-slate-100 text-slate-800 rounded-bl-none'
+                            }`}
+                          >
+                            <div className="text-[9px] font-bold opacity-75 mb-0.5">
+                              {msg.is_admin ? 'Customer Service' : 'You'}
+                            </div>
+                            <div>{msg.message}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* Animasi Bot Mengetik (Typing Indicator) */}
+                    {isBotTyping && (
+                      <div className="flex items-end gap-2 flex-row">
+                        <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                          <ShieldCheck size={18} className="text-amber-500" />
+                        </div>
+                        <div className="bg-slate-100 text-slate-500 px-4 py-3 rounded-2xl rounded-bl-none text-xs flex items-center gap-1">
+                          <span className="text-[10px] font-bold mr-1 text-slate-400">Customer Service is typing</span>
+                          <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                          <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                          <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
                         </div>
                       </div>
-                    );
-                  })
+                    )}
+                  </>
                 ) : (
+                  /* Tampilan Saat Belum Ada Pesan */
                   <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 p-2 my-auto">
                     <MessageSquare size={32} className="mb-2 text-emerald-500 opacity-60" />
                     <p className="text-xs font-bold text-slate-700">Start a Conversation</p>
@@ -349,6 +443,7 @@ export default function CsModal({ isOpen, onClose, onOpenLoginModal }: CsModalPr
                 <div ref={messagesEndRef} />
               </div>
 
+              {/* Form Input Pesan */}
               <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-100 flex items-center gap-2 bg-white flex-shrink-0">
                 <input
                   type="text"
