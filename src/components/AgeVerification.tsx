@@ -1,4 +1,3 @@
-import React from 'react';
 import { ShieldAlert, X } from 'lucide-react';
 
 interface AgeVerificationProps {
