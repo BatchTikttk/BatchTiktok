@@ -37,6 +37,13 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
         return;
       }
 
+      // Logika validasi: Pendaftaran wajib menggunakan Gmail
+      if (!authEmail.trim().toLowerCase().endsWith('@gmail.com')) {
+        showToast('Registration is only allowed using a Gmail address.', 'error');
+        setIsLoading(false);
+        return;
+      }
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: authEmail,
         password: authPassword,
