@@ -11,6 +11,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { EmeraldFolderIcon } from "../components/SharedIcons";
 import AvatarBorderVip from "../components/AvatarBorderVip";
+import AgeVerification from "../components/AgeVerification";
 
 interface BatchItem {
   id: string;
@@ -25,6 +26,7 @@ interface BatchItem {
   is_edited?: boolean;
   is_exclusive?: boolean; 
   is_banned?: boolean;
+  is_adult?: boolean;
   status?: string;
   [key: string]: any; 
 }
@@ -127,9 +129,14 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorB
 
       <div 
         className="mb-5 mt-2 relative transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
-        title={data.is_banned ? "Account Banned" : data.is_exclusive ? "TikTok Exclusive Collection" : ""}
+        title={data.is_banned ? "Account Banned" : data.is_exclusive ? "TikTok Exclusive Collection" : data.is_adult ? "18+ Adult Collection" : ""}
       >
-        <EmeraldFolderIcon country={data.country} isExclusive={data.is_exclusive} isBanned={data.is_banned} />
+        <EmeraldFolderIcon 
+          country={data.country} 
+          isExclusive={data.is_exclusive} 
+          isBanned={data.is_banned} 
+          isAdult={data.is_adult}
+        />
         
         {data.is_exclusive && (
           <div 
@@ -145,9 +152,16 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorB
         {data.username}
       </h3>
       
-      <span className="text-[11px] font-bold tracking-wider text-white bg-emerald-500 px-3 py-1 rounded-full mb-4 shadow-sm border-none">
-        {data.country || 'Unknown'}
-      </span>
+      <div className="flex items-center gap-1.5 mb-4">
+        <span className="text-[11px] font-bold tracking-wider text-white bg-emerald-500 px-3 py-1 rounded-full shadow-sm border-none">
+          {data.country || 'Unknown'}
+        </span>
+        {data.is_adult && (
+          <span className="text-[11px] font-bold tracking-wider text-white bg-pink-600 px-2.5 py-1 rounded-full shadow-sm border-none" title="18+ Adult Content">
+            18+
+          </span>
+        )}
+      </div>
       
       <div className="flex w-full justify-between px-5 py-3.5 bg-slate-50/80 rounded-2xl mb-5 border-none">
         <div className="flex flex-col items-start">
@@ -239,6 +253,8 @@ export default function CreatorPage({
   handleLogout: propHandleLogout
 }: CreatorPageProps) {
   const [localCurrentUser, setLocalCurrentUser] = useState<any>(null); 
+  const [showAgeModal, setShowAgeModal] = useState(false);
+  const [pendingBatchItem, setPendingBatchItem] = useState<any>(null);
 
   const currentUser = propCurrentUser !== undefined ? propCurrentUser : localCurrentUser;
 
@@ -246,7 +262,7 @@ export default function CreatorPage({
     username ? `creator_page_${username}` : null,
     () => fetchCreatorData(username),
     {
-      dedupingInterval: 0, // Set 0 agar tidak mendeduping fetch saat update instan
+      dedupingInterval: 0, 
       revalidateOnFocus: true,
     }
   );
@@ -272,6 +288,13 @@ export default function CreatorPage({
   };
 
   const handleOpenPreview = (item: BatchItem) => {
+    const isVerified = localStorage.getItem('age_verified') === 'true';
+    if (item.is_adult && !isVerified) {
+      setPendingBatchItem(item);
+      setShowAgeModal(true);
+      return;
+    }
+
     const seoSlug = item.username 
       ? `@${item.username.replace(/^@/, '').replace(/\s+/g, '-').toLowerCase()}` 
       : item.id;
@@ -291,11 +314,9 @@ export default function CreatorPage({
     return () => { isMounted = false; };
   }, [propCurrentUser]);
 
-  // Realtime & Custom Event Listener agar langsung re-fetch saat Profile diperbarui
   useEffect(() => {
     if (!username) return;
 
-    // 1. Supabase Realtime Subscription
     const profileSubscription = supabase
       .channel(`creator-profile-updates-${username}`)
       .on(
@@ -318,7 +339,6 @@ export default function CreatorPage({
       )
       .subscribe();
 
-    // 2. Custom Window Event untuk Instant Local SPA Sync (dari halaman Profile)
     const handleProfileUpdated = () => {
       mutate(undefined, { revalidate: true });
     };
@@ -422,7 +442,7 @@ export default function CreatorPage({
               />
             ) : creatorProfile?.animation_border_url ? (
               <img 
-                key={creatorProfile.animation_border_url} // Force re-render gambar animasi saat URL berubah
+                key={creatorProfile.animation_border_url} 
                 src={creatorProfile.animation_border_url} 
                 alt="Animation Border" 
                 className="absolute inset-0 w-full h-full object-contain z-20 pointer-events-none" 
@@ -439,7 +459,6 @@ export default function CreatorPage({
           </div>
           
           <div className="flex-1 text-center md:text-left z-10">
-            
             <div className="flex flex-col md:flex-row items-center gap-3 mb-2 justify-center md:justify-start">
               <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 flex items-center gap-2">
                 {creatorProfile?.username || username}
@@ -503,6 +522,23 @@ export default function CreatorPage({
           </div>
         )}
       </main>
+
+      {/* Modal Age Verification */}
+      {showAgeModal && (
+        <AgeVerification 
+          onClose={() => {
+            setShowAgeModal(false);
+            setPendingBatchItem(null);
+          }}
+          onConfirm={() => {
+            setShowAgeModal(false);
+            if (pendingBatchItem) {
+              handleOpenPreview(pendingBatchItem);
+              setPendingBatchItem(null);
+            }
+          }}
+        />
+      )}
 
       <Footer onSelectCountry={handleSelectCategory} />
     </div>

@@ -109,7 +109,6 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []); 
 
-  // Event listener untuk memunculkan UpgradeModal
   useEffect(() => {
     const handleOpenModal = () => {
       setShowUpgradeModal(true);
@@ -118,14 +117,12 @@ export default function App() {
     return () => window.removeEventListener('openUpgradeModal', handleOpenModal);
   }, []);
 
-  // Event listener untuk memunculkan LoginModal
   useEffect(() => {
     const handleOpenLogin = () => setShowLoginModal(true);
     window.addEventListener('openLoginModal', handleOpenLogin as EventListener);
     return () => window.removeEventListener('openLoginModal', handleOpenLogin as EventListener);
   }, []);
 
-  // Event listener untuk memunculkan CsModal
   useEffect(() => {
     const handleOpenCs = () => setShowCsModal(true);
     window.addEventListener('openCsModal', handleOpenCs as EventListener);

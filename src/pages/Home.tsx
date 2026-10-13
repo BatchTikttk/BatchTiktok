@@ -9,6 +9,7 @@ import {
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { EmeraldFolderIcon } from "../components/SharedIcons"; 
+import AgeVerification from "../components/AgeVerification";
 
 // 1. Lazy Load Modals
 const LoginModal = lazy(() => import("../components/LoginModal"));
@@ -51,7 +52,6 @@ const Toast = ({ message, isVisible, type = 'success' }: ToastProps) => (
   </div>
 );
 
-// --- KOMPONEN PREMIUM HERO BANNER DENGAN SLIDER ---
 interface PremiumHeroBannerProps {
   onOpenUpgradeModal: () => void;
 }
@@ -255,7 +255,6 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: CreatorCardProps) =
         {data.username}
       </h3>
       
-      {/* Country & 18+ Badges */}
       <div className="flex items-center gap-1.5 mb-4">
         <span className="text-[11px] font-bold tracking-wider text-white bg-emerald-500 px-3 py-1 rounded-full shadow-sm border-none">
           {data.country}
@@ -286,7 +285,6 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: CreatorCardProps) =
   );
 };
 
-// Fetcher Data untuk SWR
 const fetchApprovedBatches = async () => {
   const { data: profiles } = await supabase
     .from('profiles')
@@ -333,6 +331,10 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   
+  // State untuk Age Verification Modal
+  const [showAgeModal, setShowAgeModal] = useState(false);
+  const [pendingBatchItem, setPendingBatchItem] = useState<any>(null);
+  
   const [toastConfig, setToastConfig] = useState<{ message: string; isVisible: boolean; type: 'success' | 'error' | 'info' }>({ 
     message: '', 
     isVisible: false, 
@@ -349,11 +351,16 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
   });
 
   const ITEMS_PER_PAGE = 16;
-
   const currentUser = propCurrentUser !== undefined ? propCurrentUser : localCurrentUser;
 
-  // Navigasi statis ke PreviewPage
   const handleOpenPreview = (item: any) => {
+    const isVerified = localStorage.getItem('age_verified') === 'true';
+    if (item.is_adult && !isVerified) {
+      setPendingBatchItem(item);
+      setShowAgeModal(true);
+      return;
+    }
+
     const seoSlug = item.username 
       ? `@${item.username.replace(/^@/, '').replace(/\s+/g, '-').toLowerCase()}` 
       : item.id;
@@ -460,7 +467,6 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
 
   const stats = useMemo(() => {
     const totalBatches = batches.length;
-    
     const uniqueCreators = new Set(
       batches.map((b: any) => b.uploaded_by || b.username).filter(Boolean)
     ).size;
@@ -561,7 +567,6 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-6 mb-10">
           <PremiumHeroBanner onOpenUpgradeModal={() => onOpenUpgradeModal && onOpenUpgradeModal()} />
 
-          {/* Search Bar */}
           <div className="w-full relative group">
             <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none z-10">
               <Search className="h-5 w-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
@@ -576,7 +581,6 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
           </div>
         </div>
 
-        {/* Stat Cards */}
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             <div className="bg-emerald-700 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
@@ -645,7 +649,6 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
           </div>
         </div>
 
-        {/* Filter & Dropdown */}
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-8">
           <div className="bg-white px-6 py-4 rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border-none flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -730,7 +733,6 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
               )}
             </div>
 
-            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-3 mt-12 mb-20">
                 <a
@@ -797,6 +799,23 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
 
       <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
       
+      {/* Modal Age Verification */}
+      {showAgeModal && (
+        <AgeVerification 
+          onClose={() => {
+            setShowAgeModal(false);
+            setPendingBatchItem(null);
+          }}
+          onConfirm={() => {
+            setShowAgeModal(false);
+            if (pendingBatchItem) {
+              handleOpenPreview(pendingBatchItem);
+              setPendingBatchItem(null);
+            }
+          }}
+        />
+      )}
+
       <Suspense fallback={null}>
         {showAddModal && (
           <PostModal 
