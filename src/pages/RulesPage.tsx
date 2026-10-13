@@ -20,7 +20,8 @@ import {
   Download,
   Globe,
   User,
-  Video
+  Video,
+  CheckSquare
 } from 'lucide-react';
 
 const RulesPage = () => {
@@ -61,54 +62,53 @@ const RulesPage = () => {
         pricingDesc: "Pay once of Rp 50,000 for lifetime access. No monthly subscription fees."
       },
       rules: {
-        title: "Posting Guidelines & Rules",
-        subtitle: "Please read these rules carefully before submitting an archive to maintain community standards.",
+        title: "Posting Guidelines & Mandatory Fields",
+        subtitle: "Please read these requirements carefully to ensure your archive submission is successfully approved by moderators.",
+        uploadTypeTitle: "Upload Type Selection (Mandatory)",
+        uploadTypeDesc: "You must select either Regular Upload (monetized shortlinks allowed) or Exclusive Upload before you can submit your archive[cite: 13].",
         modTitle: "Strict Moderation System",
-        modDesc: "Every submission will not appear immediately on the main page. The data will be marked as Pending and undergo admin moderation.",
-        exclTitle: "Exclusive Premium Collections",
-        exclDesc: "Folders marked with a golden crown represent TikTok Exclusive Collections. Access is strictly restricted to registered members.",
-        syncTitle: "Profile Synchronization & Verification",
-        syncDesc: "To build trust within the community, we recommend logging in via Google OAuth to receive a verified badge.",
-        hostTitle: "Exclusive to Google Drive & TeraBox",
-        hostDesc: "The primary archive links must utilize Google Drive or TeraBox. Other platforms will be immediately rejected.",
-        mirrorTitle: "Approved Direct Media Hosts (Mirrors)",
-        mirrorDesc: "You may use external direct media hosts such as qu.ax or chatbox.moe for video streams or gallery mirrors.",
-        mirrorNote: "Important note for qu.ax: You must append the .mp4 extension to the end of the original link.",
-        tiktokTitle: "Mandatory TikTok Profile Link",
-        tiktokDesc: "You are required to include the original TikTok Profile URL of the creator whose videos you are archiving.",
-        previewTitle: "Optional Preview/Tutorial Video Link",
-        previewDesc: "If you do not have time to upload a tutorial video, this section can be left blank.",
-        accuracyTitle: "Data Accuracy & Content Policy",
-        accuracyDesc: "Ensure Video Count and File Size match actual content. Archived content must not contain explicit elements.",
-        monetizeTitle: "Monetization & Shortlinks Allowed",
-        monetizeDesc: "You are permitted to use shortlink services to monetize your links, provided they are not deceptive."
+        modDesc: "Every new submission starts with a Pending status and will not appear publicly until reviewed and approved by an administrator[cite: 14].",
+        fieldsTitle: "Mandatory vs Optional Form Fields",
+        fieldsDesc: "Ensure you fill out all required fields accurately:",
+        f1_label: "Creator Username & Region (Mandatory):",
+        f1_desc: "The correct TikTok/creator username and regional category[cite: 13, 14].",
+        f2_label: "Video Count & File Size (Mandatory):",
+        f2_desc: "Must reflect the accurate content metrics (e.g., 150 videos, 500 MB)[cite: 13, 14].",
+        f3_label: "Social Media Profile Link (Mandatory):",
+        f3_desc: "Official creator profile link (not required if the account is marked as banned)[cite: 13].",
+        f4_label: "Google Drive or TeraBox Link (Mandatory):",
+        f4_desc: "Primary download storage must use Google Drive or TeraBox[cite: 14].",
+        f5_label: "Video Preview Link (Recommended / Optional):",
+        f5_desc: "Upload preview files to trusted mirrors like catbox.moe or qu.ax (append .mp4 if using qu.ax)[cite: 14].",
+        monetizeTitle: "Monetization & Content Policy",
+        monetizeDesc: "Monetized shortlinks are permitted on download links provided they are safe and transparent[cite: 14]. Archived material must comply with safety standards and contain no prohibited content[cite: 14]."
       },
       badges: {
         title: "Community Badges",
-        subtitle: "Recognizing our top contributors. Badges are displayed automatically based on your total approved uploads.",
+        subtitle: "Recognizing our top contributors. Badges are displayed automatically based on your total approved uploads[cite: 14].",
         adminTitle: "Verified Staff",
         adminBadge: "Admin Verified",
-        adminDesc: "Exclusive badge for administrators and moderators who maintain the platform's integrity.",
+        adminDesc: "Exclusive badge for administrators and moderators who maintain the platform's integrity[cite: 14].",
         activeBadge: "10+ Uploads",
-        activeDesc: "Unlocked automatically after uploading at least 10 approved batch archives.",
+        activeDesc: "Unlocked automatically after uploading at least 10 approved batch archives[cite: 14].",
         supporterBadge: "30+ Uploads",
-        supporterDesc: "Unlocked automatically after uploading at least 30 approved batch archives.",
+        supporterDesc: "Unlocked automatically after uploading at least 30 approved batch archives[cite: 14].",
         loyalBadge: "50+ Uploads",
-        loyalDesc: "Unlocked automatically after uploading at least 50 approved batch archives.",
+        loyalDesc: "Unlocked automatically after uploading at least 50 approved batch archives[cite: 14].",
         achievementBadge: "100+ Uploads",
-        achievementDesc: "Unlocked automatically after uploading at least 100 approved batch archives.",
+        achievementDesc: "Unlocked automatically after uploading at least 100 approved batch archives[cite: 14].",
         topCreatorBadge: "200+ Uploads",
-        topCreatorDesc: "Highest Achievement! Unlocked after reaching 200 approved batch archives."
+        topCreatorDesc: "Highest Achievement! Unlocked after reaching 200 approved batch archives[cite: 14]."
       },
       editing: {
         title: "Post Editing Flow",
-        subtitle: "How to update and manage your previously submitted archives.",
+        subtitle: "How to update and manage your previously submitted archives[cite: 14].",
         step1Title: "Locating Your Post",
-        step1Desc: "Ensure you are logged in to the account that submitted the archive. Navigate to your dashboard to view your submissions.",
+        step1Desc: "Ensure you are logged in to the account that submitted the archive. Navigate to your dashboard to view your submissions[cite: 14].",
         step2Title: "Updating Links & Information",
-        step2Desc: "Click the Edit button on your submission. You can update dead links, add mirrors, or revise video counts.",
+        step2Desc: "Click the Edit button on your submission. You can update dead links, add mirrors, or revise video counts[cite: 14].",
         step3Title: "The \"Updated\" Status Flag",
-        step3Desc: "Once saved and verified, your post card will receive an Updated badge to let users know content has been refreshed."
+        step3Desc: "Once saved and verified, your post card will receive an Updated badge to let users know content has been refreshed[cite: 14]."
       }
     },
     id: {
@@ -139,54 +139,53 @@ const RulesPage = () => {
         pricingDesc: "Bayar sekali Rp 50.000 untuk akses seumur hidup. Tanpa biaya berlangganan bulanan."
       },
       rules: {
-        title: "Panduan Posting & Aturan",
-        subtitle: "Harap baca aturan ini dengan saksama sebelum mengirimkan arsip untuk menjaga standar komunitas.",
+        title: "Panduan Posting & Kolom Wajib",
+        subtitle: "Harap baca persyaratan ini dengan saksama agar pengiriman arsip Anda berhasil disetujui oleh moderator.",
+        uploadTypeTitle: "Pemilihan Tipe Unggahan (Wajib)",
+        uploadTypeDesc: "Anda wajib memilih jenis Regular Upload (shortlink monetisasi diizinkan) atau Exclusive Upload sebelum dapat mengirimkan arsip[cite: 13].",
         modTitle: "Sistem Moderasi Ketat",
-        modDesc: "Setiap postingan tidak akan langsung muncul di halaman utama. Data akan berstatus Pending dan diverifikasi oleh admin.",
-        exclTitle: "Koleksi Premium Eksklusif",
-        exclDesc: "Folder bermahkota emas merupakan Koleksi Eksklusif TikTok. Akses khusus untuk anggota terdaftar.",
-        syncTitle: "Sinkronisasi & Verifikasi Profil",
-        syncDesc: "Untuk membangun kepercayaan komunitas, kami menyarankan login via Google OAuth untuk menerima lencana verifikasi.",
-        hostTitle: "Khusus Google Drive & TeraBox",
-        hostDesc: "Tautan arsip utama wajib menggunakan Google Drive atau TeraBox. Platform lain akan langsung ditolak.",
-        mirrorTitle: "Penyedia Media Langsung Resmi (Mirror)",
-        mirrorDesc: "Anda dapat menggunakan penyedia media luar seperti qu.ax atau chatbox.moe untuk pratinjau video atau galeri.",
-        mirrorNote: "Catatan penting untuk qu.ax: Anda wajib menambahkan ekstensi .mp4 di akhir tautan asli.",
-        tiktokTitle: "Wajib Tautan Profil TikTok",
-        tiktokDesc: "Anda diwajibkan mencantumkan URL Profil TikTok asli dari kreator yang videonya Anda arsipkan.",
-        previewTitle: "Tautan Video Pratinjau / Tutorial (Opsional)",
-        previewDesc: "Jika Anda tidak memiliki waktu mengunggah video tutorial, bagian ini dapat dikosongkan.",
-        accuracyTitle: "Akurasi Data & Kebijakan Konten",
-        accuracyDesc: "Pastikan Jumlah Video dan Ukuran File sesuai dengan konten asli. Arsip tidak boleh mengandung unsur melanggar hukum.",
-        monetizeTitle: "Monetisasi & Shortlink Diizinkan",
-        monetizeDesc: "Anda diizinkan menggunakan layanan shortlink untuk monetisasi selama tidak menyesatkan."
+        modDesc: "Setiap kiriman baru dimulai dengan status Pending dan tidak akan tampil secara publik sebelum diperiksa serta disetujui oleh admin[cite: 14].",
+        fieldsTitle: "Kolom Formulir Wajib vs Opsional",
+        fieldsDesc: "Pastikan Anda mengisi seluruh informasi penting berikut dengan benar:",
+        f1_label: "Username Kreator & Kategori Wilayah (Wajib):",
+        f1_desc: "Nama kreator TikTok yang benar serta wilayah kategori yang sesuai[cite: 13, 14].",
+        f2_label: "Jumlah Video & Ukuran File (Wajib):",
+        f2_desc: "Harus mencerminkan data konten asli yang akurat (contoh: 150 video, 500 MB)[cite: 13, 14].",
+        f3_label: "Tautan Profil Media Sosial (Wajib):",
+        f3_desc: "Tautan profil kreator resmi (tidak wajib jika akun ditandai sebagai banned/ditangguhkan)[cite: 13].",
+        f4_label: "Tautan Google Drive atau TeraBox (Wajib):",
+        f4_desc: "Penyimpanan arsip unduhan utama wajib menggunakan Google Drive atau TeraBox[cite: 14].",
+        f5_label: "Tautan Pratinjau Video / Mirror (Disarankan / Opsional):",
+        f5_desc: "Unggah file pratinjau ke mirror terpercaya seperti catbox.moe atau qu.ax (tambahkan ekstensi .mp4 jika menggunakan qu.ax)[cite: 14].",
+        monetizeTitle: "Monetisasi & Kebijakan Konten",
+        monetizeDesc: "Penggunaan shortlink monetisasi diizinkan pada tautan unduhan selama aman dan transparan[cite: 14]. Materi arsip wajib mematuhi standar keamanan dan tidak mengandung unsur terlarang[cite: 14]."
       },
       badges: {
         title: "Lencana Komunitas",
-        subtitle: "Apresiasi untuk kontributor utama. Lencana ditampilkan otomatis berdasarkan total unggahan yang disetujui.",
+        subtitle: "Apresiasi untuk kontributor utama. Lencana ditampilkan otomatis berdasarkan total unggahan yang disetujui[cite: 14].",
         adminTitle: "Verified Staff",
         adminBadge: "Admin Terverifikasi",
-        adminDesc: "Lencana khusus untuk administrator dan moderator yang menjaga integritas platform.",
+        adminDesc: "Lencana khusus untuk administrator dan moderator yang menjaga integritas platform[cite: 14].",
         activeBadge: "10+ Unggahan",
-        activeDesc: "Terbuka otomatis setelah mengunggah minimal 10 arsip batch yang disetujui.",
+        activeDesc: "Terbuka otomatis setelah mengunggah minimal 10 arsip batch yang disetujui[cite: 14].",
         supporterBadge: "30+ Unggahan",
-        supporterDesc: "Terbuka otomatis setelah mengunggah minimal 30 arsip batch yang disetujui.",
+        supporterDesc: "Terbuka otomatis setelah mengunggah minimal 30 arsip batch yang disetujui[cite: 14].",
         loyalBadge: "50+ Unggahan",
-        loyalDesc: "Terbuka otomatis setelah mengunggah minimal 50 arsip batch yang disetujui.",
+        loyalDesc: "Terbuka otomatis setelah mengunggah minimal 50 arsip batch yang disetujui[cite: 14].",
         achievementBadge: "100+ Unggahan",
-        achievementDesc: "Terbuka otomatis setelah mengunggah minimal 100 arsip batch yang disetujui.",
+        achievementDesc: "Terbuka otomatis setelah mengunggah minimal 100 arsip batch yang disetujui[cite: 14].",
         topCreatorBadge: "200+ Unggahan",
-        topCreatorDesc: "Pencapaian Tertinggi! Terbuka setelah mencapai 200 arsip batch yang disetujui."
+        topCreatorDesc: "Pencapaian Tertinggi! Terbuka setelah mencapai 200 arsip batch yang disetujui[cite: 14]."
       },
       editing: {
         title: "Alur Pengeditan Postingan",
-        subtitle: "Cara memperbarui dan mengelola arsip yang pernah Anda kirimkan.",
+        subtitle: "Cara memperbarui dan mengelola arsip yang pernah Anda kirimkan[cite: 14].",
         step1Title: "Menemukan Postingan Anda",
-        step1Desc: "Pastikan Anda login ke akun pengirim. Buka dasbor profil Anda untuk melihat semua riwayat unggahan.",
+        step1Desc: "Pastikan Anda login ke akun pengirim. Buka dasbor profil Anda untuk melihat semua riwayat unggahan[cite: 14].",
         step2Title: "Memperbarui Tautan & Informasi",
-        step2Desc: "Klik tombol Edit pada postingan Anda. Anda dapat memperbarui tautan rusak, menambah mirror, atau memperbarui jumlah video.",
+        step2Desc: "Klik tombol Edit pada postingan Anda. Anda dapat memperbarui tautan rusak, menambah mirror, atau memperbarui jumlah video[cite: 14].",
         step3Title: "Lencana Status \"Updated\"",
-        step3Desc: "Setelah diedit dan diverifikasi, kartu postingan akan mendapatkan lencana Updated sebagai tanda bahwa folder telah diperbarui."
+        step3Desc: "Setelah diedit dan diverifikasi, kartu postingan akan mendapatkan lencana Updated sebagai tanda bahwa folder telah diperbarui[cite: 14]."
       }
     }
   };
@@ -276,7 +275,7 @@ const RulesPage = () => {
           {/* Main Content Area */}
           <main className="flex-1 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-none p-6 sm:p-10 min-h-[60vh] animate-in fade-in duration-500">
             
-            {/* TAB: RULES */}
+            {/* TAB: RULES (Updated with Upload Type & Mandatory Form Fields) */}
             {activeTab === 'rules' && (
               <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                 <div className="mb-8">
@@ -285,6 +284,18 @@ const RulesPage = () => {
                 </div>
 
                 <div className="grid gap-5">
+                  {/* Upload Type Feature Box */}
+                  <div className="flex gap-5 p-6 rounded-2xl bg-emerald-50/80 border border-emerald-100 shadow-sm">
+                    <CheckSquare className="text-emerald-600 shrink-0 mt-0.5" size={26} />
+                    <div>
+                      <h3 className="font-bold text-emerald-900 text-lg">{content.rules.uploadTypeTitle}</h3>
+                      <p className="text-emerald-800/90 mt-2 leading-relaxed font-medium">
+                        {content.rules.uploadTypeDesc}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Moderation System Box */}
                   <div className="flex gap-5 p-6 rounded-2xl bg-amber-50/80 border-none">
                     <ShieldAlert className="text-amber-500 shrink-0 mt-0.5" size={26} />
                     <div>
@@ -295,84 +306,43 @@ const RulesPage = () => {
                     </div>
                   </div>
 
-                  <div className="flex gap-5 p-6 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 shadow-sm relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                      <Crown size={100} />
+                  {/* Mandatory Fields Section */}
+                  <div className="p-6 rounded-2xl bg-slate-50/80 border-none space-y-4">
+                    <div className="flex items-center gap-3">
+                      <UserCheck className="text-blue-500 shrink-0" size={26} />
+                      <h3 className="font-bold text-slate-800 text-lg">{content.rules.fieldsTitle}</h3>
                     </div>
-                    <Crown className="text-amber-500 shrink-0 mt-0.5 fill-amber-400 drop-shadow-sm z-10" size={26} />
-                    <div className="z-10">
-                      <h3 className="font-bold text-amber-900 text-lg">{content.rules.exclTitle}</h3>
-                      <p className="text-amber-800/90 mt-2 leading-relaxed font-medium">
-                        {content.rules.exclDesc}
-                      </p>
-                    </div>
-                  </div>
+                    <p className="text-slate-600 text-sm font-medium">{content.rules.fieldsDesc}</p>
+                    
+                    <div className="grid gap-3 pt-2">
+                      <div className="p-3.5 bg-white rounded-xl border border-slate-200/60 shadow-xs">
+                        <span className="font-bold text-slate-800 text-sm block">{content.rules.f1_label}</span>
+                        <span className="text-slate-600 text-xs mt-0.5 block font-medium">{content.rules.f1_desc}</span>
+                      </div>
 
-                  <div className="flex gap-5 p-6 rounded-2xl bg-slate-50/80 border-none">
-                    <UserCheck className="text-blue-500 shrink-0 mt-0.5" size={26} />
-                    <div>
-                      <h3 className="font-bold text-slate-800 text-lg">{content.rules.syncTitle}</h3>
-                      <p className="text-slate-600 mt-2 leading-relaxed font-medium">
-                        {content.rules.syncDesc}
-                      </p>
-                    </div>
-                  </div>
+                      <div className="p-3.5 bg-white rounded-xl border border-slate-200/60 shadow-xs">
+                        <span className="font-bold text-slate-800 text-sm block">{content.rules.f2_label}</span>
+                        <span className="text-slate-600 text-xs mt-0.5 block font-medium">{content.rules.f2_desc}</span>
+                      </div>
 
-                  <div className="flex gap-5 p-6 rounded-2xl bg-slate-50/80 border-none">
-                    <CheckCircle2 className="text-emerald-500 shrink-0 mt-0.5" size={26} />
-                    <div>
-                      <h3 className="font-bold text-slate-800 text-lg">{content.rules.hostTitle}</h3>
-                      <p className="text-slate-600 mt-2 leading-relaxed font-medium">
-                        {content.rules.hostDesc}
-                      </p>
-                    </div>
-                  </div>
+                      <div className="p-3.5 bg-white rounded-xl border border-slate-200/60 shadow-xs">
+                        <span className="font-bold text-slate-800 text-sm block">{content.rules.f3_label}</span>
+                        <span className="text-slate-600 text-xs mt-0.5 block font-medium">{content.rules.f3_desc}</span>
+                      </div>
 
-                  <div className="flex gap-5 p-6 rounded-2xl bg-slate-50/80 border-none">
-                    <Cloud className="text-indigo-400 shrink-0 mt-0.5" size={26} />
-                    <div>
-                      <h3 className="font-bold text-slate-800 text-lg">{content.rules.mirrorTitle}</h3>
-                      <p className="text-slate-600 mt-2 leading-relaxed font-medium">
-                        {content.rules.mirrorDesc}
-                      </p>
-                      <div className="mt-3 p-3 bg-indigo-50/50 rounded-xl border-none">
-                        <p className="text-sm text-indigo-800 font-semibold">
-                          {content.rules.mirrorNote}
-                        </p>
+                      <div className="p-3.5 bg-white rounded-xl border border-slate-200/60 shadow-xs">
+                        <span className="font-bold text-slate-800 text-sm block">{content.rules.f4_label}</span>
+                        <span className="text-slate-600 text-xs mt-0.5 block font-medium">{content.rules.f4_desc}</span>
+                      </div>
+
+                      <div className="p-3.5 bg-white rounded-xl border border-slate-200/60 shadow-xs">
+                        <span className="font-bold text-slate-800 text-sm block">{content.rules.f5_label}</span>
+                        <span className="text-slate-600 text-xs mt-0.5 block font-medium">{content.rules.f5_desc}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex gap-5 p-6 rounded-2xl bg-slate-50/80 border-none">
-                    <Link2 className="text-blue-500 shrink-0 mt-0.5" size={26} />
-                    <div>
-                      <h3 className="font-bold text-slate-800 text-lg">{content.rules.tiktokTitle}</h3>
-                      <p className="text-slate-600 mt-2 leading-relaxed font-medium">
-                        {content.rules.tiktokDesc}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-5 p-6 rounded-2xl bg-slate-50/80 border-none">
-                    <FileVideo className="text-slate-400 shrink-0 mt-0.5" size={26} />
-                    <div>
-                      <h3 className="font-bold text-slate-800 text-lg">{content.rules.previewTitle}</h3>
-                      <p className="text-slate-600 mt-2 leading-relaxed font-medium">
-                        {content.rules.previewDesc}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-5 p-6 rounded-2xl bg-slate-50/80 border-none">
-                    <AlertCircle className="text-rose-500 shrink-0 mt-0.5" size={26} />
-                    <div>
-                      <h3 className="font-bold text-slate-800 text-lg">{content.rules.accuracyTitle}</h3>
-                      <p className="text-slate-600 mt-2 leading-relaxed font-medium">
-                        {content.rules.accuracyDesc}
-                      </p>
-                    </div>
-                  </div>
-
+                  {/* Monetization & Content Policy */}
                   <div className="flex gap-5 p-6 rounded-2xl bg-slate-50/80 border-none">
                     <DollarSign className="text-emerald-500 shrink-0 mt-0.5" size={26} />
                     <div>
