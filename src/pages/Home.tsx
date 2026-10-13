@@ -557,7 +557,7 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
             window.history.pushState({}, '', '/rules');
             window.dispatchEvent(new Event('popstate'));
           }} 
-          EmeraldFolderIcon={EmeraldFolderIcon}
+          EmeraldFolderIcon={EmeraldFolderIcon} 
         />
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-6 mb-10">
@@ -577,9 +577,12 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
           </div>
         </div>
 
+        {/* Kartu Statistik dengan Warna yang Diserasikan dengan Skema Warna Folder */}
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            <div className="bg-emerald-700 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
+            
+            {/* Total Folders (Warna Emerald / Regular Folder) */}
+            <div className="bg-emerald-600 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
               <div className="flex justify-between items-start mb-6">
                 <span className="font-medium text-[13px] tracking-wide text-emerald-50">Total Folders</span>
                 <div className="p-2 bg-white/20 rounded-[0.75rem]">
@@ -595,25 +598,27 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
               </div>
             </div>
 
-            <div className="bg-emerald-600 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
+            {/* Total Videos (Warna Amber / Exclusive Folder) */}
+            <div className="bg-amber-500 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
               <div className="flex justify-between items-start mb-6">
-                <span className="font-medium text-[13px] tracking-wide text-emerald-50">Total Videos</span>
+                <span className="font-medium text-[13px] tracking-wide text-amber-50">Total Videos</span>
                 <div className="p-2 bg-white/20 rounded-[0.75rem]">
                   <Film size={18} className="text-white" strokeWidth={2.5} />
                 </div>
               </div>
               <div>
                 <h3 className="text-[2rem] leading-none font-bold mb-2 text-white">{stats.totalVideos}</h3>
-                <p className="text-[11px] text-emerald-100 flex items-center gap-1 opacity-90 font-medium">
+                <p className="text-[11px] text-amber-100 flex items-center gap-1 opacity-90 font-medium">
                   <CheckCircle2 size={12} strokeWidth={2.5} />
                   Successfully Archived
                 </p>
               </div>
             </div>
 
-            <div className="bg-emerald-500 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
+            {/* Total Size (Warna Pink / Adult Folder) */}
+            <div className="bg-pink-600 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
               <div className="flex justify-between items-start mb-6">
-                <span className="font-medium text-[13px] tracking-wide text-emerald-50">Total Size</span>
+                <span className="font-medium text-[13px] tracking-wide text-pink-50">Total Size</span>
                 <div className="p-2 bg-white/20 rounded-[0.75rem]">
                   <HardDrive size={18} className="text-white" strokeWidth={2.5} />
                 </div>
@@ -622,26 +627,28 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
                 <h3 className="text-[2rem] leading-none font-bold mb-2 text-white">
                   {stats.totalSize.toFixed(2)} GB
                 </h3>
-                <p className="text-[11px] text-emerald-100 flex items-center gap-1.5 font-medium">
+                <p className="text-[11px] text-pink-100 flex items-center gap-1.5 font-medium">
                   Total Uploaded
                 </p>
               </div>
             </div>
 
-            <div className="bg-emerald-400 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
+            {/* Total Creators (Warna Red / Banned Folder) */}
+            <div className="bg-red-600 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
               <div className="flex justify-between items-start mb-6">
-                <span className="font-medium text-[13px] tracking-wide text-emerald-50">Total Creators</span>
+                <span className="font-medium text-[13px] tracking-wide text-red-50">Total Creators</span>
                 <div className="p-2 bg-white/20 rounded-[0.75rem]">
                   <Users size={18} className="text-white" strokeWidth={2.5} />
                 </div>
               </div>
               <div>
                 <h3 className="text-[2rem] leading-none font-bold mb-2 text-white">{stats.uniqueCreators}</h3>
-                <p className="text-[11px] text-emerald-50 flex items-center gap-1.5 font-medium">
+                <p className="text-[11px] text-red-50 flex items-center gap-1.5 font-medium">
                   Joined Contributors
                 </p>
               </div>
             </div>
+
           </div>
         </div>
 

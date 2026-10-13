@@ -28,7 +28,7 @@ const PRESET_BACKGROUNDS = [
   { id: 'carberus', name: 'Carberus', url: 'https://qu.ax/Yf3Q0.webm', gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)' }
 ];
 
-// SWR Fetcher untuk Item Utama[cite: 6, 15]
+// SWR Fetcher untuk Item Utama[cite: 8]
 const fetchBatchItem = async (key: string) => {
   const targetId = key.replace('batch_item_', '');
   const decodedTarget = decodeURIComponent(targetId);
@@ -47,7 +47,7 @@ const fetchBatchItem = async (key: string) => {
   return data;
 };
 
-// SWR Fetcher untuk Related Folders berdasarkan uploader yang sama[cite: 15]
+// SWR Fetcher untuk Related Folders berdasarkan uploader yang sama[cite: 8]
 const fetchRelatedFolders = async ([_, currentId, uploadedBy]: [string, any, string]) => {
   if (!uploadedBy) return [];
 
@@ -517,7 +517,14 @@ export default function PreviewPage({
                         className="flex-shrink-0 pt-0.5 relative drop-shadow-sm w-12 h-12" 
                         title={item.is_exclusive ? "TikTok Exclusive Collection" : ""}
                       >
-                        <EmeraldFolderIcon className="w-12 h-12 object-contain drop-shadow-sm" country={item.country} isExclusive={item.is_exclusive} isBanned={item.is_banned} />
+                        {/* Sinkronisasi properti isAdult agar warna folder is_adult sesuai dengan Home */}
+                        <EmeraldFolderIcon 
+                          className="w-12 h-12 object-contain drop-shadow-sm" 
+                          country={item.country} 
+                          isExclusive={item.is_exclusive} 
+                          isBanned={item.is_banned}
+                          isAdult={item.is_adult} 
+                        />
                         
                         {item.is_exclusive && (
                           <div 
@@ -813,7 +820,7 @@ export default function PreviewPage({
 
             </div>
 
-            {/* Right Column: Related Folders Sidebar (Ukuran folder ikon sedikit diperbesar ke w-12 h-12 sedang) */}
+            {/* Right Column: Related Folders Sidebar */}
             <div className={`${isVideoLandscape ? 'w-full max-w-4xl mx-auto' : 'lg:col-span-1'} w-full bg-white rounded-[2rem] shadow-xl border border-slate-100 p-6 sticky top-24`}>
               <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center justify-between">
                 <span>More from {item.uploaded_by || 'Creator'}</span>
@@ -831,11 +838,13 @@ export default function PreviewPage({
                       className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer group"
                     >
                       <div className="w-12 h-12 flex-shrink-0 relative">
+                        {/* Sinkronisasi properti isAdult pada daftar folder terkait */}
                         <EmeraldFolderIcon 
                           className="w-12 h-12 object-contain drop-shadow-sm" 
                           country={folder.country} 
                           isExclusive={folder.is_exclusive} 
                           isBanned={folder.is_banned} 
+                          isAdult={folder.is_adult}
                         />
                       </div>
                       
