@@ -21,11 +21,12 @@ const PostModal = ({
     country: selectableCategories[0] || "",
     video_count: "",
     size_file: "", 
-    tiktok_url: "",
+    social_url: "",
     video_url: "", 
     gdrive_url: "",
     terabox_url: "",
     is_banned: false, 
+    is_adult: false,
     upload_type: "" // 'regular' | 'exclusive' | ''
   });
 
@@ -54,8 +55,6 @@ const PostModal = ({
 
     const isExclusive = formData.upload_type === 'exclusive';
 
-    // (Shortlink validation for Exclusive Upload has been removed. Users can now use shortlinks for both types to monetize.)
-
     setIsLoading(true);
 
     try {
@@ -68,7 +67,8 @@ const PostModal = ({
           country: formData.country,
           video_count: parseInt(formData.video_count) || 0,
           size_file: formData.size_file,
-          tiktok_url: formData.tiktok_url,
+          social_url: formData.social_url,
+          tiktok_url: formData.social_url, // Backward compatibility dengan kolom lama
           video_url: formData.video_url,
           
           // Data is spread according to the upload type
@@ -77,6 +77,7 @@ const PostModal = ({
           exclusive_url: isExclusive ? primaryDownloadLink : null,
           
           is_banned: formData.is_banned,
+          is_adult: formData.is_adult,
           is_exclusive: isExclusive,
           uploaded_by: currentUser,
           // Set status: If admin, directly 'approved', if normal user, 'pending'
@@ -247,34 +248,53 @@ const PostModal = ({
               />
             </div>
 
-            {/* TikTok Profile Link */}
+            {/* Social Media Profile Link */}
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-sm font-semibold text-slate-700">TikTok Profile Link</label>
+              <label className="text-sm font-semibold text-slate-700">Social Media Profile Link</label>
               <input 
                 required={!formData.is_banned} 
                 type="url" 
-                name="tiktok_url" 
-                value={formData.tiktok_url} 
+                name="social_url" 
+                value={formData.social_url} 
                 onChange={handleChange} 
                 disabled={formData.is_banned} 
-                placeholder={formData.is_banned ? "Link not required for banned accounts" : "https://tiktok.com/@username"} 
+                placeholder={formData.is_banned ? "Link not required for banned accounts" : "https://instagram.com/... or https://tiktok.com/@..."} 
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all disabled:opacity-60 disabled:bg-slate-100" 
               />
               
-              {/* Banned Checkbox */}
-              <div className="flex items-start gap-2 mt-2 p-3 bg-red-50/50 border border-red-100 rounded-xl hover:bg-red-50 transition-colors">
-                <input 
-                  type="checkbox" 
-                  name="is_banned" 
-                  id="is_banned"
-                  checked={formData.is_banned} 
-                  onChange={handleChange} 
-                  className="w-4 h-4 mt-0.5 rounded border-slate-300 text-red-500 focus:ring-red-500 cursor-pointer"
-                />
-                <label htmlFor="is_banned" className="text-sm font-semibold text-red-600 cursor-pointer select-none leading-tight">
-                  Banned Account
-                  <span className="block text-xs font-medium text-red-500/70 mt-0.5">Check if the TikTok account is suspended or removed</span>
-                </label>
+              {/* Checkboxes: Banned & 18+ / Adult Post */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                {/* Banned Checkbox */}
+                <div className="flex items-start gap-2 p-3 bg-red-50/50 border border-red-100 rounded-xl hover:bg-red-50 transition-colors">
+                  <input 
+                    type="checkbox" 
+                    name="is_banned" 
+                    id="is_banned"
+                    checked={formData.is_banned} 
+                    onChange={handleChange} 
+                    className="w-4 h-4 mt-0.5 rounded border-slate-300 text-red-500 focus:ring-red-500 cursor-pointer"
+                  />
+                  <label htmlFor="is_banned" className="text-sm font-semibold text-red-600 cursor-pointer select-none leading-tight">
+                    Banned Account
+                    <span className="block text-xs font-medium text-red-500/70 mt-0.5">Account suspended or removed</span>
+                  </label>
+                </div>
+
+                {/* 18+ / Adult Post Checkbox */}
+                <div className="flex items-start gap-2 p-3 bg-amber-50/50 border border-amber-100 rounded-xl hover:bg-amber-50 transition-colors">
+                  <input 
+                    type="checkbox" 
+                    name="is_adult" 
+                    id="is_adult"
+                    checked={formData.is_adult} 
+                    onChange={handleChange} 
+                    className="w-4 h-4 mt-0.5 rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+                  />
+                  <label htmlFor="is_adult" className="text-sm font-semibold text-amber-700 cursor-pointer select-none leading-tight">
+                    18+ / Adult Post
+                    <span className="block text-xs font-medium text-amber-600/70 mt-0.5">Contains mature or adult content</span>
+                  </label>
+                </div>
               </div>
             </div>
 

@@ -46,12 +46,14 @@ export const EmeraldFolderIcon = ({
   className = "w-24 h-24", 
   country,
   isExclusive = false,
-  isBanned = false 
+  isBanned = false,
+  isAdult = false
 }: { 
   className?: string, 
   country?: string,
   isExclusive?: boolean,
-  isBanned?: boolean 
+  isBanned?: boolean,
+  isAdult?: boolean
 }) => {
   const clipId = country ? `flag-clip-${country.toLowerCase()}` : '';
 
@@ -124,8 +126,18 @@ export const EmeraldFolderIcon = ({
     );
   };
 
-  // PERBAIKAN LOGIKA: Emas (#F59E0B) jika eksklusif (prioritas), Merah (#991B1B) jika dibanned & reguler, Hijau (#10b981) jika normal
-  const folderColor = isExclusive ? "#F59E0B" : isBanned ? "#991B1B" : "#10b981";
+  // HIERARKI WARNA FOLDER:
+  // 1. Emas (#F59E0B) jika Exclusive
+  // 2. Pink/Magenta (#EC4899) jika 18+ / Adult Post
+  // 3. Merah (#991B1B) jika Banned
+  // 4. Hijau (#10B981) jika Regular / Normal
+  const folderColor = isExclusive 
+    ? "#F59E0B" 
+    : isAdult 
+      ? "#EC4899" 
+      : isBanned 
+        ? "#991B1B" 
+        : "#10b981";
 
   return (
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className={className}>
