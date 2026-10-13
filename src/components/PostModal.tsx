@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, Upload, Info } from "lucide-react";
 import { supabase } from "../supabase";
 
@@ -12,6 +12,14 @@ const PostModal = ({
   isAdmin = false 
 }: any) => {
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Lock background scroll ketika modal aktif
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
   
   // Filter out "Home" and "All" to leave only region/country options
   const selectableCategories = CATEGORIES.filter((c: string) => c !== 'Home' && c !== 'All');
@@ -114,7 +122,7 @@ const PostModal = ({
       <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
         
         {/* Modal Header */}
-        <div className="p-6 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
+        <div className="p-6 border-b border-slate-100 flex items-start justify-between bg-slate-50/50 flex-shrink-0">
           <div>
             <h2 className="text-xl font-bold text-slate-800">Add New Batch</h2>
             {onOpenRules && (
@@ -136,8 +144,12 @@ const PostModal = ({
           </button>
         </div>
         
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {/* Form Body dengan Smooth Scrolling & Hidden Scrollbar */}
+        <form 
+          onSubmit={handleSubmit} 
+          className="p-6 overflow-y-auto overscroll-contain scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             
             {/* UPLOAD TYPE CHECKBOXES (MANDATORY SELECTION) */}
@@ -390,3 +402,4 @@ const PostModal = ({
 };
 
 export default PostModal;
+```[cite: 13]
