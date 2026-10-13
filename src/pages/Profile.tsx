@@ -486,6 +486,7 @@ export default function Profile({
         gdrive_url: editingBatch.gdrive_url,
         terabox_url: editingBatch.terabox_url,
         is_banned: editingBatch.is_banned,
+        is_adult: editingBatch.is_adult,
         is_exclusive: editingBatch.is_exclusive,
         download_count: downloadVal,
         is_edited: true
@@ -630,6 +631,11 @@ export default function Profile({
                         <ShieldCheck size={12} /> Admin
                       </span>
                     )}
+                    {userProfile?.is_premium && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full shadow-sm border border-amber-200/60">
+                        <Crown size={11} className="fill-amber-500 text-amber-600" /> Vip
+                      </span>
+                    )}
                     <span className="text-[10px] text-slate-500 font-semibold bg-slate-100 px-3 py-1 rounded-full">
                       Level {Math.floor(stats.totalUploads / 3) + 1}
                     </span>
@@ -661,7 +667,7 @@ export default function Profile({
                 <button
                   onClick={() => setActiveTab('collections')}
                   className={`w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-sm font-medium transition-all border-none cursor-pointer ${
-                    activeTab === 'collections' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                    activeTab === 'collections' ? 'text-slate-900 bg-slate-50' : 'text-slate-500 hover:bg-slate-900'
                   }`}
                 >
                   <FolderHeart size={18} className={activeTab === 'collections' ? 'text-[#10b981]' : ''} /> 
@@ -919,6 +925,7 @@ export default function Profile({
                                 country={batch.country} 
                                 isExclusive={batch.is_exclusive}
                                 isBanned={batch.is_banned}
+                                isAdult={batch.is_adult}
                               />
                               {batch.is_exclusive && (
                                 <div 
@@ -1289,6 +1296,7 @@ export default function Profile({
                                       country={batch.country} 
                                       isExclusive={batch.is_exclusive}
                                       isBanned={batch.is_banned}
+                                      isAdult={batch.is_adult}
                                     />
                                     {batch.is_exclusive && (
                                       <div 
@@ -1582,6 +1590,13 @@ export default function Profile({
                     <input type="checkbox" name="is_banned" id="edit_is_banned" checked={editingBatch.is_banned || false} onChange={handleEditChange} className="w-4 h-4 rounded border-slate-300 text-red-500 focus:ring-red-500 cursor-pointer" />
                     <label htmlFor="edit_is_banned" className="text-xs font-bold text-slate-600 cursor-pointer select-none">
                       Mark Account as Banned
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-2 mt-2 pl-1">
+                    <input type="checkbox" name="is_adult" id="edit_is_adult" checked={editingBatch.is_adult || false} onChange={handleEditChange} className="w-4 h-4 rounded border-slate-300 text-pink-500 focus:ring-pink-500 cursor-pointer" />
+                    <label htmlFor="edit_is_adult" className="text-xs font-bold text-slate-600 cursor-pointer select-none">
+                      Mark Folder as 18+ / Adult Content
                     </label>
                   </div>
 
