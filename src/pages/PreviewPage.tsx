@@ -122,13 +122,11 @@ export default function PreviewPage({
     checkAdminStatus();
   }, [currentUser]);
 
-  // Mendapatkan target ID dari props atau URL[cite: 6, 15]
   let targetId = itemId || (typeof window !== 'undefined' ? window.location.pathname.split('/preview/')[1] : '');
   if (targetId && targetId.endsWith('/')) {
     targetId = targetId.slice(0, -1);
   }
 
-  // Menggunakan SWR untuk fetch item utama[cite: 6, 15]
   const { data: fetchedItem, error: itemError, isLoading: itemLoading } = useSWR(
     initialItemData ? null : (targetId ? `batch_item_${targetId}` : null),
     fetchBatchItem,
@@ -138,7 +136,6 @@ export default function PreviewPage({
   const item = initialItemData || fetchedItem;
   const loading = !initialItemData && itemLoading && !item;
 
-  // Menggunakan SWR untuk fetch related folders khusus dari uploader yang sama[cite: 15]
   const { data: fetchedRelated } = useSWR(
     item?.id && item?.uploaded_by ? ['related-folders', item.id, item.uploaded_by] : null,
     fetchRelatedFolders,
@@ -281,7 +278,6 @@ export default function PreviewPage({
     const video = e.currentTarget;
     if (video.videoWidth && video.videoHeight) {
       const ratio = video.videoWidth / video.videoHeight;
-      // Rasio 16:9 atau lebih besar dari 1.2 dikategorikan landscape (horizontal)
       if (ratio > 1.2) {
         setIsVideoLandscape(true);
       } else {
@@ -444,15 +440,14 @@ export default function PreviewPage({
         />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          {/* Layout berubah otomatis: jika 16:9 horizontal, grid berubah menjadi 1 kolom penuh (sidebar pindah ke bawah) */}
           <div className={`grid gap-8 items-start ${isVideoLandscape ? 'grid-cols-1 max-w-4xl mx-auto' : 'grid-cols-1 lg:grid-cols-3'}`}>
             
-            {/* Left Column (atau Full Width jika Landscape): Main Card & Comments */}
+            {/* Left Column */}
             <div className={`${isVideoLandscape ? 'w-full' : 'lg:col-span-2'} flex flex-col items-center w-full`}>
               
               <div className={`w-full bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden flex ${isVideoLandscape ? 'flex-col' : 'flex-col md:flex-row'} items-stretch`}>
                 
-                {/* Video Area (Menyesuaikan otomatis jika 16:9 Landscape atau Vertikal TikTok/Vidara Embed) */}
+                {/* Video Area */}
                 <div className={`w-full ${isVideoLandscape ? 'aspect-video w-full' : 'md:w-[310px] lg:w-[330px] aspect-[9/16]'} bg-black relative flex-shrink-0 flex items-center justify-center`}>
                   {isTikTokLink && tikTokEmbedUrl ? (
                     <iframe 
@@ -818,7 +813,7 @@ export default function PreviewPage({
 
             </div>
 
-            {/* Right Column (atau Pindah ke Bawah jika Landscape): Related Folders Sidebar */}
+            {/* Right Column: Related Folders Sidebar (Ukuran folder ikon sedikit diperbesar ke w-12 h-12 sedang) */}
             <div className={`${isVideoLandscape ? 'w-full max-w-4xl mx-auto' : 'lg:col-span-1'} w-full bg-white rounded-[2rem] shadow-xl border border-slate-100 p-6 sticky top-24`}>
               <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center justify-between">
                 <span>More from {item.uploaded_by || 'Creator'}</span>
@@ -827,17 +822,17 @@ export default function PreviewPage({
                 </span>
               </h3>
 
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {relatedFolders.length > 0 ? (
                   relatedFolders.map((folder) => (
                     <div 
                       key={folder.id}
                       onClick={() => handleFolderClick(folder.id)}
-                      className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-all cursor-pointer group"
+                      className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer group"
                     >
-                      <div className="w-10 h-10 flex-shrink-0 relative">
+                      <div className="w-12 h-12 flex-shrink-0 relative">
                         <EmeraldFolderIcon 
-                          className="w-10 h-10 object-contain drop-shadow-sm" 
+                          className="w-12 h-12 object-contain drop-shadow-sm" 
                           country={folder.country} 
                           isExclusive={folder.is_exclusive} 
                           isBanned={folder.is_banned} 
