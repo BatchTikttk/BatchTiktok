@@ -3,13 +3,12 @@ import { supabase } from '../supabase';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { EmeraldFolderIcon } from '../components/SharedIcons';
-import { Trophy, Users, Video, CheckCircle2, XCircle } from 'lucide-react';
+import { Users, Video, CheckCircle2, XCircle, UploadCloud, Crown, Trophy } from 'lucide-react';
 import LoginModal from "../components/LoginModal";
 import PostModal from "../components/PostModal";
 
 const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
 
-// Data Preset Warna & WebM agar kartu menyesuaikan secara dinamis
 const PRESET_BACKGROUNDS = [
   { id: 'lord-hades', name: 'Lord Hades', url: 'https://qu.ax/Kd5um.webm', gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)' },
   { id: 'butterfly-waltz', name: 'Butterfly Waltz', url: 'https://qu.ax/fGDzx.webm', gradient: 'linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.4) 100%)' },
@@ -95,6 +94,157 @@ const BADGES: BadgeItem[] = [
   },
 ];
 
+interface ContributeBannerProps {
+  onOpenUploadModal: () => void;
+}
+
+const ContributeBanner = ({ onOpenUploadModal }: ContributeBannerProps) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const slides = [
+    {
+      title: "Jadilah Kontributor Teratas &",
+      highlight: "Puncaki Leaderboard!",
+      textColor: "text-emerald-400",
+      btnBg: "bg-emerald-500 hover:bg-emerald-400",
+      dotActive: "bg-emerald-400",
+      gradientFrom: "from-emerald-500/15",
+      description: "Bagikan dan unggah koleksi arsip terbaik milikmu sekarang. Kumpulkan poin upload, naikkan level, dan dapatkan Lencana Eksklusif!",
+      visual: (
+        <div className="relative transform scale-[1.35] group-hover:scale-110 transition-transform duration-500">
+          <EmeraldFolderIcon className="w-24 h-24" />
+        </div>
+      )
+    },
+    {
+      title: "Unggah & Bagikan",
+      highlight: "Koleksi Eksklusif",
+      textColor: "text-amber-400",
+      btnBg: "bg-amber-500 hover:bg-amber-400",
+      dotActive: "bg-amber-400",
+      gradientFrom: "from-amber-500/15",
+      description: "Koleksi eksklusif kamu mendapatkan perhatian khusus dan membantu komunitas menemukan arsip berkualitas terbaik.",
+      visual: (
+        <div className="relative transform scale-[1.35] group-hover:scale-110 transition-transform duration-500">
+          <EmeraldFolderIcon className="w-24 h-24" isExclusive={true} />
+          <div className="absolute -top-[14px] -left-[6px] z-20 -rotate-[15deg] pointer-events-none filter drop-shadow-[0_2px_4px_rgba(217,119,6,0.5)]">
+            <Crown size={24} className="text-amber-500 fill-amber-400" strokeWidth={1.5} />
+          </div>
+        </div>
+      )
+    },
+    {
+      title: "Dukung Komunitas",
+      highlight: "Koleksi Adult (+18)",
+      textColor: "text-pink-400",
+      btnBg: "bg-pink-500 hover:bg-pink-400",
+      dotActive: "bg-pink-400",
+      gradientFrom: "from-pink-500/15",
+      description: "Bantu mengkategorikan arsip khusus pengguna dewasa secara terorganisir, rapi, dan mudah diakses.",
+      visual: (
+        <div className="relative transform scale-[1.35] group-hover:scale-110 transition-transform duration-500">
+          <EmeraldFolderIcon className="w-24 h-24" isAdult={true} />
+        </div>
+      )
+    },
+    {
+      title: "Amankan Koleksi Arsip",
+      highlight: "Khusus TikTok Banned",
+      textColor: "text-red-400",
+      btnBg: "bg-red-500 hover:bg-red-400",
+      dotActive: "bg-red-400",
+      gradientFrom: "from-red-500/15",
+      description: "Simpan dan amankan kembali koleksi video atau arsip yang terkena banned dari platform TikTok di sini.",
+      visual: (
+        <div className="relative transform scale-[1.35] group-hover:scale-110 transition-transform duration-500">
+          <EmeraldFolderIcon className="w-24 h-24" isBanned={true} />
+        </div>
+      )
+    }
+  ];
+
+  useEffect(() => {
+    if (isPaused) return;
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [isPaused, slides.length]);
+
+  const activeSlide = slides[currentSlide];
+
+  return (
+    <div 
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      className="relative w-full overflow-hidden bg-slate-900 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border-none flex flex-col md:flex-row items-center justify-between p-8 md:p-10 mb-8 group cursor-default"
+    >
+      <div className={`absolute top-0 right-0 w-full md:w-1/2 h-full bg-gradient-to-l ${activeSlide.gradientFrom} to-transparent pointer-events-none transition-all duration-1000`}></div>
+
+      <div className="relative z-10 w-full md:w-3/5 flex flex-col items-start text-left">
+        <div className="relative w-full min-h-[160px] flex flex-col justify-center mb-6">
+          {slides.map((slide, index) => (
+            <div
+              key={`text-${index}`}
+              className={`transition-all duration-700 ease-in-out ${
+                currentSlide === index 
+                  ? 'opacity-100 translate-y-0 relative z-10 block' 
+                  : 'opacity-0 translate-y-3 absolute inset-0 pointer-events-none hidden'
+              }`}
+            >
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-3 leading-tight tracking-tight">
+                {slide.title} <br />
+                <span className={slide.textColor}>{slide.highlight}</span>
+              </h2>
+
+              <p className="text-slate-300 font-medium max-w-lg text-sm sm:text-base leading-relaxed">
+                {slide.description}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={onOpenUploadModal}
+          className={`flex items-center gap-2 ${activeSlide.btnBg} text-slate-900 px-6 py-3.5 rounded-2xl font-bold transition-all duration-300 shadow-md border-none hover:-translate-y-0.5 cursor-pointer text-sm`}
+        >
+          <UploadCloud size={18} className="text-slate-900" />
+          Mulai Upload Arsip Sekarang
+        </button>
+      </div>
+
+      <div className="relative z-10 w-full md:w-2/5 h-[160px] flex items-center justify-center md:justify-end mt-6 md:mt-0">
+        {slides.map((slide, index) => (
+          <div
+            key={`visual-${index}`}
+            className={`transition-all duration-700 ease-in-out flex items-center justify-center ${
+              currentSlide === index 
+                ? 'opacity-100 scale-100 relative z-10 block' 
+                : 'opacity-0 scale-90 absolute pointer-events-none hidden'
+            }`}
+          >
+            {slide.visual}
+          </div>
+        ))}
+      </div>
+
+      <div className="absolute bottom-4 right-8 md:right-10 flex gap-2 z-20">
+        {slides.map((slide, index) => (
+          <button
+            key={`dot-${index}`}
+            onClick={() => setCurrentSlide(index)}
+            className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+              currentSlide === index ? `w-6 ${slide.dotActive}` : 'w-2 bg-white/20 hover:bg-white/40'
+            }`}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export default function TopContributors() {
   const [loading, setLoading] = useState(true);
   const [contributors, setContributors] = useState<any[]>([]);
@@ -108,7 +258,6 @@ export default function TopContributors() {
     fetchTopContributors();
     checkUser();
 
-    // Handler sinkronisasi real-time saat profil atau window fokus diperbarui
     const handleProfileUpdate = () => {
       checkUser();
       fetchTopContributors();
@@ -171,6 +320,14 @@ export default function TopContributors() {
     if (!username) return;
     window.history.pushState({}, '', `/creator/${username}`);
     window.dispatchEvent(new Event('popstate'));
+  };
+
+  const handleOpenUpload = () => {
+    if (!currentUser) {
+      setShowLoginModal(true);
+    } else {
+      setShowAddModal(true);
+    }
   };
 
   const fetchTopContributors = async () => {
@@ -247,15 +404,14 @@ export default function TopContributors() {
         />
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+          <ContributeBanner onOpenUploadModal={handleOpenUpload} />
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
             <div className="lg:col-span-2 space-y-6">
               <div className="flex items-center gap-2 mb-2">
                 <Users className="text-emerald-500" size={20} />
                 <h2 className="text-lg font-bold text-slate-800 tracking-tight">Contributor Profiles</h2>
-                <span className="ml-auto text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
-                  {contributors.length} Community Members
-                </span>
               </div>
 
               {loading ? (
@@ -346,14 +502,12 @@ export default function TopContributors() {
             <div className="lg:col-span-1">
               <div className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-100 sticky top-8">
                 
-                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-                  <div className="p-2.5 bg-amber-50 text-amber-500 rounded-2xl flex-shrink-0">
-                    <Trophy size={20} />
-                  </div>
-                  <div>
+                <div className="flex flex-col items-center text-center mb-6 pb-4 border-b border-slate-100">
+                  <div className="flex items-center justify-center gap-2">
+                    <Trophy size={20} className="fill-amber-500 text-amber-500 flex-shrink-0" />
                     <h2 className="text-lg font-bold text-slate-800 leading-tight">Leaderboard</h2>
-                    <p className="text-[11px] text-slate-400 font-semibold">Total Videos Uploaded</p>
                   </div>
+                  <p className="text-[11px] text-slate-400 font-semibold mt-1">Total Videos Uploaded</p>
                 </div>
 
                 {!loading && contributors.length > 0 ? (
