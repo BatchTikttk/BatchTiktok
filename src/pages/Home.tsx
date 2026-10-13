@@ -24,6 +24,7 @@ const SORT_OPTIONS = [
   { value: 'largest_size', label: 'Largest Size' },
   { value: 'most_downloaded', label: 'Most Downloaded' },
   { value: 'exclusive', label: 'Exclusive' },
+  { value: 'adult', label: 'Adult (18+)' },
 ];
 
 interface ToastProps {
@@ -331,7 +332,6 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   
-  // State untuk Age Verification Modal
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [pendingBatchItem, setPendingBatchItem] = useState<any>(null);
   
@@ -515,12 +515,13 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
         (batch.uploaded_by && batch.uploaded_by.toLowerCase().includes(searchLower));
         
       const matchesExclusive = sortBy === 'exclusive' ? batch.is_exclusive === true : true;
+      const matchesAdult = sortBy === 'adult' ? batch.is_adult === true : true;
 
-      return matchesCategory && matchesSearch && matchesExclusive;
+      return matchesCategory && matchesSearch && matchesExclusive && matchesAdult;
     });
 
     return list.sort((a: any, b: any) => {
-      if (sortBy === 'latest' || sortBy === 'exclusive') {
+      if (sortBy === 'latest' || sortBy === 'exclusive' || sortBy === 'adult') {
         return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
       }
       if (sortBy === 'oldest') {
@@ -799,7 +800,6 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
 
       <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
       
-      {/* Modal Age Verification */}
       {showAgeModal && (
         <AgeVerification 
           onClose={() => {
