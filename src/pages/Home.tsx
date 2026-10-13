@@ -24,7 +24,7 @@ const SORT_OPTIONS = [
   { value: 'largest_size', label: 'Largest Size' },
   { value: 'most_downloaded', label: 'Most Downloaded' },
   { value: 'exclusive', label: 'Exclusive' },
-  { value: 'adult', label: 'Adult (18+)' },
+  { value: 'adult', label: 'Adult (+18)' },
 ];
 
 interface ToastProps {
@@ -233,7 +233,7 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: CreatorCardProps) =
 
       <div 
         className="relative mb-5 mt-2 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"
-        title={data.is_banned ? "Account Banned" : data.is_exclusive ? "Exclusive Collection" : data.is_adult ? "18+ Adult Collection" : ""}
+        title={data.is_banned ? "Account Banned" : data.is_exclusive ? "Exclusive Collection" : data.is_adult ? "+18 Adult Collection" : ""}
       >
         <EmeraldFolderIcon 
           country={data.country} 
@@ -260,11 +260,6 @@ const CreatorCard = ({ data, onOpenPreview, uploaderCount }: CreatorCardProps) =
         <span className="text-[11px] font-bold tracking-wider text-white bg-emerald-500 px-3 py-1 rounded-full shadow-sm border-none">
           {data.country}
         </span>
-        {data.is_adult && (
-          <span className="text-[11px] font-bold tracking-wider text-white bg-pink-600 px-2.5 py-1 rounded-full shadow-sm border-none" title="18+ Adult Content">
-            18+
-          </span>
-        )}
       </div>
       
       <div className="flex w-full justify-between px-5 py-3.5 bg-slate-50/80 rounded-2xl mb-5 border-none">
