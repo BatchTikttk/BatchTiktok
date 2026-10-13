@@ -156,11 +156,6 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ data, onOpenPreview, creatorB
         <span className="text-[11px] font-bold tracking-wider text-white bg-emerald-500 px-3 py-1 rounded-full shadow-sm border-none">
           {data.country || 'Unknown'}
         </span>
-        {data.is_adult && (
-          <span className="text-[11px] font-bold tracking-wider text-white bg-pink-600 px-2.5 py-1 rounded-full shadow-sm border-none" title="18+ Adult Content">
-            18+
-          </span>
-        )}
       </div>
       
       <div className="flex w-full justify-between px-5 py-3.5 bg-slate-50/80 rounded-2xl mb-5 border-none">
@@ -255,6 +250,9 @@ export default function CreatorPage({
   const [localCurrentUser, setLocalCurrentUser] = useState<any>(null); 
   const [showAgeModal, setShowAgeModal] = useState(false);
   const [pendingBatchItem, setPendingBatchItem] = useState<any>(null);
+  
+  // State untuk Load More (Maksimal 8 folder pertama secara default)
+  const [visibleCount, setVisibleCount] = useState<number>(8);
 
   const currentUser = propCurrentUser !== undefined ? propCurrentUser : localCurrentUser;
 
@@ -269,6 +267,11 @@ export default function CreatorPage({
 
   const creatorProfile = creatorData?.profile || null;
   const batches = creatorData?.batches || [];
+
+  // Reset visibleCount saat username berubah
+  useEffect(() => {
+    setVisibleCount(8);
+  }, [username]);
 
   const defaultHandleLogout = async () => {
     if (propHandleLogout) {
@@ -509,17 +512,31 @@ export default function CreatorPage({
             No collections found for this creator.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {batches.map((batch: BatchItem) => (
-              <CreatorCard 
-                key={batch.id} 
-                data={batch}
-                creatorBadge={highestBadge}
-                isAdmin={!!creatorProfile?.is_admin} 
-                onOpenPreview={handleOpenPreview}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {batches.slice(0, visibleCount).map((batch: BatchItem) => (
+                <CreatorCard 
+                  key={batch.id} 
+                  data={batch}
+                  creatorBadge={highestBadge}
+                  isAdmin={!!creatorProfile?.is_admin} 
+                  onOpenPreview={handleOpenPreview}
+                />
+              ))}
+            </div>
+
+            {visibleCount < batches.length && (
+              <div className="flex justify-center mt-12">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount((prev) => prev + 8)}
+                  className="px-8 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm rounded-2xl transition-all shadow-md cursor-pointer border-none"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
+          </>
         )}
       </main>
 
