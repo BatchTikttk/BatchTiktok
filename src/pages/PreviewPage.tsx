@@ -28,7 +28,7 @@ const PRESET_BACKGROUNDS = [
   { id: 'carberus', name: 'Carberus', url: 'https://qu.ax/Yf3Q0.webm', gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)' }
 ];
 
-// SWR Fetcher untuk Item Utama[cite: 6]
+// SWR Fetcher untuk Item Utama[cite: 6, 15]
 const fetchBatchItem = async (key: string) => {
   const targetId = key.replace('batch_item_', '');
   const decodedTarget = decodeURIComponent(targetId);
@@ -47,7 +47,7 @@ const fetchBatchItem = async (key: string) => {
   return data;
 };
 
-// SWR Fetcher untuk Related Folders berdasarkan uploader yang sama
+// SWR Fetcher untuk Related Folders berdasarkan uploader yang sama[cite: 15]
 const fetchRelatedFolders = async ([_, currentId, uploadedBy]: [string, any, string]) => {
   if (!uploadedBy) return [];
 
@@ -85,6 +85,7 @@ export default function PreviewPage({
   const [isMuted, setIsMuted] = useState<boolean>(true);
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isVideoLandscape, setIsVideoLandscape] = useState<boolean>(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -121,13 +122,13 @@ export default function PreviewPage({
     checkAdminStatus();
   }, [currentUser]);
 
-  // Mendapatkan target ID dari props atau URL[cite: 6]
+  // Mendapatkan target ID dari props atau URL[cite: 6, 15]
   let targetId = itemId || (typeof window !== 'undefined' ? window.location.pathname.split('/preview/')[1] : '');
   if (targetId && targetId.endsWith('/')) {
     targetId = targetId.slice(0, -1);
   }
 
-  // Menggunakan SWR untuk fetch item utama[cite: 6]
+  // Menggunakan SWR untuk fetch item utama[cite: 6, 15]
   const { data: fetchedItem, error: itemError, isLoading: itemLoading } = useSWR(
     initialItemData ? null : (targetId ? `batch_item_${targetId}` : null),
     fetchBatchItem,
@@ -137,7 +138,7 @@ export default function PreviewPage({
   const item = initialItemData || fetchedItem;
   const loading = !initialItemData && itemLoading && !item;
 
-  // Menggunakan SWR untuk fetch related folders khusus dari uploader yang sama
+  // Menggunakan SWR untuk fetch related folders khusus dari uploader yang sama[cite: 15]
   const { data: fetchedRelated } = useSWR(
     item?.id && item?.uploaded_by ? ['related-folders', item.id, item.uploaded_by] : null,
     fetchRelatedFolders,
@@ -276,6 +277,19 @@ export default function PreviewPage({
     }
   };
 
+  const handleVideoLoadedMetadata = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    const video = e.currentTarget;
+    if (video.videoWidth && video.videoHeight) {
+      const ratio = video.videoWidth / video.videoHeight;
+      // Rasio 16:9 atau lebih besar dari 1.2 dikategorikan landscape (horizontal)
+      if (ratio > 1.2) {
+        setIsVideoLandscape(true);
+      } else {
+        setIsVideoLandscape(false);
+      }
+    }
+  };
+
   const handleDownloadClick = async (url: string, id: any) => {
     if (!url) return;
     window.open(url, '_blank');
@@ -346,6 +360,7 @@ export default function PreviewPage({
 
   const videoUrl = item.video_url || MOCK_VIDEO_URL;
   const isTikTokLink = videoUrl.includes("tiktok.com");
+  const isVidaraLink = videoUrl.includes("vidara");
 
   const getTikTokEmbedUrl = (url: string) => {
     try {
@@ -359,7 +374,17 @@ export default function PreviewPage({
     }
   };
 
+  const getVidaraEmbedUrl = (url: string) => {
+    try {
+      if (url.includes('/embed/')) return url;
+      return url;
+    } catch (e) {
+      return url;
+    }
+  };
+
   const tikTokEmbedUrl = isTikTokLink ? getTikTokEmbedUrl(videoUrl) : null;
+  const vidaraEmbedUrl = isVidaraLink ? getVidaraEmbedUrl(videoUrl) : null;
   
   let finalGdriveLink = '';
   let finalTeraboxLink = '';
@@ -419,18 +444,26 @@ export default function PreviewPage({
         />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          {/* Layout berubah otomatis: jika 16:9 horizontal, grid berubah menjadi 1 kolom penuh (sidebar pindah ke bawah) */}
+          <div className={`grid gap-8 items-start ${isVideoLandscape ? 'grid-cols-1 max-w-4xl mx-auto' : 'grid-cols-1 lg:grid-cols-3'}`}>
             
-            {/* Left Column: Main Card & Comments */}
-            <div className="lg:col-span-2 flex flex-col items-center w-full">
+            {/* Left Column (atau Full Width jika Landscape): Main Card & Comments */}
+            <div className={`${isVideoLandscape ? 'w-full' : 'lg:col-span-2'} flex flex-col items-center w-full`}>
               
-              <div className="w-full bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden flex flex-col md:flex-row items-stretch">
+              <div className={`w-full bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden flex ${isVideoLandscape ? 'flex-col' : 'flex-col md:flex-row'} items-stretch`}>
                 
-                {/* Left TikTok Video Area */}
-                <div className="w-full md:w-[310px] lg:w-[330px] aspect-[9/16] bg-black relative flex-shrink-0 flex items-center justify-center">
+                {/* Video Area (Menyesuaikan otomatis jika 16:9 Landscape atau Vertikal TikTok/Vidara Embed) */}
+                <div className={`w-full ${isVideoLandscape ? 'aspect-video w-full' : 'md:w-[310px] lg:w-[330px] aspect-[9/16]'} bg-black relative flex-shrink-0 flex items-center justify-center`}>
                   {isTikTokLink && tikTokEmbedUrl ? (
                     <iframe 
                       src={tikTokEmbedUrl} 
+                      className="absolute inset-0 w-full h-full border-none"
+                      allowFullScreen
+                      allow="encrypted-media"
+                    ></iframe>
+                  ) : isVidaraLink && vidaraEmbedUrl ? (
+                    <iframe 
+                      src={vidaraEmbedUrl} 
                       className="absolute inset-0 w-full h-full border-none"
                       allowFullScreen
                       allow="encrypted-media"
@@ -447,6 +480,7 @@ export default function PreviewPage({
                         loop 
                         muted={isMuted} 
                         playsInline 
+                        onLoadedMetadata={handleVideoLoadedMetadata}
                         className="w-full h-full object-cover" 
                       />
                       
@@ -513,10 +547,15 @@ export default function PreviewPage({
                           )}
                         </h2>
                         
-                        <div className="flex items-center gap-1.5 mt-0.5">
+                        <div className="flex items-center gap-2 mt-1">
                           <span className="text-xs font-semibold text-emerald-600">
                             {item.country} Batch
                           </span>
+                          {item.is_adult && (
+                            <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-md">
+                              18+ Adult
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -779,8 +818,8 @@ export default function PreviewPage({
 
             </div>
 
-            {/* Right Column: Related Folders Sidebar (Filtered by Uploader) */}
-            <div className="lg:col-span-1 w-full bg-white rounded-[2rem] shadow-xl border border-slate-100 p-6 sticky top-24">
+            {/* Right Column (atau Pindah ke Bawah jika Landscape): Related Folders Sidebar */}
+            <div className={`${isVideoLandscape ? 'w-full max-w-4xl mx-auto' : 'lg:col-span-1'} w-full bg-white rounded-[2rem] shadow-xl border border-slate-100 p-6 sticky top-24`}>
               <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center justify-between">
                 <span>More from {item.uploaded_by || 'Creator'}</span>
                 <span className="text-[11px] text-emerald-600 font-semibold">
