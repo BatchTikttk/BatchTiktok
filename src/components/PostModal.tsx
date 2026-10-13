@@ -55,7 +55,6 @@ const PostModal = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 1. VALIDATION: Mandatory Upload Type Selection
     if (!formData.upload_type) {
       showToast("Please select an Upload Type (Regular or Exclusive) before submitting!", "error");
       return;
@@ -66,7 +65,6 @@ const PostModal = ({
     setIsLoading(true);
 
     try {
-      // Get the primary link filled (GDrive or TeraBox)
       const primaryDownloadLink = formData.gdrive_url || formData.terabox_url || "";
 
       const { error } = await supabase.from('batches').insert([
@@ -76,26 +74,21 @@ const PostModal = ({
           video_count: parseInt(formData.video_count) || 0,
           size_file: formData.size_file,
           social_url: formData.social_url,
-          tiktok_url: formData.social_url, // Backward compatibility dengan kolom lama
+          tiktok_url: formData.social_url, 
           video_url: formData.video_url,
-          
-          // Data is spread according to the upload type
           gdrive_url: formData.gdrive_url,
           terabox_url: formData.terabox_url,
           exclusive_url: isExclusive ? primaryDownloadLink : null,
-          
           is_banned: formData.is_banned,
           is_adult: formData.is_adult,
           is_exclusive: isExclusive,
           uploaded_by: currentUser,
-          // Set status: If admin, directly 'approved', if normal user, 'pending'
           status: isAdmin ? 'approved' : 'pending'
         }
       ]);
 
       if (error) throw error;
 
-      // Customized toast notification
       const successMessage = isAdmin 
         ? "Batch successfully submitted and approved!" 
         : "Batch successfully submitted! Awaiting admin approval.";
@@ -152,14 +145,13 @@ const PostModal = ({
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             
-            {/* UPLOAD TYPE CHECKBOXES (MANDATORY SELECTION) */}
+            {/* UPLOAD TYPE CHECKBOXES */}
             <div className="md:col-span-2 bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
               <label className="text-sm font-bold text-slate-700 block mb-2">
                 Upload Type <span className="text-red-500">*</span>
               </label>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Regular Upload Checkbox */}
                 <div 
                   onClick={() => handleSelectType('regular')}
                   className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
@@ -180,7 +172,6 @@ const PostModal = ({
                   </div>
                 </div>
 
-                {/* Exclusive Upload Checkbox */}
                 <div 
                   onClick={() => handleSelectType('exclusive')}
                   className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
@@ -274,9 +265,7 @@ const PostModal = ({
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all disabled:opacity-60 disabled:bg-slate-100" 
               />
               
-              {/* Checkboxes: Banned & 18+ / Adult Post */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
-                {/* Banned Checkbox */}
                 <div className="flex items-start gap-2 p-3 bg-red-50/50 border border-red-100 rounded-xl hover:bg-red-50 transition-colors">
                   <input 
                     type="checkbox" 
@@ -292,7 +281,6 @@ const PostModal = ({
                   </label>
                 </div>
 
-                {/* 18+ / Adult Post Checkbox */}
                 <div className="flex items-start gap-2 p-3 bg-amber-50/50 border border-amber-100 rounded-xl hover:bg-amber-50 transition-colors">
                   <input 
                     type="checkbox" 
@@ -402,4 +390,3 @@ const PostModal = ({
 };
 
 export default PostModal;
-```[cite: 13]
