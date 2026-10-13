@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { User, Mail, Lock, X, Loader2, Folder, Eye, EyeOff, Check } from 'lucide-react';
+import { User, Mail, Lock, X, Loader2, Eye, EyeOff, Check } from 'lucide-react';
 import { supabase } from '../supabase';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { Turnstile } from '@marsidev/react-turnstile';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+const LOGO_TITLE_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Lencana%20BatchTiktok/DutaKlip2.webp";
 
 export default function LoginModalWrapper(props: any) {
   return (
@@ -15,7 +16,7 @@ export default function LoginModalWrapper(props: any) {
   );
 }
 
-function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
+function LoginModal({ onClose, onSuccess, showToast }: any) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
@@ -152,17 +153,12 @@ function LoginModal({ onClose, onSuccess, showToast, EmeraldFolderIcon }: any) {
 
         <div className="p-8 sm:p-10">
           <div className="mb-8 text-center">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="w-10 h-10 flex items-center justify-center">
-                {EmeraldFolderIcon ? (
-                  <EmeraldFolderIcon className="w-8 h-8 drop-shadow-md" />
-                ) : (
-                  <Folder className="w-8 h-8 text-emerald-500 fill-emerald-500 drop-shadow-md" />
-                )}
-              </div>
-              <span className="text-xl font-extrabold text-slate-800 tracking-tight">
-                Batch<span className="text-emerald-500">Tiktok</span>
-              </span>
+            <div className="flex items-center justify-center mb-6">
+              <img 
+                src={LOGO_TITLE_URL} 
+                alt="BatchTiktok Title" 
+                className="h-10 w-auto object-contain drop-shadow-md" 
+              />
             </div>
 
             <h2 className="text-2xl font-black text-slate-800 mb-2 tracking-tight">
