@@ -7,7 +7,6 @@ import {
   Scale, 
   ArrowLeft,
   UserCheck,
-  Cloud,
   BookOpen,
   Award,
   GitMerge,
@@ -71,13 +70,10 @@ const RulesPage = () => {
         socialDesc: "Required field: Provide the creator's social media link (TikTok, Instagram, etc.). If the account is suspended or removed, check the Banned box and this field becomes optional.",
         adultTitle: "18+ / Adult Post Checkbox (Optional)",
         adultDesc: "Optional field: Check the 18+ / Adult Post option if the collection contains mature or adult content. Folders will be automatically styled with a special pink/magenta theme.",
+        previewTitle: "Mandatory Video Preview Link (Vidara, Catbox, or Qu.ax)",
+        previewDesc: "Required field: You must provide a video preview link. Supports Vidara embed, catbox.moe, or qu.ax.",
         hostTitle: "Google Drive & TeraBox Links (Primary Download)",
         hostDesc: "Required field: Provide your primary download links using Google Drive or TeraBox. At least one primary download link must be filled.",
-        mirrorTitle: "Direct Media Preview Hosts (Mirrors)",
-        mirrorDesc: "Optional field: You may use external direct media hosts such as qu.ax or catbox.moe for video streams or gallery previews.",
-        mirrorNote: "Important note for qu.ax: You must append the .mp4 extension to the end of the original link.",
-        previewTitle: "Optional Video Preview Link",
-        previewDesc: "Optional field: If you do not have time to upload a video preview, this section can be left blank.",
         accuracyTitle: "Data Accuracy & Content Policy",
         accuracyDesc: "Ensure Creator Username, Video Count, and File Size match actual content accurately. Content must comply with safety standards."
       },
@@ -147,13 +143,10 @@ const RulesPage = () => {
         socialDesc: "Kolom Wajib (Kecuali Banned): Cantumkan tautan profil media sosial kreator (TikTok, Instagram, dll.). Jika akun ditangguhkan/banned, centang kotak Banned dan kolom ini menjadi opsional.",
         adultTitle: "Kotak Centang 18+ / Adult Post (Opsional)",
         adultDesc: "Kolom Opsional: Centang opsi 18+ jika arsip mengandung konten dewasa. Folder akan otomatis diberi tema warna khusus pink/magenta.",
+        previewTitle: "Wajib Tautan Pratinjau Video (Vidara, Catbox, atau Qu.ax)",
+        previewDesc: "Kolom Wajib: Anda harus menyertakan tautan pratinjau video. Mendukung embed Vidara, catbox.moe, atau qu.ax.",
         hostTitle: "Tautan Google Drive & TeraBox (Unduhan Utama)",
         hostDesc: "Kolom Wajib: Sertakan tautan unduhan utama menggunakan Google Drive atau TeraBox (minimal salah satu terisi).",
-        mirrorTitle: "Penyedia Media Pratinjau (Mirror)",
-        mirrorDesc: "Kolom Opsional: Anda dapat menggunakan penyedia media luar seperti qu.ax atau catbox.moe untuk pratinjau video.",
-        mirrorNote: "Catatan penting untuk qu.ax: Anda wajib menambahkan ekstensi .mp4 di akhir tautan asli.",
-        previewTitle: "Tautan Pratinjau Video (Opsional)",
-        previewDesc: "Kolom Opsional: Jika Anda tidak memiliki video pratinjau, bagian ini dapat dikosongkan.",
         accuracyTitle: "Akurasi Data & Kebijakan Konten",
         accuracyDesc: "Pastikan Username Kreator, Jumlah Video, dan Ukuran File sesuai dengan konten asli serta mematuhi standar keamanan."
       },
@@ -324,6 +317,17 @@ const RulesPage = () => {
                     </div>
                   </div>
 
+                  {/* Video Preview Mandatory */}
+                  <div className="flex gap-5 p-6 rounded-2xl bg-slate-50/80 border-none">
+                    <FileVideo className="text-indigo-500 shrink-0 mt-0.5" size={26} />
+                    <div>
+                      <h3 className="font-bold text-slate-800 text-lg">{content.rules.previewTitle}</h3>
+                      <p className="text-slate-600 mt-2 leading-relaxed font-medium">
+                        {content.rules.previewDesc}
+                      </p>
+                    </div>
+                  </div>
+
                   {/* Google Drive & TeraBox */}
                   <div className="flex gap-5 p-6 rounded-2xl bg-slate-50/80 border-none">
                     <CheckCircle2 className="text-emerald-500 shrink-0 mt-0.5" size={26} />
@@ -331,33 +335,6 @@ const RulesPage = () => {
                       <h3 className="font-bold text-slate-800 text-lg">{content.rules.hostTitle}</h3>
                       <p className="text-slate-600 mt-2 leading-relaxed font-medium">
                         {content.rules.hostDesc}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Mirror Hosts */}
-                  <div className="flex gap-5 p-6 rounded-2xl bg-slate-50/80 border-none">
-                    <Cloud className="text-indigo-400 shrink-0 mt-0.5" size={26} />
-                    <div>
-                      <h3 className="font-bold text-slate-800 text-lg">{content.rules.mirrorTitle}</h3>
-                      <p className="text-slate-600 mt-2 leading-relaxed font-medium">
-                        {content.rules.mirrorDesc}
-                      </p>
-                      <div className="mt-3 p-3 bg-indigo-50/50 rounded-xl border-none">
-                        <p className="text-sm text-indigo-800 font-semibold">
-                          {content.rules.mirrorNote}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Video Preview Link */}
-                  <div className="flex gap-5 p-6 rounded-2xl bg-slate-50/80 border-none">
-                    <FileVideo className="text-slate-400 shrink-0 mt-0.5" size={26} />
-                    <div>
-                      <h3 className="font-bold text-slate-800 text-lg">{content.rules.previewTitle}</h3>
-                      <p className="text-slate-600 mt-2 leading-relaxed font-medium">
-                        {content.rules.previewDesc}
                       </p>
                     </div>
                   </div>
