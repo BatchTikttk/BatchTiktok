@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import useSWR from 'swr';
 import { Cloud, Box, Download, User, Volume2, VolumeX, Crown, Lock, Play } from 'lucide-react';
-import { EmeraldFolderIcon } from '../components/SharedIcons';[cite: 8]
+import { EmeraldFolderIcon } from '../components/SharedIcons';
 import { supabase } from '../supabase';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -28,7 +28,7 @@ const PRESET_BACKGROUNDS = [
   { id: 'carberus', name: 'Carberus', url: 'https://qu.ax/Yf3Q0.webm', gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)' }
 ];
 
-// SWR Fetcher untuk Item Utama[cite: 8]
+// SWR Fetcher untuk Item Utama
 const fetchBatchItem = async (key: string) => {
   const targetId = key.replace('batch_item_', '');
   const decodedTarget = decodeURIComponent(targetId);
@@ -47,7 +47,7 @@ const fetchBatchItem = async (key: string) => {
   return data;
 };
 
-// SWR Fetcher untuk Related Folders berdasarkan uploader yang sama[cite: 8]
+// SWR Fetcher untuk Related Folders berdasarkan uploader yang sama
 const fetchRelatedFolders = async ([_, currentId, uploadedBy]: [string, any, string]) => {
   if (!uploadedBy) return [];
 
