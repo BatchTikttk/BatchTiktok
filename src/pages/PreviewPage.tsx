@@ -5,6 +5,7 @@ import { EmeraldFolderIcon } from '../components/SharedIcons';
 import { supabase } from '../supabase';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import ExoClickBanner from '../components/ExoClickBanner';
 
 // Lazy Load Components
 const LoginModal = lazy(() => import('../components/LoginModal'));
@@ -13,6 +14,9 @@ const Comment = lazy(() => import('../components/Comment'));
 
 const MOCK_VIDEO_URL = "https://www.w3schools.com/html/mov_bbb.mp4";
 const BANNED_LOGO_URL = "https://tqkgconcbawojmejrudz.supabase.co/storage/v1/object/public/Avatar%20Karakter/BannedLogo.webp";
+
+// Konfigurasi ID Iklan ExoClick
+const EXO_BANNER_PREVIEW_ZONE = "6057344"; // Banner Spanduk 720x90
 
 const PRESET_BACKGROUNDS = [
   { id: 'lord-hades', name: 'Lord Hades', url: 'https://qu.ax/Kd5um.webm', gradient: 'linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%)' },
@@ -78,7 +82,6 @@ const renderSocialIcon = (url: string) => {
   }
   const lowerUrl = url.toLowerCase();
 
-  // TikTok
   if (lowerUrl.includes('tiktok.com')) {
     return (
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 448 512" fill="currentColor" className="text-slate-800 group-hover:text-black transition-colors">
@@ -86,7 +89,6 @@ const renderSocialIcon = (url: string) => {
       </svg>
     );
   }
-  // Instagram
   if (lowerUrl.includes('instagram.com')) {
     return (
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-pink-600 group-hover:text-pink-700 transition-colors">
@@ -96,7 +98,6 @@ const renderSocialIcon = (url: string) => {
       </svg>
     );
   }
-  // Twitter / X
   if (lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com')) {
     return (
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-slate-800 group-hover:text-black transition-colors">
@@ -104,7 +105,6 @@ const renderSocialIcon = (url: string) => {
       </svg>
     );
   }
-  // OnlyFans
   if (lowerUrl.includes('onlyfans.com')) {
     return (
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-sky-500 group-hover:text-sky-600 transition-colors">
@@ -112,7 +112,6 @@ const renderSocialIcon = (url: string) => {
       </svg>
     );
   }
-  // Telegram
   if (lowerUrl.includes('t.me') || lowerUrl.includes('telegram')) {
     return (
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-sky-400 group-hover:text-sky-500 transition-colors">
@@ -120,7 +119,6 @@ const renderSocialIcon = (url: string) => {
       </svg>
     );
   }
-  // Tevi
   if (lowerUrl.includes('tevi.')) {
     return (
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-red-500 group-hover:text-red-600 transition-colors">
@@ -128,7 +126,6 @@ const renderSocialIcon = (url: string) => {
       </svg>
     );
   }
-  // Trakteer
   if (lowerUrl.includes('trakteer.id')) {
     return (
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-rose-500 group-hover:text-rose-600 transition-colors">
@@ -142,6 +139,44 @@ const renderSocialIcon = (url: string) => {
     </svg>
   );
 };
+
+// Component Kompatibel VAST ExoClick
+function ExoClickVastZone({ isVideoLandscape }: { isVideoLandscape: boolean }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isVideoLandscape || !containerRef.current) return;
+    const container = containerRef.current;
+    container.innerHTML = '';
+
+    // Provider skrip aman
+    if (!document.getElementById('exoclick-provider-script')) {
+      const scriptProvider = document.createElement('script');
+      scriptProvider.id = 'exoclick-provider-script';
+      scriptProvider.async = true;
+      scriptProvider.src = 'https://a.magsrv.com/ad-provider.js';
+      document.body.appendChild(scriptProvider);
+    }
+
+    const ins = document.createElement('ins');
+    ins.className = 'eas6a97888e2';
+    ins.setAttribute('data-zoneid', '6057346');
+    container.appendChild(ins);
+
+    const scriptServe = document.createElement('script');
+    scriptServe.innerHTML = '(AdProvider = window.AdProvider || []).push({"serve": {}});';
+    container.appendChild(scriptServe);
+  }, [isVideoLandscape]);
+
+  if (isVideoLandscape) return null;
+
+  return (
+    <div 
+      ref={containerRef} 
+      className="absolute inset-0 pointer-events-auto z-10 overflow-hidden flex items-center justify-center" 
+    />
+  );
+}
 
 interface PreviewPageProps {
   itemId?: string;
@@ -557,8 +592,11 @@ export default function PreviewPage({
                         className="w-full h-full object-cover" 
                       />
                       
+                      {/* Pemanggilan VAST ExoClick yang aman secara terisolasi */}
+                      <ExoClickVastZone isVideoLandscape={isVideoLandscape} />
+                      
                       {!isPlaying && (
-                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center backdrop-blur-[2px]">
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center backdrop-blur-[2px] z-20">
                           <div className="p-4 bg-white/20 rounded-full text-white backdrop-blur-md shadow-lg transform group-hover:scale-110 transition-transform">
                             <Play size={28} className="fill-white translate-x-0.5" />
                           </div>
@@ -570,16 +608,16 @@ export default function PreviewPage({
                           e.stopPropagation();
                           setIsMuted(!isMuted);
                         }} 
-                        className="absolute top-3 left-3 z-20 p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-all shadow-sm border-none cursor-pointer"
+                        className="absolute top-3 left-3 z-30 p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-all shadow-sm border-none cursor-pointer"
                       >
                         {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
                       </button>
                     </div>
                   )}
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none z-10"></div>
                   
-                  <div className="absolute bottom-4 left-4 right-4 text-white pointer-events-none">
+                  <div className="absolute bottom-4 left-4 right-4 text-white pointer-events-none z-20">
                     <h4 className="font-bold text-base drop-shadow-md flex items-center gap-2 pointer-events-auto">
                       {item.username}
                     </h4>
@@ -595,7 +633,6 @@ export default function PreviewPage({
                         className="flex-shrink-0 pt-0.5 relative drop-shadow-sm w-12 h-12" 
                         title={item.is_exclusive ? "TikTok Exclusive Collection" : ""}
                       >
-                        {/* Sinkronisasi properti isAdult agar warna folder is_adult sesuai dengan Home */}
                         <EmeraldFolderIcon 
                           className="w-12 h-12 object-contain drop-shadow-sm" 
                           country={item.country} 
@@ -879,9 +916,14 @@ export default function PreviewPage({
                 </div>
               </div>
               
+              {/* Iklan Banner Spanduk ExoClick (720x90) */}
+              <div className="w-full my-6 flex justify-center">
+                <ExoClickBanner zoneId={EXO_BANNER_PREVIEW_ZONE} />
+              </div>
+
               {/* Comment Section */}
               {item?.id && (
-                <div className="w-full mt-8">
+                <div className="w-full mt-2">
                   <Suspense fallback={<div className="h-40 bg-white rounded-[2rem] shadow-sm animate-pulse border border-slate-100 mt-8"></div>}>
                     <Comment 
                       itemId={item.id} 
@@ -912,7 +954,6 @@ export default function PreviewPage({
                       className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer group"
                     >
                       <div className="w-12 h-12 flex-shrink-0 relative">
-                        {/* Sinkronisasi properti isAdult pada daftar folder terkait */}
                         <EmeraldFolderIcon 
                           className="w-12 h-12 object-contain drop-shadow-sm" 
                           country={folder.country} 

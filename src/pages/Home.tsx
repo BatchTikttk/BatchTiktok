@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import useSWR from 'swr';
 import { supabase } from '../supabase';
 import { 
@@ -10,6 +10,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { EmeraldFolderIcon } from "../components/SharedIcons"; 
 import AgeVerification from "../components/AgeVerification";
+import ExoClickBanner from "../components/ExoClickBanner";
 
 // 1. Lazy Load Modals
 const LoginModal = lazy(() => import("../components/LoginModal"));
@@ -717,14 +718,30 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
           <div className="animate-in fade-in duration-500">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {paginatedBatches.length > 0 ? (
-                paginatedBatches.map((batch: any) => (
-                  <CreatorCard 
-                    key={batch.id} 
-                    data={batch} 
-                    onOpenPreview={handleOpenPreview} 
-                    uploaderCount={uploaderCounts[batch.uploaded_by] || 0} 
-                  />
-                ))
+                paginatedBatches.map((batch: any, index: number) => {
+                  const cardElement = (
+                    <CreatorCard 
+                      key={batch.id} 
+                      data={batch} 
+                      onOpenPreview={handleOpenPreview} 
+                      uploaderCount={uploaderCounts[batch.uploaded_by] || 0} 
+                    />
+                  );
+
+                  // Menyisipkan Iklan ExoClick Banner tepat setelah kartu ke-8 (index 7)
+                  if (index === 7) {
+                    return (
+                      <React.Fragment key={`batch-ad-${batch.id}`}>
+                        {cardElement}
+                        <div className="col-span-full my-4 flex justify-center">
+                          <ExoClickBanner />
+                        </div>
+                      </React.Fragment>
+                    );
+                  }
+
+                  return cardElement;
+                })
               ) : (
                 <div className="col-span-full py-20 flex flex-col items-center justify-center text-center">
                   <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6">
