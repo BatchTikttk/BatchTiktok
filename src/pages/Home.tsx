@@ -56,9 +56,10 @@ const Toast = ({ message, isVisible, type = 'success' }: ToastProps) => (
 
 interface PremiumHeroBannerProps {
   onOpenUpgradeModal: () => void;
+  isUserPremium?: boolean;
 }
 
-const PremiumHeroBanner = ({ onOpenUpgradeModal }: PremiumHeroBannerProps) => {
+const PremiumHeroBanner = ({ onOpenUpgradeModal, isUserPremium }: PremiumHeroBannerProps) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const slides = [
@@ -143,13 +144,20 @@ const PremiumHeroBanner = ({ onOpenUpgradeModal }: PremiumHeroBannerProps) => {
             ))}
          </div>
 
-         <button 
-           onClick={onOpenUpgradeModal}
-           className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-900 px-6 py-3.5 rounded-2xl font-bold transition-all shadow-[0_8px_20px_rgba(245,158,11,0.25)] border-none hover:-translate-y-0.5 cursor-pointer"
-         >
-           <Star size={18} className="fill-slate-900" />
-           Upgrade Now for Rp 50,000
-         </button>
+         {isUserPremium ? (
+           <div className="flex items-center gap-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-6 py-3.5 rounded-2xl font-bold backdrop-blur-sm">
+             <CheckCircle2 size={18} className="text-emerald-400" />
+             <span>User Premium Active</span>
+           </div>
+         ) : (
+           <button 
+             onClick={onOpenUpgradeModal}
+             className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-900 px-6 py-3.5 rounded-2xl font-bold transition-all shadow-[0_8px_20px_rgba(245,158,11,0.25)] border-none hover:-translate-y-0.5 cursor-pointer"
+           >
+             <Star size={18} className="fill-slate-900" />
+             Upgrade Now for Rp 50,000
+           </button>
+         )}
       </div>
 
       <div className="relative z-10 w-full md:w-1/2 h-[140px] flex items-center justify-center md:justify-end pr-0 md:pr-4">
@@ -568,9 +576,11 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
         />
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-6 mb-10">
-          {!isUserPremium && (
-            <PremiumHeroBanner onOpenUpgradeModal={() => onOpenUpgradeModal && onOpenUpgradeModal()} />
-          )}
+          {/* Banner selalu dirender untuk mencegah glitch/layout shift, tapi tombol upgrade berubah jadi badge status */}
+          <PremiumHeroBanner 
+            onOpenUpgradeModal={() => onOpenUpgradeModal && onOpenUpgradeModal()} 
+            isUserPremium={isUserPremium} 
+          />
 
           <div className="w-full relative group">
             <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none z-10">
