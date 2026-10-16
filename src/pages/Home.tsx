@@ -3,7 +3,7 @@ import useSWR from 'swr';
 import { supabase } from '../supabase';
 import { 
   Search, CheckCircle2, Play, XCircle, ChevronLeft, ChevronRight, Check,
-  Folder, Film, HardDrive, Users, Crown, Star, ArrowUpDown, ChevronDown
+  Folder, Film, HardDrive, Users, Crown, Star, ArrowUpDown, ChevronDown, Loader2
 } from 'lucide-react';
 
 import Navbar from "../components/Navbar";
@@ -57,9 +57,10 @@ const Toast = ({ message, isVisible, type = 'success' }: ToastProps) => (
 interface PremiumHeroBannerProps {
   onOpenUpgradeModal: () => void;
   isUserPremium?: boolean;
+  isLoadingPremium?: boolean;
 }
 
-const PremiumHeroBanner = ({ onOpenUpgradeModal, isUserPremium }: PremiumHeroBannerProps) => {
+const PremiumHeroBanner = ({ onOpenUpgradeModal, isUserPremium, isLoadingPremium }: PremiumHeroBannerProps) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const slides = [
@@ -144,8 +145,12 @@ const PremiumHeroBanner = ({ onOpenUpgradeModal, isUserPremium }: PremiumHeroBan
             ))}
          </div>
 
-         {/* Tanpa Background Contener, hanya Tulisan dan Logo Ceklis */}
-         {isUserPremium ? (
+         {isLoadingPremium ? (
+           <div className="flex items-center gap-2 text-slate-400 font-medium py-3">
+             <Loader2 size={20} className="animate-spin text-amber-400" />
+             <span>Checking status...</span>
+           </div>
+         ) : isUserPremium ? (
            <div className="flex items-center gap-2 text-emerald-400 font-bold text-lg py-2">
              <CheckCircle2 size={22} className="text-emerald-400" />
              <span>User Premium Active</span>
@@ -332,9 +337,16 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
   const [isSortOpen, setIsSortOpen] = useState(false);
   const sortRef = useRef<HTMLDivElement>(null);
   
-  const [localCurrentUser, setLocalCurrentUser] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [localIsUserPremium, setLocalIsUserPremium] = useState<boolean>(false);
+  const [localCurrentUser, setLocalCurrentUser] = useState<string | null>(() => localStorage.getItem('cached_username'));
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => localStorage.getItem('cached_is_admin') === 'true');
+  
+  // Mengambil state awal dari localStorage agar tidak ada glitch saat pertama render
+  const [localIsUserPremium, setLocalIsUserPremium] = useState<boolean>(() => {
+    return localStorage.getItem('cached_is_premium') === 'true';
+  });
+  const [isLoadingPremium, setIsLoadingPremium] = useState<boolean>(() => {
+    return localStorage.getItem('cached_is_premium') === null;
+  });
   
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -444,12 +456,23 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
         setLocalCurrentUser(data.username);
         setIsAdmin(!!data.is_admin);
         setLocalIsUserPremium(!!data.is_premium);
+
+        // Simpan ke localStorage untuk mencegah glitch di masa mendatang
+        localStorage.setItem('cached_username', data.username);
+        localStorage.setItem('cached_is_admin', data.is_admin ? 'true' : 'false');
+        localStorage.setItem('cached_is_premium', data.is_premium ? 'true' : 'false');
       }
     } else {
       setLocalCurrentUser(null);
       setIsAdmin(false);
       setLocalIsUserPremium(false);
+      
+      // Bersihkan localStorage jika logout
+      localStorage.removeItem('cached_username');
+      localStorage.removeItem('cached_is_admin');
+      localStorage.removeItem('cached_is_premium');
     }
+    setIsLoadingPremium(false);
   };
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
@@ -462,6 +485,11 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
     setLocalCurrentUser(null);
     setIsAdmin(false);
     setLocalIsUserPremium(false);
+    
+    localStorage.removeItem('cached_username');
+    localStorage.removeItem('cached_is_admin');
+    localStorage.removeItem('cached_is_premium');
+
     showToast("You have been logged out.", "info");
   };
 
@@ -579,7 +607,8 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-6 mb-10">
           <PremiumHeroBanner 
             onOpenUpgradeModal={() => onOpenUpgradeModal && onOpenUpgradeModal()} 
-            isUserPremium={isUserPremium} 
+            isUserPremium={isUserPremium}
+            isLoadingPremium={isLoadingPremium}
           />
 
           <div className="w-full relative group">
