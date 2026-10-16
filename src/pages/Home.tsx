@@ -311,7 +311,7 @@ const fetchApprovedBatches = async () => {
   });
 };
 
-export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser }: HomeProps) { 
+export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser, isUserPremium: propIsUserPremium }: HomeProps) { 
   const { data: batches = [], mutate, error: swrError } = useSWR('approved_batches', fetchApprovedBatches, {
     dedupingInterval: 600000, 
     revalidateOnFocus: false,
@@ -325,6 +325,8 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
   
   const [localCurrentUser, setLocalCurrentUser] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [localIsUserPremium, setLocalIsUserPremium] = useState<boolean>(false);
+  
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   
@@ -348,6 +350,7 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
 
   const ITEMS_PER_PAGE = 16;
   const currentUser = propCurrentUser !== undefined ? propCurrentUser : localCurrentUser;
+  const isUserPremium = propIsUserPremium !== undefined ? propIsUserPremium : localIsUserPremium;
 
   const handleOpenPreview = (item: any) => {
     const isVerified = localStorage.getItem('age_verified') === 'true';
@@ -424,17 +427,19 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
     if (session) {
       const { data } = await supabase
         .from('profiles')
-        .select('username, is_admin')
+        .select('username, is_admin, is_premium')
         .eq('id', session.user.id)
         .single();
         
       if (data) {
         setLocalCurrentUser(data.username);
         setIsAdmin(!!data.is_admin);
+        setLocalIsUserPremium(!!data.is_premium);[cite: 10]
       }
     } else {
       setLocalCurrentUser(null);
       setIsAdmin(false);
+      setLocalIsUserPremium(false);
     }
   };
 
@@ -447,6 +452,7 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
     await supabase.auth.signOut();
     setLocalCurrentUser(null);
     setIsAdmin(false);
+    setLocalIsUserPremium(false);
     showToast("You have been logged out.", "info");
   };
 
@@ -562,7 +568,9 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser 
         />
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-6 mb-10">
-          <PremiumHeroBanner onOpenUpgradeModal={() => onOpenUpgradeModal && onOpenUpgradeModal()} />
+          {!isUserPremium && (
+            <PremiumHeroBanner onOpenUpgradeModal={() => onOpenUpgradeModal && onOpenUpgradeModal()} />
+          )}
 
           <div className="w-full relative group">
             <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none z-10">
