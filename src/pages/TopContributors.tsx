@@ -249,7 +249,8 @@ export default function TopContributors() {
   const [loading, setLoading] = useState(true);
   const [contributors, setContributors] = useState<any[]>([]);
   
-  const [currentUser, setCurrentUser] = useState<string | null>(null);
+  // Ambil state awal dari localStorage agar langsung sinkron tanpa glitch
+  const [currentUser, setCurrentUser] = useState<string | null>(() => localStorage.getItem('cached_username'));
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [toastConfig, setToastConfig] = useState<{ message: string; isVisible: boolean; type: 'success' | 'info' | 'error' }>({ message: '', isVisible: false, type: 'success' });
@@ -297,11 +298,21 @@ export default function TopContributors() {
     if (session) {
       const { data } = await supabase
         .from('profiles')
-        .select('username')
+        .select('username, is_admin, is_premium')
         .eq('id', session.user.id)
         .single();
         
-      if (data) setCurrentUser(data.username);
+      if (data) {
+        setCurrentUser(data.username);
+        localStorage.setItem('cached_username', data.username);
+        localStorage.setItem('cached_is_admin', data.is_admin ? 'true' : 'false');
+        localStorage.setItem('cached_is_premium', data.is_premium ? 'true' : 'false');
+      }
+    } else {
+      setCurrentUser(null);
+      localStorage.removeItem('cached_username');
+      localStorage.removeItem('cached_is_admin');
+      localStorage.removeItem('cached_is_premium');
     }
   };
 
@@ -313,6 +324,9 @@ export default function TopContributors() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setCurrentUser(null);
+    localStorage.removeItem('cached_username');
+    localStorage.removeItem('cached_is_admin');
+    localStorage.removeItem('cached_is_premium');
     showToast("You have been logged out.", "info");
   };
 
@@ -388,7 +402,10 @@ export default function TopContributors() {
         <Navbar 
           activeCategory="Top Contributors"
           setActiveCategory={(category: string) => {
-             window.location.href = category === 'Home' ? '/' : `/?category=${category}`;
+             // Menggunakan SPA Router event alih-alih window.location.href agar tidak terjadi full reload/glitch
+             const targetUrl = category === 'Home' ? '/' : `/?category=${category}`;
+             window.history.pushState({}, '', targetUrl);
+             window.dispatchEvent(new Event('popstate'));
           }}
           resetSearch={() => {}}
           CATEGORIES={CATEGORIES}
@@ -684,7 +701,9 @@ export default function TopContributors() {
       </div>
       
       <Footer onSelectCountry={(category: string) => {
-         window.location.href = category === 'Home' ? '/' : `/?category=${category}`;
+         const targetUrl = category === 'Home' ? '/' : `/?category=${category}`;
+         window.history.pushState({}, '', targetUrl);
+         window.dispatchEvent(new Event('popstate'));
       }} />
 
       <Toast message={toastConfig.message} isVisible={toastConfig.isVisible} type={toastConfig.type} />
