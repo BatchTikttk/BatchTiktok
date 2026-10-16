@@ -3,7 +3,7 @@ import useSWR from 'swr';
 import { supabase } from '../supabase';
 import { 
   Search, CheckCircle2, Play, XCircle, ChevronLeft, ChevronRight, Check,
-  Folder, Film, HardDrive, Users, Crown, Star, ArrowUpDown, ChevronDown, Loader2
+  Folder, Film, HardDrive, Users, Crown, Star, ArrowUpDown, ChevronDown
 } from 'lucide-react';
 
 import Navbar from "../components/Navbar";
@@ -57,10 +57,9 @@ const Toast = ({ message, isVisible, type = 'success' }: ToastProps) => (
 interface PremiumHeroBannerProps {
   onOpenUpgradeModal: () => void;
   isUserPremium?: boolean;
-  isLoadingPremium?: boolean;
 }
 
-const PremiumHeroBanner = ({ onOpenUpgradeModal, isUserPremium, isLoadingPremium }: PremiumHeroBannerProps) => {
+const PremiumHeroBanner = ({ onOpenUpgradeModal, isUserPremium }: PremiumHeroBannerProps) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const slides = [
@@ -145,12 +144,8 @@ const PremiumHeroBanner = ({ onOpenUpgradeModal, isUserPremium, isLoadingPremium
             ))}
          </div>
 
-         {isLoadingPremium ? (
-           <div className="flex items-center gap-2 text-slate-400 font-medium py-3">
-             <Loader2 size={20} className="animate-spin text-amber-400" />
-             <span>Checking status...</span>
-           </div>
-         ) : isUserPremium ? (
+         {/* Langsung tampil tanpa loading: Hanya teks & ceklis atau tombol upgrade secara instan */}
+         {isUserPremium ? (
            <div className="flex items-center gap-2 text-emerald-400 font-bold text-lg py-2">
              <CheckCircle2 size={22} className="text-emerald-400" />
              <span>User Premium Active</span>
@@ -340,12 +335,9 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
   const [localCurrentUser, setLocalCurrentUser] = useState<string | null>(() => localStorage.getItem('cached_username'));
   const [isAdmin, setIsAdmin] = useState<boolean>(() => localStorage.getItem('cached_is_admin') === 'true');
   
-  // Mengambil state awal dari localStorage agar tidak ada glitch saat pertama render
+  // Langsung ambil status dari localStorage saat render pertama agar tampil instan tanpa glitch/spinner
   const [localIsUserPremium, setLocalIsUserPremium] = useState<boolean>(() => {
     return localStorage.getItem('cached_is_premium') === 'true';
-  });
-  const [isLoadingPremium, setIsLoadingPremium] = useState<boolean>(() => {
-    return localStorage.getItem('cached_is_premium') === null;
   });
   
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -457,7 +449,7 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
         setIsAdmin(!!data.is_admin);
         setLocalIsUserPremium(!!data.is_premium);
 
-        // Simpan ke localStorage untuk mencegah glitch di masa mendatang
+        // Update cache di localStorage secara senyap di background
         localStorage.setItem('cached_username', data.username);
         localStorage.setItem('cached_is_admin', data.is_admin ? 'true' : 'false');
         localStorage.setItem('cached_is_premium', data.is_premium ? 'true' : 'false');
@@ -467,12 +459,10 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
       setIsAdmin(false);
       setLocalIsUserPremium(false);
       
-      // Bersihkan localStorage jika logout
       localStorage.removeItem('cached_username');
       localStorage.removeItem('cached_is_admin');
       localStorage.removeItem('cached_is_premium');
     }
-    setIsLoadingPremium(false);
   };
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
@@ -608,7 +598,6 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
           <PremiumHeroBanner 
             onOpenUpgradeModal={() => onOpenUpgradeModal && onOpenUpgradeModal()} 
             isUserPremium={isUserPremium}
-            isLoadingPremium={isLoadingPremium}
           />
 
           <div className="w-full relative group">
