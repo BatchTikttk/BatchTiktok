@@ -434,7 +434,7 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
       if (data) {
         setLocalCurrentUser(data.username);
         setIsAdmin(!!data.is_admin);
-        setLocalIsUserPremium(!!data.is_premium);[cite: 10]
+        setLocalIsUserPremium(!!data.is_premium);
       }
     } else {
       setLocalCurrentUser(null);
