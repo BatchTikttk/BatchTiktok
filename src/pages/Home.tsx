@@ -144,9 +144,10 @@ const PremiumHeroBanner = ({ onOpenUpgradeModal, isUserPremium }: PremiumHeroBan
             ))}
          </div>
 
+         {/* Tanpa Background Contener, hanya Tulisan dan Logo Ceklis */}
          {isUserPremium ? (
-           <div className="flex items-center gap-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-6 py-3.5 rounded-2xl font-bold backdrop-blur-sm">
-             <CheckCircle2 size={18} className="text-emerald-400" />
+           <div className="flex items-center gap-2 text-emerald-400 font-bold text-lg py-2">
+             <CheckCircle2 size={22} className="text-emerald-400" />
              <span>User Premium Active</span>
            </div>
          ) : (
@@ -576,7 +577,6 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
         />
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-6 mb-10">
-          {/* Banner selalu dirender untuk mencegah glitch/layout shift, tapi tombol upgrade berubah jadi badge status */}
           <PremiumHeroBanner 
             onOpenUpgradeModal={() => onOpenUpgradeModal && onOpenUpgradeModal()} 
             isUserPremium={isUserPremium} 
