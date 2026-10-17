@@ -194,7 +194,7 @@ export default function PreviewPage({
 }: PreviewPageProps) {
   const [isMuted, setIsMuted] = useState<boolean>(true);
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isAdmin] = useState<boolean>(false); // Diperbaiki: setIsAdmin dihapus karena tidak digunakan
   const [isVideoLandscape, setIsVideoLandscape] = useState<boolean>(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -600,7 +600,6 @@ export default function PreviewPage({
                         className="w-full h-full object-cover" 
                       />
                       
-                      {/* Pemanggilan VAST ExoClick yang aman secara terisolasi */}
                       <ExoClickVastZone isVideoLandscape={isVideoLandscape} />
                       
                       {!isPlaying && (
@@ -623,9 +622,7 @@ export default function PreviewPage({
                     </div>
                   )}
 
-                  {/* Efek Overlay dan Judul */}
                   {isVideoLandscape ? (
-                    // Jika Video Horizontal/Embed Abys.to: Judul diletakkan kecil di Pojok Kanan Atas agar tidak mengganggu kontrol iframe
                     !isAbysLink && (
                       <div className="absolute top-4 right-4 text-white pointer-events-none z-20 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
                         <h4 className="font-bold text-xs drop-shadow-md flex items-center gap-2 pointer-events-auto">
@@ -634,7 +631,6 @@ export default function PreviewPage({
                       </div>
                     )
                   ) : (
-                    // Jika Video Vertikal (Default): Kembali menggunakan tampilan awal (Gradient + Kiri Bawah)
                     <>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none z-10"></div>
                       <div className="absolute bottom-4 left-4 right-4 text-white pointer-events-none z-20">
@@ -646,7 +642,7 @@ export default function PreviewPage({
                   )}
                 </div>
 
-                {/* Info Card Side (Vertikal) atau Bottom (Horizontal) */}
+                {/* Info Card Side */}
                 <div className="flex-1 p-6 sm:p-7 flex flex-col justify-between bg-white overflow-hidden">
                   
                   <div>
@@ -699,7 +695,6 @@ export default function PreviewPage({
                       </div>
                     </div>
 
-                    {/* Section Uploaded By */}
                     <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col items-center justify-center gap-2 text-center w-full">
                       <span className="text-xs font-semibold text-slate-400 italic">
                         Uploaded by
@@ -938,12 +933,10 @@ export default function PreviewPage({
                 </div>
               </div>
               
-              {/* Iklan Banner Spanduk ExoClick (720x90) */}
               <div className="w-full my-6 flex justify-center">
                 <ExoClickBanner zoneId={EXO_BANNER_PREVIEW_ZONE} />
               </div>
 
-              {/* Comment Section */}
               {item?.id && (
                 <div className="w-full mt-2">
                   <Suspense fallback={<div className="h-40 bg-white rounded-[2rem] shadow-sm animate-pulse border border-slate-100 mt-8"></div>}>
@@ -1021,7 +1014,7 @@ export default function PreviewPage({
             onSuccess={() => {}} 
             currentUser={currentUserUsername}
             showToast={() => {}}
-            CATEGORIES={['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam']}
+            CATEGORIES={['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam', 'Japanese']}
             isAdmin={false}
           />
         )}
