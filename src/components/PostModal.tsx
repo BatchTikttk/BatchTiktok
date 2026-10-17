@@ -112,7 +112,7 @@ const PostModal = ({
   onSuccess, 
   currentUser, 
   showToast, 
-  CATEGORIES, 
+  CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam', 'Japanese'], 
   onOpenRules,
   isAdmin = false 
 }: any) => {

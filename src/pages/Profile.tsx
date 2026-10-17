@@ -45,7 +45,7 @@ const AvatarModal = lazy(() => import('../components/Avatar'));
 const CustomBatchRequest = lazy(() => import('../components/CustomBatchRequest'));
 const WebmContribute = lazy(() => import('../components/WebmContribute'));
 
-const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
+const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam', 'Japanese'];
 
 const BADGES = [
   {
