@@ -149,7 +149,6 @@ function ExoClickVastZone({ isVideoLandscape }: { isVideoLandscape: boolean }) {
     const container = containerRef.current;
     container.innerHTML = '';
 
-    // Provider skrip aman
     if (!document.getElementById('exoclick-provider-script')) {
       const scriptProvider = document.createElement('script');
       scriptProvider.id = 'exoclick-provider-script';
@@ -214,25 +213,6 @@ export default function PreviewPage({
     window.scrollTo(0, 0);
   }, []);
 
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', session.user.id)
-          .single();
-        if (data) {
-          setIsAdmin(!!data.is_admin);
-        }
-      } else {
-        setIsAdmin(false);
-      }
-    };
-    checkAdminStatus();
-  }, [currentUser]);
-
   let targetId = itemId || (typeof window !== 'undefined' ? window.location.pathname.split('/preview/')[1] : '');
   if (targetId && targetId.endsWith('/')) {
     targetId = targetId.slice(0, -1);
@@ -246,6 +226,17 @@ export default function PreviewPage({
 
   const item = initialItemData || fetchedItem;
   const loading = !initialItemData && itemLoading && !item;
+
+  useEffect(() => {
+    if (!item || !item.video_url) return;
+    const url = item.video_url.toLowerCase();
+    
+    if (url.includes('abys.to') || url.includes('shadowclips.asia') || url.includes('vidara')) {
+      setIsVideoLandscape(true);
+    } else if (url.includes('tiktok.com')) {
+      setIsVideoLandscape(false);
+    }
+  }, [item]);
 
   const { data: fetchedRelated } = useSWR(
     item?.id && item?.uploaded_by ? ['related-folders', item.id, item.uploaded_by] : null,
@@ -468,6 +459,7 @@ export default function PreviewPage({
   const videoUrl = item.video_url || MOCK_VIDEO_URL;
   const isTikTokLink = videoUrl.includes("tiktok.com");
   const isVidaraLink = videoUrl.includes("vidara");
+  const isAbysLink = videoUrl.includes("abys.to") || videoUrl.includes("shadowclips.asia");
 
   const getTikTokEmbedUrl = (url: string) => {
     try {
@@ -490,8 +482,17 @@ export default function PreviewPage({
     }
   };
 
+  const getAbysEmbedUrl = (url: string) => {
+    try {
+      return url;
+    } catch (e) {
+      return url;
+    }
+  };
+
   const tikTokEmbedUrl = isTikTokLink ? getTikTokEmbedUrl(videoUrl) : null;
   const vidaraEmbedUrl = isVidaraLink ? getVidaraEmbedUrl(videoUrl) : null;
+  const abysEmbedUrl = isAbysLink ? getAbysEmbedUrl(videoUrl) : null;
   
   let finalGdriveLink = '';
   let finalTeraboxLink = '';
@@ -553,10 +554,10 @@ export default function PreviewPage({
         />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className={`grid gap-8 items-start ${isVideoLandscape ? 'grid-cols-1 max-w-4xl mx-auto' : 'grid-cols-1 lg:grid-cols-3'}`}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             
             {/* Left Column */}
-            <div className={`${isVideoLandscape ? 'w-full' : 'lg:col-span-2'} flex flex-col items-center w-full`}>
+            <div className={`${isVideoLandscape ? 'lg:col-span-2 w-full max-w-4xl mx-auto' : 'lg:col-span-2'} flex flex-col items-center w-full`}>
               
               <div className={`w-full bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden flex ${isVideoLandscape ? 'flex-col' : 'flex-col md:flex-row'} items-stretch`}>
                 
@@ -565,16 +566,23 @@ export default function PreviewPage({
                   {isTikTokLink && tikTokEmbedUrl ? (
                     <iframe 
                       src={tikTokEmbedUrl} 
-                      className="absolute inset-0 w-full h-full border-none"
+                      className="absolute inset-0 w-full h-full border-none z-10"
                       allowFullScreen
                       allow="encrypted-media"
                     ></iframe>
                   ) : isVidaraLink && vidaraEmbedUrl ? (
                     <iframe 
                       src={vidaraEmbedUrl} 
-                      className="absolute inset-0 w-full h-full border-none"
+                      className="absolute inset-0 w-full h-full border-none z-10"
                       allowFullScreen
                       allow="encrypted-media"
+                    ></iframe>
+                  ) : isAbysLink && abysEmbedUrl ? (
+                    <iframe 
+                      src={abysEmbedUrl} 
+                      className="absolute inset-0 w-full h-full border-none z-10"
+                      allowFullScreen
+                      allow="encrypted-media; autoplay"
                     ></iframe>
                   ) : (
                     <div 
@@ -615,16 +623,30 @@ export default function PreviewPage({
                     </div>
                   )}
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none z-10"></div>
-                  
-                  <div className="absolute bottom-4 left-4 right-4 text-white pointer-events-none z-20">
-                    <h4 className="font-bold text-base drop-shadow-md flex items-center gap-2 pointer-events-auto">
-                      {item.username}
-                    </h4>
-                  </div>
+                  {/* Efek Overlay dan Judul */}
+                  {isVideoLandscape ? (
+                    // Jika Video Horizontal/Embed Abys.to: Judul diletakkan kecil di Pojok Kanan Atas agar tidak mengganggu kontrol iframe
+                    !isAbysLink && (
+                      <div className="absolute top-4 right-4 text-white pointer-events-none z-20 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
+                        <h4 className="font-bold text-xs drop-shadow-md flex items-center gap-2 pointer-events-auto">
+                          {item.username}
+                        </h4>
+                      </div>
+                    )
+                  ) : (
+                    // Jika Video Vertikal (Default): Kembali menggunakan tampilan awal (Gradient + Kiri Bawah)
+                    <>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none z-10"></div>
+                      <div className="absolute bottom-4 left-4 right-4 text-white pointer-events-none z-20">
+                        <h4 className="font-bold text-base drop-shadow-md flex items-center gap-2 pointer-events-auto">
+                          {item.username}
+                        </h4>
+                      </div>
+                    </>
+                  )}
                 </div>
 
-                {/* Right Side Info */}
+                {/* Info Card Side (Vertikal) atau Bottom (Horizontal) */}
                 <div className="flex-1 p-6 sm:p-7 flex flex-col justify-between bg-white overflow-hidden">
                   
                   <div>
@@ -937,7 +959,7 @@ export default function PreviewPage({
             </div>
 
             {/* Right Column: Related Folders Sidebar */}
-            <div className={`${isVideoLandscape ? 'w-full max-w-4xl mx-auto' : 'lg:col-span-1'} w-full bg-white rounded-[2rem] shadow-xl border border-slate-100 p-6 sticky top-24`}>
+            <div className="lg:col-span-1 w-full bg-white rounded-[2rem] shadow-xl border border-slate-100 p-6 sticky top-24">
               <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center justify-between">
                 <span>More from {item.uploaded_by || 'Creator'}</span>
                 <span className="text-[11px] text-emerald-600 font-semibold">

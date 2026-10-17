@@ -65,6 +65,14 @@ const FooterFlag = ({ country, className = "w-4 h-4" }: { country: string, class
         </>
       );
       break;
+    case 'Japanese':
+      flagContent = (
+        <>
+          <rect x="0" y="0" width="24" height="24" fill="#FFFFFF" />
+          <circle cx="12" cy="12" r="4.5" fill="#EF4444" />
+        </>
+      );
+      break;
     default:
       return <Globe className={className} />;
   }
@@ -88,8 +96,8 @@ interface FooterProps {
 }
 
 export default function Footer({ onSelectCountry }: FooterProps) {
-  // Daftar kategori negara
-  const categories = ['Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
+  // Daftar kategori negara termasuk Japanese
+  const categories = ['Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam', 'Japanese'];
 
   const navigateTo = (path: string) => {
     window.history.pushState({}, '', path);

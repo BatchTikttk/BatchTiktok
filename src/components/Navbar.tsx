@@ -6,7 +6,7 @@ import {
 import { supabase } from '../supabase';
 import AvatarBorderVip from './AvatarBorderVip';
 
-// Komponen helper untuk menampilkan bendera di Navbar[cite: 13]
+// Komponen helper untuk menampilkan bendera di Navbar
 const RegionFlag = ({ country, className = "w-4 h-4" }: { country: string, className?: string }) => {
   const clipId = `nav-flag-${country.toLowerCase().replace(/\s+/g, '-')}`;
   
@@ -59,6 +59,14 @@ const RegionFlag = ({ country, className = "w-4 h-4" }: { country: string, class
         </>
       );
       break;
+    case 'Japanese':
+      flagContent = (
+        <>
+          <rect x="0" y="0" width="24" height="24" fill="#FFFFFF" />
+          <circle cx="12" cy="12" r="4.5" fill="#EF4444" />
+        </>
+      );
+      break;
     default:
       return <Globe className={className} />;
   }
@@ -97,7 +105,7 @@ export default function Navbar({
   activeCategory = 'Home', 
   setActiveCategory, 
   resetSearch,
-  CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'], 
+  CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam', 'Japanese'], 
   currentUser,
   handleLogout, 
   setShowAddModal, 
@@ -239,7 +247,6 @@ export default function Navbar({
     }
   };
 
-  // Memicu CsModal saat diklik tanpa mengubah URL
   const handleGoToCs = () => {
     setIsDropdownOpen(false);
     setIsMobileMenuOpen(false);
@@ -403,7 +410,6 @@ export default function Navbar({
                         <BarChart2 size={18} /> User Profile
                       </button>
 
-                      {/* Customer Service memicu CsModal */}
                       <button
                         onClick={handleGoToCs}
                         className="w-full px-4 py-3.5 flex items-center gap-3 text-sm font-bold text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors text-left border-none bg-transparent cursor-pointer"

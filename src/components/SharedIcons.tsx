@@ -109,6 +109,14 @@ export const EmeraldFolderIcon = ({
           </>
         );
         break;
+      case 'Japanese':
+        flagContent = (
+          <>
+            <rect x="13" y="13" width="10" height="10" fill="#FFFFFF" />
+            <circle cx="18" cy="18" r="2.5" fill="#EF4444" />
+          </>
+        );
+        break;
       default:
         return null;
     }

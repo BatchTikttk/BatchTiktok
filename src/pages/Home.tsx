@@ -16,7 +16,8 @@ import ExoClickBanner from "../components/ExoClickBanner";
 const LoginModal = lazy(() => import("../components/LoginModal"));
 const PostModal = lazy(() => import("../components/PostModal"));
 
-export const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam'];
+// Menambahkan 'Japanese' ke dalam array CATEGORIES
+export const CATEGORIES = ['Home', 'Indonesia', 'Thailand', 'Taiwan', 'Philippines', 'Vietnam', 'Japanese'];
 
 const SORT_OPTIONS = [
   { value: 'latest', label: 'Newest' },
@@ -144,7 +145,6 @@ const PremiumHeroBanner = ({ onOpenUpgradeModal, isUserPremium }: PremiumHeroBan
             ))}
          </div>
 
-         {/* Langsung tampil tanpa loading: Hanya teks & ceklis atau tombol upgrade secara instan */}
          {isUserPremium ? (
            <div className="flex items-center gap-2 text-emerald-400 font-bold text-lg py-2">
              <CheckCircle2 size={22} className="text-emerald-400" />
@@ -335,7 +335,6 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
   const [localCurrentUser, setLocalCurrentUser] = useState<string | null>(() => localStorage.getItem('cached_username'));
   const [isAdmin, setIsAdmin] = useState<boolean>(() => localStorage.getItem('cached_is_admin') === 'true');
   
-  // Langsung ambil status dari localStorage saat render pertama agar tampil instan tanpa glitch/spinner
   const [localIsUserPremium, setLocalIsUserPremium] = useState<boolean>(() => {
     return localStorage.getItem('cached_is_premium') === 'true';
   });
@@ -449,7 +448,6 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
         setIsAdmin(!!data.is_admin);
         setLocalIsUserPremium(!!data.is_premium);
 
-        // Update cache di localStorage secara senyap di background
         localStorage.setItem('cached_username', data.username);
         localStorage.setItem('cached_is_admin', data.is_admin ? 'true' : 'false');
         localStorage.setItem('cached_is_premium', data.is_premium ? 'true' : 'false');
@@ -614,11 +612,9 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
           </div>
         </div>
 
-        {/* Kartu Statistik dengan Warna yang Diserasikan dengan Skema Warna Folder */}
         <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             
-            {/* Total Folders (Warna Emerald / Regular Folder) */}
             <div className="bg-emerald-600 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
               <div className="flex justify-between items-start mb-6">
                 <span className="font-medium text-[13px] tracking-wide text-emerald-50">Total Folders</span>
@@ -635,7 +631,6 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
               </div>
             </div>
 
-            {/* Total Videos (Warna Amber / Exclusive Folder) */}
             <div className="bg-amber-500 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
               <div className="flex justify-between items-start mb-6">
                 <span className="font-medium text-[13px] tracking-wide text-amber-50">Total Videos</span>
@@ -652,7 +647,6 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
               </div>
             </div>
 
-            {/* Total Size (Warna Pink / Adult Folder) */}
             <div className="bg-pink-600 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
               <div className="flex justify-between items-start mb-6">
                 <span className="font-medium text-[13px] tracking-wide text-pink-50">Total Size</span>
@@ -670,7 +664,6 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
               </div>
             </div>
 
-            {/* Total Creators (Warna Red / Banned Folder) */}
             <div className="bg-red-600 rounded-[1.5rem] p-6 text-white shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 duration-300">
               <div className="flex justify-between items-start mb-6">
                 <span className="font-medium text-[13px] tracking-wide text-red-50">Total Creators</span>
@@ -764,7 +757,6 @@ export default function Home({ onOpenUpgradeModal, currentUser: propCurrentUser,
                     />
                   );
 
-                  // Menyisipkan Iklan ExoClick Banner tepat setelah kartu ke-8 (index 7)
                   if (index === 7) {
                     return (
                       <React.Fragment key={`batch-ad-${batch.id}`}>
